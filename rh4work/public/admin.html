@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .role-pill.suspended{ background:rgba(178,58,46,0.12); color:var(--red); font-weight:700; }
+  .role-pill.facilitator{ background:var(--blue-soft); color:var(--blue); font-weight:700; }
+  .admin-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+  .admin-actions button{ white-space:nowrap; }
+  .admin-actions button.danger:hover{ border-color:var(--red); color:var(--red); }
+  .admin-actions button.warn:hover{ border-color:var(--amber); color:var(--amber); }
+  .admin-section-title{ font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:36px 0 4px; }
+  .admin-section-sub{ font-size:13px; color:var(--muted); margin:0 0 16px; }
+  .file-owner{ font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Admin only</div>
+  <h1 class="hub-h1">Users &amp; Access</h1>
+  <p class="hub-sub">Everyone who has registered, with a rough count of saved records per tracker. Promote/demote, pause, message, reset a password, or remove an account below.</p>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="users">Users</button>
+    <button class="admin-tab" data-tab="ranking">Ranking</button>
+  </div>
+
+  <div class="admin-panel active" id="panelUsers">
+    <div class="bulk-bar" id="bulkBar">
+      <span><span class="bulk-count" id="bulkCount">0</span> selected</span>
+      <button data-bulk="pause" class="warn">Pause</button>
+      <button data-bulk="unpause">Unpause</button>
+      <button data-bulk="message">Message</button>
+      <span style="display:flex;align-items:center;gap:6px;">
+        <input type="number" min="0" id="bulkMaxFiles" placeholder="limit">
+        <button data-bulk="max-files">Set file limit</button>
+      </span>
+      <button data-bulk="delete" class="danger">Delete</button>
+      <button data-bulk="clear" style="margin-left:auto;">Clear selection</button>
+    </div>
+
+    <div class="hub-card" style="margin-top:10px; overflow-x:auto;">
+      <table class="admin-table" id="usersTable">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAllUsers"></th>
+            <th>Email</th><th>Name</th><th>Role</th><th>Status</th><th>Joined</th>
+            <th>Matrix</th><th>Reasoning</th><th>Prep30</th><th>File limit</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="usersBody"><tr><td colspan="11" class="mono" style="color:var(--muted);padding:20px;">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="admin-panel" id="panelRanking">
+    <p class="hub-sub" style="margin:14px 0;">Everyone, ranked by total days/questions completed across all three trackers.</p>
+    <div class="hub-card" style="overflow-x:auto;">
+      <table class="admin-table" id="rankingTable">
+        <thead>
+          <tr><th>#</th><th>Email</th><th>Name</th><th>Matrix</th><th>Reasoning</th><th>Prep30</th><th>Total</th></tr>
+        </thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="admin-section-title">All uploaded files</div>
+  <p class="admin-section-sub">Every document any user has uploaded, across My Files and Public Files.</p>
+  <div class="hub-card" style="overflow-x:auto;">
+    <table class="admin-table" id="filesTable">
+      <thead>
+        <tr><th>File</th><th>Owner</th><th>Visibility</th><th>Size</th><th>Uploaded</th><th></th></tr>
+      </thead>
+      <tbody id="filesBody"><tr><td colspan="6" class="mono" style="color:var(--muted);padding:20px;">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(json){ const h = { Authorization: 'Bearer ' + getToken() }; if(json) h['Content-Type'] = 'application/json'; return h; }
+function fmtBytes(n){ if(!n) return '0 B'; const u=['B','KB','MB','GB']; let i=0; while(n>=1024 && i<u.length-1){ n/=1024; i++; } return n.toFixed(i?1:0)+' '+u[i]; }
+
+/* ---------------- users table ---------------- */
+
+async function loadUsers(){
+  const res = await fetch('/api/admin/users', { headers: authHeaders() });
+  const body = document.getElementById('usersBody');
+  if(res.status === 403){
+    body.innerHTML = '<tr><td colspan="11" style="padding:20px;color:var(--red);">Admin access required.</td></tr>';
+    return;
+  }
+  const data = await res.json();
+  if(!data.users || !data.users.length){
+    body.innerHTML = '<tr><td colspan="11" class="mono" style="color:var(--muted);padding:20px;">No users yet.</td></tr>';
+    return;
+  }
+  window.__rhUsers = data.users;
+  body.innerHTML = data.users.map(u => `
+    <tr data-id="${u.id}" data-email="${u.email}">
+      <td><input type="checkbox" class="row-select"></td>
+      <td>${u.email}</td>
+      <td>${u.name || '—'}</td>
+      <td><span class="role-pill ${u.role}">${u.role}</span></td>
+      <td>${u.suspended ? '<span class="role-pill suspended">paused</span>' : '<span class="mono" style="color:var(--muted);">active</span>'}</td>
+      <td class="mono">${(u.created_at||'').slice(0,10)}</td>
+      <td class="mono">${u.activity.matrix || 0}</td>
+      <td class="mono">${u.activity.reasoning || 0}</td>
+      <td class="mono">${u.activity.prep30 || 0}</td>
+      <td><input type="number" min="0" class="max-files-input" data-action="max-files-input" value="${u.max_files}" style="width:52px;padding:4px 6px;border:1.5px solid var(--grid);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12.5px;"></td>
+      <td>
+        <button class="row-actions-toggle" data-action="toggle-row" title="Actions">⋯</button>
+        <div class="admin-actions">
+          <select class="role-select" data-action="role-select" data-current="${u.role}" style="font-family:'Inter',sans-serif;font-size:12px;padding:4px 6px;border:1.5px solid var(--grid);border-radius:6px;">
+            <option value="user" ${u.role === 'user' ? 'selected' : ''}>user</option>
+            <option value="facilitator" ${u.role === 'facilitator' ? 'selected' : ''}>facilitator</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>admin</option>
+          </select>
+          <button data-action="toggle-suspend" data-suspended="${u.suspended}" class="warn">${u.suspended ? 'Unpause' : 'Pause'}</button>
+          <button data-action="save-max-files">Save limit</button>
+          <button data-action="message">Message</button>
+          <button data-action="password">Set password</button>
+          <button data-action="clear-docs" class="warn">Clear progress</button>
+          <button data-action="delete" class="danger">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  document.getElementById('selectAllUsers').checked = false;
+  updateBulkBar();
+  renderRanking();
+}
+
+document.getElementById('usersBody').addEventListener('click', async (e) => {
+  const toggleRowBtn = e.target.closest('button[data-action="toggle-row"]');
+  if(toggleRowBtn){
+    toggleRowBtn.closest('tr').classList.toggle('actions-open');
+    return;
+  }
+  const btn = e.target.closest('button[data-action]');
+  if(!btn) return;
+  const row = btn.closest('tr');
+  const id = row.getAttribute('data-id');
+  const email = row.getAttribute('data-email');
+  const action = btn.getAttribute('data-action');
+
+  if(action === 'toggle-suspend'){
+    const nextSuspended = btn.getAttribute('data-suspended') !== 'true';
+    if(!confirm((nextSuspended ? 'Pause' : 'Unpause') + ' ' + email + '? ' + (nextSuspended ? 'They will still be able to log in and view existing data, but cannot save progress or upload/post files until unpaused.' : ''))) return;
+    btn.disabled = true;
+    const res = await fetch('/api/admin/users/' + id + '/suspend', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ suspended: nextSuspended })
+    });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not update status'); btn.disabled = false; return; }
+    loadUsers();
+
+  } else if(action === 'save-max-files'){
+    const input = row.querySelector('input[data-action="max-files-input"]');
+    const maxFiles = parseInt(input.value, 10);
+    if(!Number.isInteger(maxFiles) || maxFiles < 0){ alert('Enter a whole number, 0 or greater.'); return; }
+    btn.disabled = true;
+    const res = await fetch('/api/admin/users/' + id + '/max-files', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ maxFiles })
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    if(!res.ok){ alert(data.error || 'Could not update file limit'); return; }
+    const original = btn.textContent;
+    btn.textContent = 'Saved!';
+    setTimeout(() => { btn.textContent = original; }, 1200);
+
+  } else if(action === 'message'){
+    const body = prompt('Message to send to ' + email + ':');
+    if(!body || !body.trim()) return;
+    const res = await fetch('/api/admin/users/' + id + '/message', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ body: body.trim() })
+    });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not send message'); return; }
+    alert('Message sent — ' + email + ' will see it as a popup next time they load a page.');
+
+  } else if(action === 'password'){
+    const pw = prompt('New password for ' + email + ' (at least 6 characters):');
+    if(!pw) return;
+    if(pw.length < 6){ alert('Password must be at least 6 characters'); return; }
+    const res = await fetch('/api/admin/users/' + id + '/password', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ newPassword: pw })
+    });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not change password'); return; }
+    alert('Password updated for ' + email + '.');
+
+  } else if(action === 'clear-docs'){
+    if(!confirm("Clear ALL saved tracker progress for " + email + "? This can't be undone.")) return;
+    const res = await fetch('/api/admin/users/' + id + '/documents', { method: 'DELETE', headers: authHeaders() });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not clear progress'); return; }
+    loadUsers();
+
+  } else if(action === 'delete'){
+    if(!confirm('Permanently delete ' + email + '? This removes their account, progress, and uploaded files. This cannot be undone.')) return;
+    const res = await fetch('/api/admin/users/' + id, { method: 'DELETE', headers: authHeaders() });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not delete user'); return; }
+    loadUsers();
+  }
+});
+
+/* ---------------- bulk selection ---------------- */
+
+function getSelectedRows(){
+  return Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.closest('tr'));
+}
+function updateBulkBar(){
+  const rows = getSelectedRows();
+  document.getElementById('bulkCount').textContent = rows.length;
+  document.getElementById('bulkBar').classList.toggle('show', rows.length > 0);
+}
+
+document.getElementById('selectAllUsers').addEventListener('change', (e) => {
+  document.querySelectorAll('.row-select').forEach(cb => { cb.checked = e.target.checked; });
+  updateBulkBar();
+});
+document.getElementById('usersBody').addEventListener('change', async (e) => {
+  if(e.target.classList.contains('row-select')) updateBulkBar();
+  if(e.target.classList.contains('role-select')){
+    const select = e.target;
+    const row = select.closest('tr');
+    const id = row.getAttribute('data-id');
+    const nextRole = select.value;
+    const prevRole = select.getAttribute('data-current');
+    if(nextRole === prevRole) return;
+    select.disabled = true;
+    const res = await fetch('/api/admin/users/' + id + '/role', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ role: nextRole })
+    });
+    const data = await res.json();
+    if(!res.ok){ alert(data.error || 'Could not update role'); select.value = prevRole; select.disabled = false; return; }
+    loadUsers();
+  }
+});
+
+document.getElementById('bulkBar').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-bulk]');
+  if(!btn) return;
+  const action = btn.getAttribute('data-bulk');
+
+  if(action === 'clear'){
+    document.querySelectorAll('.row-select').forEach(cb => { cb.checked = false; });
+    document.getElementById('selectAllUsers').checked = false;
+    updateBulkBar();
+    return;
+  }
+
+  const rows = getSelectedRows();
+  if(!rows.length) return;
+  const ids = rows.map(r => r.getAttribute('data-id'));
+  const emails = rows.map(r => r.getAttribute('data-email'));
+
+  if(action === 'pause' || action === 'unpause'){
+    const suspended = action === 'pause';
+    if(!confirm((suspended ? 'Pause' : 'Unpause') + ' ' + ids.length + ' user(s)?')) return;
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id + '/suspend', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ suspended })
+    })));
+    btn.disabled = false;
+    loadUsers();
+
+  } else if(action === 'delete'){
+    if(!confirm('Permanently delete ' + ids.length + ' user(s) — ' + emails.join(', ') + '? This cannot be undone.')) return;
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id, { method: 'DELETE', headers: authHeaders() })));
+    btn.disabled = false;
+    loadUsers();
+
+  } else if(action === 'message'){
+    const body = prompt('Message to send to all ' + ids.length + ' selected user(s):');
+    if(!body || !body.trim()) return;
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id + '/message', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ body: body.trim() })
+    })));
+    btn.disabled = false;
+    alert('Message sent to ' + ids.length + ' user(s).');
+
+  } else if(action === 'max-files'){
+    const maxFiles = parseInt(document.getElementById('bulkMaxFiles').value, 10);
+    if(!Number.isInteger(maxFiles) || maxFiles < 0){ alert('Enter a whole number, 0 or greater, in the limit box first.'); return; }
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id + '/max-files', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ maxFiles })
+    })));
+    btn.disabled = false;
+    loadUsers();
+  }
+});
+
+/* ---------------- ranking ---------------- */
+
+function renderRanking(){
+  const users = window.__rhUsers || [];
+  const ranked = users
+    .map(u => ({ ...u, total: (u.activity.matrix || 0) + (u.activity.reasoning || 0) + (u.activity.prep30 || 0) }))
+    .sort((a, b) => b.total - a.total);
+  const body = document.getElementById('rankingBody');
+  if(!ranked.length){
+    body.innerHTML = '<tr><td colspan="7" class="mono" style="color:var(--muted);padding:20px;">No users yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = ranked.map((u, i) => `
+    <tr>
+      <td><span class="rank-pill ${i < 3 ? 'top' : ''}">${i + 1}</span></td>
+      <td>${u.email}</td>
+      <td>${u.name || '—'}</td>
+      <td class="mono">${u.activity.matrix || 0}</td>
+      <td class="mono">${u.activity.reasoning || 0}</td>
+      <td class="mono">${u.activity.prep30 || 0}</td>
+      <td class="mono" style="font-weight:700;">${u.total}</td>
+    </tr>
+  `).join('');
+}
+
+/* ---------------- tabs ---------------- */
+
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.getAttribute('data-tab') === 'users' ? 'panelUsers' : 'panelRanking').classList.add('active');
+  });
+});
+
+/* ---------------- all files table ---------------- */
+
+async function loadFiles(){
+  const res = await fetch('/api/admin/files', { headers: authHeaders() });
+  const body = document.getElementById('filesBody');
+  const data = await res.json();
+  if(!data.files || !data.files.length){
+    body.innerHTML = '<tr><td colspan="6" class="mono" style="color:var(--muted);padding:20px;">No files uploaded yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = data.files.map(f => `
+    <tr data-id="${f.id}">
+      <td>${f.original_name}</td>
+      <td class="file-owner">${f.owner_email || 'unknown'}${f.owner_name ? ' ('+f.owner_name+')' : ''}</td>
+      <td><span class="role-pill ${f.is_public ? 'admin' : 'user'}">${f.is_public ? 'public' : 'private'}</span> ${f.is_public && f.access_mode === 'restricted' ? '<span class="protected-tag">protected</span>' : ''}</td>
+      <td class="mono">${fmtBytes(f.size_bytes)}</td>
+      <td class="mono">${(f.created_at||'').slice(0,10)}</td>
+      <td><button data-action="delete-file" class="danger">Delete</button></td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('filesBody').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-action="delete-file"]');
+  if(!btn) return;
+  const row = btn.closest('tr');
+  const id = row.getAttribute('data-id');
+  const name = row.querySelector('td').textContent;
+  if(!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+  const res = await fetch('/api/admin/files/' + id, { method: 'DELETE', headers: authHeaders() });
+  const data = await res.json();
+  if(!res.ok){ alert(data.error || 'Could not delete file'); return; }
+  loadFiles();
+});
+
+(async function init(){
+  const user = await window.HubNav.init('admin', true);
+  if(!user) return;
+  if(user.role !== 'admin'){
+    document.querySelector('.hub-wrap').innerHTML = '<p class="mono" style="padding:40px 0;color:var(--red);">Admin access required.</p>';
+    return;
+  }
+  loadUsers();
+  loadFiles();
+})();
+</script>
+</body>
+</html>

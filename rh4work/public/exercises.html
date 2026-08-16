@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exercises — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .book-picker{ max-width:520px; margin-top:20px; }
+  .book-picker select{
+    width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:var(--paper);
+  }
+  .book-desc{ font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5; }
+  .ex-progress{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted); margin:22px 0 8px; }
+  .ex-card{ max-width:620px; }
+  .ex-question{ font-size:16.5px; color:var(--ink); line-height:1.5; margin-bottom:18px; font-weight:600; }
+  .ex-option{
+    display:block; width:100%; text-align:left; padding:12px 14px; margin-bottom:9px;
+    border:1.5px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink);
+    font-family:'Inter',sans-serif; font-size:14px; cursor:pointer; transition:border-color .12s ease, background .12s ease;
+  }
+  .ex-option:hover:not(:disabled){ border-color:var(--blue); }
+  .ex-option.selected{ border-color:var(--blue); background:var(--blue-soft); }
+  .ex-option:disabled{ cursor:default; }
+  .ex-option.correct{ border-color:var(--result-color,var(--green)); background:color-mix(in srgb, var(--result-color,var(--green)) 14%, transparent); font-weight:600; }
+  .ex-option.wrong{ border-color:var(--red); background:rgba(178,58,46,0.08); }
+  .ex-actions{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .ex-btn{
+    background:var(--ink); color:#fff; border:none; border-radius:8px; padding:10px 20px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer;
+  }
+  .ex-btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .ex-btn.secondary{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+  .ex-feedback{ margin-top:16px; padding:12px 14px; border-radius:10px; font-size:13.5px; line-height:1.6; display:none; }
+  .ex-feedback.correct{ background:rgba(47,111,79,0.08); color:var(--green); display:block; }
+  .ex-feedback.wrong{ background:rgba(178,58,46,0.08); color:var(--red); display:block; }
+  .ex-explanation{ color:var(--graphite); margin-top:6px; font-size:13px; }
+  .ex-reference a{ color:var(--blue); font-size:12.5px; }
+  .empty-state{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding:30px 0; text-align:center; }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Practice</div>
+  <h1 class="hub-h1">Exercises</h1>
+  <p class="hub-sub">Pick a book, work through its questions, and check each answer as you go.</p>
+
+  <div class="hub-card book-picker">
+    <select id="bookSelect"><option value="">Choose a book…</option></select>
+    <div class="book-desc" id="bookDesc"></div>
+  </div>
+
+  <div id="exWrap"></div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/study-helper.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+function esc(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let books = [];
+let questions = [];
+let currentIndex = 0;
+let selectedOptionId = null;
+let checked = false;
+
+async function loadBooks(){
+  const res = await fetch('/api/content/books', { headers: authHeaders() });
+  const data = await res.json();
+  books = data.books || [];
+  const select = document.getElementById('bookSelect');
+  select.innerHTML = '<option value="">Choose a book…</option>' +
+    books.map(b => `<option value="${b.id}">${esc(b.title)}</option>`).join('');
+}
+
+document.getElementById('bookSelect').addEventListener('change', async (e) => {
+  const id = e.target.value;
+  const descEl = document.getElementById('bookDesc');
+  const wrap = document.getElementById('exWrap');
+  if(!id){ descEl.textContent = ''; wrap.innerHTML = ''; return; }
+  const book = books.find(b => String(b.id) === id);
+  descEl.textContent = book ? [book.author, book.description].filter(Boolean).join(' — ') : '';
+
+  wrap.innerHTML = '<div class="empty-state">Loading questions…</div>';
+  const res = await fetch('/api/content/books/' + id + '/questions', { headers: authHeaders() });
+  const data = await res.json();
+  questions = data.questions || [];
+  currentIndex = 0;
+  renderQuestion();
+});
+
+function renderQuestion(){
+  const wrap = document.getElementById('exWrap');
+  if(!questions.length){ wrap.innerHTML = '<div class="hub-card empty-state" style="max-width:620px;margin-top:20px;">No questions in this book yet.</div>'; return; }
+  const q = questions[currentIndex];
+  selectedOptionId = null; checked = false;
+
+  wrap.innerHTML = `
+    <div class="ex-progress">Question ${currentIndex + 1} of ${questions.length}</div>
+    <div class="hub-card ex-card">
+      <div class="ex-question" data-helper-question>${esc(q.question_text)}</div>
+      <div id="optionsMount"></div>
+      <div class="ex-feedback" id="exFeedback"></div>
+      <div class="ex-actions">
+        <button class="ex-btn" id="checkBtn" disabled>Check answer</button>
+        <button class="ex-btn secondary" id="nextBtn" style="display:none;">Next question →</button>
+      </div>
+    </div>
+  `;
+
+  const optionsMount = document.getElementById('optionsMount');
+  optionsMount.innerHTML = q.options.map(o => `
+    <button class="ex-option" data-opt="${esc(o.id)}" data-helper-option>${esc(o.text)}</button>
+  `).join('');
+
+  optionsMount.querySelectorAll('.ex-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(checked) return;
+      optionsMount.querySelectorAll('.ex-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedOptionId = btn.dataset.opt;
+      document.getElementById('checkBtn').disabled = false;
+    });
+  });
+
+  document.getElementById('checkBtn').addEventListener('click', async () => {
+    if(!selectedOptionId || checked) return;
+    const btn = document.getElementById('checkBtn');
+    btn.disabled = true; btn.textContent = 'Checking…';
+    try{
+      const res = await fetch('/api/content/questions/' + q.id + '/check', {
+        method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ optionId: selectedOptionId })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Could not check answer');
+      checked = true;
+
+      document.documentElement.style.setProperty('--result-color', data.color || '#2F6F4F');
+      optionsMount.querySelectorAll('.ex-option').forEach(b => {
+        b.disabled = true;
+        if(b.dataset.opt === data.correctOptionId) b.classList.add('correct');
+        else if(b.dataset.opt === selectedOptionId) b.classList.add('wrong');
+      });
+
+      const feedback = document.getElementById('exFeedback');
+      feedback.className = 'ex-feedback ' + (data.correct ? 'correct' : 'wrong');
+      feedback.innerHTML =
+        (data.correct ? '✓ Correct.' : '✕ Not quite.') +
+        (data.explanation ? `<div class="ex-explanation">${esc(data.explanation)}</div>` : '') +
+        (data.reference ? `<div class="ex-reference"><a href="${esc(data.reference)}" target="_blank" rel="noopener">Reference ↗</a></div>` : '');
+
+      btn.style.display = 'none';
+      if(currentIndex < questions.length - 1){
+        document.getElementById('nextBtn').style.display = 'inline-block';
+      }
+    }catch(err){
+      btn.disabled = false; btn.textContent = 'Check answer';
+      alert(err.message);
+    }
+  });
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    currentIndex++;
+    renderQuestion();
+  });
+}
+
+(async function init(){
+  const user = await window.HubNav.init('exercises', true);
+  if(!user) return;
+  window.StudyHelper.init();
+  loadBooks();
+})();
+</script>
+</body>
+</html>

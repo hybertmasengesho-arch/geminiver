@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>20-Day Matrix Accuracy Tracker</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root{
+    --paper:#F6F5F1; --grid:rgba(30,42,74,0.09); --ink:#1E2A4A; --graphite:#4A4A45;
+    --muted:#8A8880; --green:#2F6F4F; --green-soft:rgba(47,111,79,0.08);
+    --amber:#C08A2E; --red:#B23A2E; --panel:#FFFFFF; --line:#DAD7CE;
+  }
+  html[data-theme="dark"]{
+    --paper:#14161C; --grid:rgba(255,255,255,0.07); --ink:#EDEFF3; --graphite:#C7C9D1;
+    --muted:#8A8FA3; --green:#4EA57A; --green-soft:rgba(78,165,122,0.12);
+    --amber:#D9A448; --red:#E0685C; --panel:#1D2028; --line:#30333D;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Inter',sans-serif; background:var(--paper); color:var(--graphite);
+    background-image:
+      repeating-linear-gradient(0deg, var(--grid) 0px, var(--grid) 1px, transparent 1px, transparent 28px),
+      repeating-linear-gradient(90deg, var(--grid) 0px, var(--grid) 1px, transparent 1px, transparent 28px);
+  }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+  .serif{ font-family:'Newsreader',serif; }
+
+  .wrap{ max-width:980px; margin:0 auto; padding:32px 20px 60px 40px; position:relative; }
+  .margin-rule{ position:absolute; left:26px; top:0; bottom:0; width:2px; background:#C1544A; opacity:0.35; }
+  .eyebrow{ font-size:11px; letter-spacing:0.12em; color:var(--red); font-weight:700; margin-bottom:6px; text-transform:uppercase; }
+  h1.pagetitle{ font-size:34px; font-style:italic; color:var(--ink); margin:0; line-height:1.15; font-weight:600; }
+  .subtitle{ color:var(--graphite); font-size:14px; margin-top:8px; max-width:600px; line-height:1.55; }
+
+  .cta-row{ display:flex; align-items:center; gap:14px; margin:20px 0 8px; flex-wrap:wrap; }
+  .cta-btn{ background:var(--ink); color:var(--paper); border:none; padding:14px 26px; border-radius:8px; font-family:'Inter',sans-serif; font-size:15px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 0 rgba(30,42,74,0.15); }
+  .cta-btn:hover{ opacity:0.9; }
+  .cta-btn .arrow{ font-family:'Newsreader',serif; font-style:italic; }
+  .cta-sub{ font-size:12.5px; color:var(--muted); }
+
+  .stats-row{ display:flex; gap:12px; flex-wrap:wrap; margin:24px 0 28px; align-items:center; }
+  .stat-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:10px; padding:12px 16px; min-width:140px; box-shadow:0 1px 0 rgba(30,42,74,0.04); }
+  .stat-label{ display:flex; align-items:center; gap:6px; color:var(--muted); font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; }
+  .stat-value{ font-size:22px; font-weight:700; color:var(--ink); margin-top:2px; }
+  .reset-btn{ margin-left:auto; display:flex; align-items:center; gap:6px; background:transparent; border:1.5px solid var(--grid); border-radius:10px; padding:9px 14px; color:var(--muted); font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .reset-btn:hover{ border-color:var(--red); color:var(--red); }
+
+  .chart-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; padding:18px; margin-bottom:28px; display:none; }
+  .chart-card.visible{ display:block; }
+  .chart-title{ font-size:11px; color:var(--muted); font-weight:600; margin-bottom:8px; letter-spacing:0.04em; }
+
+  .table-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; overflow:hidden; }
+  .table-header{ display:grid; grid-template-columns:36px 1.7fr 1.1fr 60px 64px 1.4fr 84px; gap:8px; padding:10px 16px; border-bottom:1.5px solid var(--grid); font-size:10.5px; font-weight:700; letter-spacing:0.05em; color:var(--muted); text-transform:uppercase; }
+  .row{ display:grid; grid-template-columns:36px 1.7fr 1.1fr 60px 64px 1.4fr 84px; gap:8px; align-items:center; padding:9px 16px; border-bottom:1px solid var(--grid); }
+  .row:hover{ background:rgba(30,42,74,0.03); }
+  .row.active{ background:var(--green-soft); }
+  .day-num{ font-size:13px; font-weight:700; color:var(--ink); }
+  .focus-cell{ font-size:13px; color:var(--ink); }
+  .technique-cell{ font-size:11.5px; color:var(--muted); }
+  .target-cell{ font-size:12px; color:var(--muted); }
+  .score-cell{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; color:var(--ink); text-align:center; }
+  .score-cell.empty{ color:var(--muted); font-weight:400; }
+  .notes-input{ width:100%; border:1.5px solid transparent; border-bottom:1.5px dashed var(--grid); padding:3px 2px; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--graphite); background:transparent; }
+  .notes-input:focus{ outline:none; border-bottom-color:var(--ink); }
+  .day-action{ font-size:11.5px; font-weight:600; padding:6px 10px; border-radius:6px; border:1.5px solid var(--grid); background:var(--panel); cursor:pointer; color:var(--ink); font-family:'Inter',sans-serif; white-space:nowrap; }
+  .day-action:hover{ border-color:var(--ink); }
+  .day-action.locked{ color:var(--muted); cursor:not-allowed; }
+  .day-action.locked:hover{ border-color:var(--grid); }
+  .day-action.review{ border-color:var(--green); color:var(--green); }
+
+  .footer-row{ margin-top:14px; font-size:11.5px; color:var(--muted); display:flex; justify-content:space-between; }
+  .today-banner{ display:flex; align-items:center; gap:10px; background:var(--panel); border:1.5px solid var(--grid); border-left:3px solid var(--red); border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13px; color:var(--ink); }
+  .today-banner .mono{ color:var(--muted); font-size:11.5px; }
+
+  #day-view{ display:none; }
+  .back-link{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); cursor:pointer; margin-bottom:14px; font-family:'JetBrains Mono',monospace; background:none; border:none; padding:0; }
+  .back-link:hover{ color:var(--ink); }
+
+  .brief{ background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--green); border-radius:6px; padding:18px 20px; margin-bottom:28px; }
+  .brief h2{ font-family:'Newsreader',serif; font-size:17px; margin:0 0 8px; color:var(--ink); font-weight:600; }
+  .brief p{ font-size:14px; line-height:1.6; color:var(--graphite); margin:0 0 8px; }
+  .brief p:last-child{ margin-bottom:0; }
+
+  .score-bar{ position:sticky; top:52px; z-index:5; background:rgba(246,245,241,0.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--line); padding:10px 0; margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono',monospace; font-size:13px; }
+  #scoreText{ font-weight:700; color:var(--ink); }
+
+  .task{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px 24px; margin-bottom:18px; position:relative; }
+  .task-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
+  .task-num{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--green); letter-spacing:0.08em; }
+  .task-title{ font-family:'Newsreader',serif; font-size:17px; font-weight:600; color:var(--ink); }
+  .task-desc{ font-size:14px; color:var(--graphite); margin-bottom:16px; line-height:1.55; }
+
+  .matrix-row{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:14px; }
+  .matrix{ display:inline-flex; align-items:stretch; }
+  .bracket{ width:8px; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); }
+  .bracket.left{ border-left:2px solid var(--ink); }
+  .bracket.right{ border-right:2px solid var(--ink); }
+  .grid-body{ display:grid; gap:6px 14px; padding:8px 10px; }
+  .cell{ font-family:'JetBrains Mono',monospace; font-size:15px; text-align:center; min-width:26px; color:var(--ink); }
+  .cell.input{ width:46px; padding:4px 2px; border:1px solid var(--line); border-radius:4px; text-align:center; font-family:'JetBrains Mono',monospace; font-size:15px; background:var(--paper); color:var(--ink); }
+  .cell.input:focus{ outline:none; border-color:var(--green); box-shadow:0 0 0 2px rgba(47,111,79,0.15); }
+  .op{ font-family:'Newsreader',serif; font-size:20px; color:var(--graphite); }
+  .plain-input{ width:110px; padding:8px 10px; border:1px solid var(--line); border-radius:5px; font-family:'JetBrains Mono',monospace; font-size:14px; background:var(--paper); color:var(--ink); }
+  .plain-input:focus{ outline:none; border-color:var(--green); }
+
+  .task-foot{ display:flex; align-items:center; gap:12px; margin-top:14px; }
+  button.check{ background:var(--ink); color:var(--paper); border:none; padding:9px 18px; border-radius:5px; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:opacity .15s ease; }
+  button.check:hover{ opacity:0.85; }
+  button.check:disabled{ opacity:0.4; cursor:not-allowed; }
+  .feedback{ font-family:'JetBrains Mono',monospace; font-size:13px; display:none; }
+  .feedback.correct{ color:var(--green); display:block; }
+  .feedback.wrong{ color:var(--red); display:block; }
+  .task.solved{ border-color:var(--green); }
+  .task.failed-once{ border-color:rgba(178,58,46,0.4); }
+  .hint{ font-size:12.5px; color:var(--graphite); margin-top:8px; display:none; border-top:1px dashed var(--line); padding-top:8px; }
+
+  #summary{ background:var(--ink); color:var(--paper); border-radius:10px; padding:26px 24px; display:none; text-align:center; margin-top:8px; }
+  #summary.show{ display:block; }
+  #summary h3{ font-family:'Newsreader',serif; font-size:20px; margin:0 0 6px; font-style:italic; }
+  #summary p{ font-size:14px; color:#C9CFE0; margin:0 0 4px; }
+  #accuracyBig{ font-family:'JetBrains Mono',monospace; font-size:40px; font-weight:700; margin:10px 0; }
+  #summary .back-link{ color:#C9CFE0; margin-top:14px; margin-bottom:0; justify-content:center; width:100%; }
+  #summary .back-link:hover{ color:#fff; }
+
+  .json-modal{ position:fixed; inset:0; background:rgba(30,42,74,0.45); z-index:50; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .json-modal-inner{ background:var(--panel); border-radius:12px; max-width:640px; width:100%; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 12px 40px rgba(30,42,74,0.25); overflow:hidden; }
+  .json-modal-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1.5px solid var(--grid); flex-shrink:0; }
+  .json-modal-head span{ font-size:11px; letter-spacing:0.08em; color:var(--muted); font-weight:700; }
+  #json-close{ background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer; line-height:1; padding:0 4px; }
+  #json-close:hover{ color:var(--red); }
+  .json-pre{ margin:0; padding:16px 18px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink); overflow:auto; white-space:pre-wrap; word-break:break-word; max-height:220px; }
+  .json-modal-foot{ display:flex; gap:10px; padding:14px 18px; border-top:1.5px solid var(--grid); flex-shrink:0; }
+  .json-empty{ color:var(--muted); font-style:italic; }
+  .json-import{ padding:14px 18px; border-top:1.5px solid var(--grid); background:rgba(30,42,74,0.02); overflow:auto; }
+  .json-import-label{ font-size:11px; letter-spacing:0.06em; color:var(--muted); font-weight:700; text-transform:uppercase; margin-bottom:8px; }
+  .json-import-textarea{ width:100%; min-height:70px; border:1.5px solid var(--grid); border-radius:6px; padding:8px 10px; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink); resize:vertical; background:var(--panel); }
+  .json-import-textarea:focus{ outline:none; border-color:var(--green); }
+  .json-import-row{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .json-import-status{ margin-top:8px; font-size:12.5px; font-family:'JetBrains Mono',monospace; }
+  .json-import-status.ok{ color:var(--green); }
+  .json-import-status.err{ color:var(--red); }
+
+  @media (max-width:640px){
+    .table-header, .row{ grid-template-columns:28px 1.4fr 44px 60px; }
+    .technique-cell, .target-cell{ display:none; }
+    .wrap{ padding-left:24px; }
+    .margin-rule{ left:12px; }
+  }
+  @media (max-width:480px){
+    .matrix-row{ gap:10px; }
+    .cell.input{ width:38px; font-size:13px; }
+  }
+
+  @keyframes fadeSlideUp{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
+  @keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes popIn{ 0%{ transform:scale(0.9); opacity:0; } 60%{ transform:scale(1.04); opacity:1; } 100%{ transform:scale(1); } }
+  @keyframes shake{
+    10%,90%{ transform:translateX(-1px); }
+    20%,80%{ transform:translateX(2px); }
+    30%,50%,70%{ transform:translateX(-4px); }
+    40%,60%{ transform:translateX(4px); }
+  }
+  @keyframes checkPulse{
+    0%{ box-shadow:0 0 0 0 rgba(47,111,79,0.35); }
+    70%{ box-shadow:0 0 0 10px rgba(47,111,79,0); }
+    100%{ box-shadow:0 0 0 0 rgba(47,111,79,0); }
+  }
+  @keyframes wrongFlash{
+    0%{ background:rgba(178,58,46,0.10); }
+    100%{ background:transparent; }
+  }
+  @keyframes drawLine{ from{ stroke-dashoffset:1000; } to{ stroke-dashoffset:0; } }
+  @keyframes countUp{ from{ opacity:0; transform:translateY(6px) scale(0.95); } to{ opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes confettiFall{
+    0%{ transform:translateY(-20px) rotate(0deg); opacity:1; }
+    100%{ transform:translateY(140px) rotate(360deg); opacity:0; }
+  }
+
+  body{ animation:fadeIn 0.4s ease; }
+  #home-view.wrap, #day-view.wrap{ animation:fadeSlideUp 0.35s ease; }
+
+  .cta-btn, .day-action, .reset-btn, button.check, .back-link{ transition:transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease; }
+  .cta-btn:hover{ transform:translateY(-2px); box-shadow:0 4px 10px rgba(30,42,74,0.2); }
+  .cta-btn:active{ transform:translateY(0px) scale(0.98); }
+  .day-action:hover{ transform:translateY(-1px); }
+  .day-action:active{ transform:scale(0.96); }
+  button.check:hover:not(:disabled){ transform:translateY(-1px); }
+  button.check:active:not(:disabled){ transform:scale(0.97); }
+  .back-link{ transition:color 0.15s ease, transform 0.15s ease; }
+  .back-link:hover{ transform:translateX(-3px); }
+
+  .stat-card{ transition:transform 0.2s ease, box-shadow 0.2s ease; }
+  .stat-card:hover{ transform:translateY(-2px); box-shadow:0 4px 12px rgba(30,42,74,0.08); }
+  .stat-value.bump{ animation:countUp 0.35s ease; }
+
+  .row{ animation:fadeSlideUp 0.3s ease backwards; }
+  .table-card .row:nth-child(1){ animation-delay:0.02s; }
+  .table-card .row:nth-child(2){ animation-delay:0.04s; }
+  .table-card .row:nth-child(3){ animation-delay:0.06s; }
+  .table-card .row:nth-child(4){ animation-delay:0.08s; }
+  .table-card .row:nth-child(5){ animation-delay:0.10s; }
+  .table-card .row:nth-child(n+6){ animation-delay:0.12s; }
+  .row.active{ animation:fadeSlideUp 0.3s ease backwards, checkPulse 1s ease-out 0.3s; }
+
+  .task{ animation:fadeSlideUp 0.35s ease backwards; transition:border-color 0.25s ease, box-shadow 0.25s ease; }
+  .task:nth-child(1){ animation-delay:0.03s; } .task:nth-child(2){ animation-delay:0.08s; }
+  .task:nth-child(3){ animation-delay:0.13s; } .task:nth-child(4){ animation-delay:0.18s; }
+  .task:nth-child(5){ animation-delay:0.23s; } .task:nth-child(6){ animation-delay:0.28s; }
+  .task:nth-child(7){ animation-delay:0.33s; }
+  .task.solved{ animation:checkPulse 0.8s ease-out; box-shadow:0 0 0 1px rgba(47,111,79,0.15); }
+  .task.just-wrong{ animation:shake 0.4s ease, wrongFlash 0.8s ease; }
+
+  .cell.input, .plain-input{ transition:border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease; }
+  .cell.input:focus, .plain-input:focus{ transform:scale(1.04); }
+  .task.solved .cell.input, .task.solved .plain-input{ border-color:var(--green); color:var(--green); font-weight:600; }
+
+  .feedback{ animation:popIn 0.3s ease; }
+  .hint{ animation:fadeSlideUp 0.25s ease; }
+
+  #progressCount.bump{ animation:popIn 0.3s ease; }
+
+  #summary{ animation:popIn 0.4s ease; }
+  #accuracyBig{ animation:countUp 0.5s ease 0.15s backwards; }
+
+  .chart-card.visible path{ stroke-dasharray:1000; stroke-dashoffset:1000; animation:drawLine 1s ease forwards; }
+  .chart-card.visible circle{ opacity:0; animation:fadeIn 0.4s ease forwards; animation-delay:0.9s; }
+
+  .json-modal{ animation:fadeIn 0.2s ease; }
+  .json-modal-inner{ animation:popIn 0.25s ease; }
+
+  .confetti-piece{ position:absolute; top:0; width:6px; height:6px; border-radius:1px; animation:confettiFall 1.1s ease-in forwards; pointer-events:none; }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+<div id="siteNav"></div>
+
+<div id="home-view" class="wrap">
+  <div class="margin-rule"></div>
+
+  <div class="eyebrow">Precision Training Log — Linear Algebra</div>
+  <h1 class="pagetitle serif">20-Day Matrix Accuracy</h1>
+  <p class="subtitle">One matrix topic a day, one technique to apply, one score to log — pitched at first-year college difficulty throughout. Saved to your account.</p>
+
+  <div class="cta-row">
+    <button class="cta-btn" id="cta-btn"><span class="arrow">▶</span> <span id="cta-text">Start Day 1 — Matrix Foundations</span></button>
+    <span class="cta-sub" id="cta-sub-text">7 questions · ~10 minutes</span>
+  </div>
+
+  <div class="today-banner" id="today-banner" style="display:none;">
+    <span class="mono">STATUS</span>
+    <span id="today-focus"><strong>—</strong></span>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Days logged</div><div class="stat-value mono" id="stat-days">0/20</div></div>
+    <div class="stat-card"><div class="stat-label">Average accuracy</div><div class="stat-value mono" id="stat-avg">—</div></div>
+    <div class="stat-card"><div class="stat-label">Best score</div><div class="stat-value mono" id="stat-best">—</div></div>
+    <button class="reset-btn" id="view-json-btn">{ } View JSON data</button>
+    <button class="reset-btn" id="reset-btn">↺ Reset all progress</button>
+  </div>
+
+  <div class="chart-card" id="chart-card">
+    <div class="chart-title">ACCURACY TREND</div>
+    <svg id="chart-svg" width="100%" height="140" viewBox="0 0 900 140" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header"><div>Day</div><div>Focus</div><div>Technique</div><div>Target</div><div>Score</div><div>Notes</div><div></div></div>
+    <div id="table-body"></div>
+  </div>
+
+  <div class="footer-row">
+    <span id="save-state">Scores save automatically to your account.</span>
+    <span class="mono" id="built-status">DAYS 1-2 OF 20 BUILT · REST UNLOCK AS WE GO</span>
+  </div>
+</div>
+
+<div id="day-view" class="wrap">
+  <div class="margin-rule"></div>
+  <button class="back-link" id="back-link-top">← Back to dashboard</button>
+
+  <div class="eyebrow" id="day-eyebrow">Day N of 20</div>
+  <h1 class="pagetitle serif" id="day-title">Title</h1>
+  <p class="subtitle" id="day-subtitle">Subtitle</p>
+
+  <div class="brief">
+    <h2>Today's briefing</h2>
+    <p id="brief-why"><strong>Why this matters:</strong> …</p>
+    <p id="brief-how"><strong>How to work each task:</strong> …</p>
+  </div>
+
+  <div class="score-bar">
+    <span>PROGRESS: <span id="progressCount">0/7</span></span>
+    <span id="scoreText">ACCURACY: —</span>
+  </div>
+
+  <div id="tasks"></div>
+
+  <div id="summary">
+    <h3 id="summary-title">Day complete</h3>
+    <div id="accuracyBig">0%</div>
+    <p id="summaryDetail"></p>
+    <p id="summary-next" style="margin-top:10px;color:#8B93A8;"></p>
+    <button class="back-link" id="back-link-bottom">← Back to dashboard</button>
+  </div>
+</div>
+
+<div id="json-modal" class="json-modal" style="display:none;">
+  <div class="json-modal-inner">
+    <div class="json-modal-head">
+      <span>STORED PROGRESS &middot; day-progress:N &middot; JSON</span>
+      <button id="json-close">&times;</button>
+    </div>
+    <pre class="json-pre" id="json-content"></pre>
+    <div class="json-modal-foot">
+      <button class="cta-btn" id="json-download-btn" style="padding:9px 16px;font-size:13px;">Download .json</button>
+      <button class="reset-btn" id="json-copy-btn">Copy to clipboard</button>
+    </div>
+    <div class="json-import">
+      <div class="json-import-label">Continue from a saved file</div>
+      <textarea id="json-import-textarea" class="json-import-textarea" placeholder="Paste your saved JSON here, or choose a file below…"></textarea>
+      <div class="json-import-row">
+        <input type="file" id="json-import-file" accept="application/json,.json" style="display:none;">
+        <button class="reset-btn" id="json-import-file-btn">Choose .json file</button>
+        <button class="cta-btn" id="json-import-load-btn" style="padding:9px 16px;font-size:13px;">Load & continue</button>
+      </div>
+      <div id="json-import-status" class="json-import-status"></div>
+    </div>
+  </div>
+</div>
+
+<script>window.APP_NAME = 'matrix';</script>
+<script src="/js/nav.js"></script>
+<script src="/js/storage-shim.js"></script>
+<script>(function(){ window.HubNav.init('matrix', true); })();</script>
+
+<script>
+'use strict';
+
+/* ============================================================
+   STORAGE LAYER
+   ============================================================ */
+var memoryStore = {};
+var storageAvailable = !!(window.storage && typeof window.storage.get === 'function');
+
+async function storeGet(key){
+  if(storageAvailable){
+    try{ var res = await window.storage.get(key, false); return res ? res.value : null; }
+    catch(e){ return null; }
+  }
+  return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null;
+}
+async function storeSet(key, value){
+  if(storageAvailable){
+    try{ await window.storage.set(key, value, false); return true; }
+    catch(e){ console.error('storage set failed', e); return false; }
+  }
+  memoryStore[key] = value;
+  return true;
+}
+async function storeDelete(key){
+  if(storageAvailable){ try{ await window.storage.delete(key, false); }catch(e){} }
+  else{ delete memoryStore[key]; }
+}
+
+/* ============================================================
+   CURRICULUM METADATA — set built:true once a day's tasks exist
+   below in DAY_CONTENT. This drives the dashboard table + locks.
+   ============================================================ */
+var CURRICULUM = [
+  {day:1,  focus:"Matrix foundations",        technique:"Order, elements, +/-, scalar mult., equality", target:"7/7", built:true},
+  {day:2,  focus:"Matrix multiplication",      technique:"Row x column products",                        target:"7/7", built:true},
+  {day:3,  focus:"Multiplication properties",  technique:"Non-commutativity, associativity",             target:"7/7", built:true},
+  {day:4,  focus:"Transpose",                  technique:"Transpose & symmetric matrices",                target:"7/7", built:true},
+  {day:5,  focus:"Identity & zero matrices",   technique:"Special-matrix identities",                     target:"7/7", built:true},
+  {day:6,  focus:"2x2 determinants",           technique:"ad - bc",                                       target:"7/7", built:true},
+  {day:7,  focus:"3x3 determinants",           technique:"Cofactor expansion",                            target:"7/7", built:true},
+  {day:8,  focus:"Determinant properties",     technique:"Row-op effects on det",                         target:"7/7", built:true},
+  {day:9,  focus:"2x2 inverses",               technique:"1/det x adjugate",                              target:"7/7", built:true},
+  {day:10, focus:"3x3 inverses",               technique:"Adjugate method",                               target:"7/7", built:true},
+  {day:11, focus:"Solving systems",            technique:"A-inverse times b",                             target:"7/7", built:true},
+  {day:12, focus:"Gaussian elimination",       technique:"Row echelon form",                              target:"7/7", built:true},
+  {day:13, focus:"Rank",                       technique:"Rank via row reduction",                        target:"7/7", built:true},
+  {day:14, focus:"Row operations",             technique:"RREF",                                          target:"7/7", built:true},
+  {day:15, focus:"Linear independence",        technique:"Span & independence checks",                    target:"7/7", built:true},
+  {day:16, focus:"Eigenvalues",                technique:"Characteristic polynomial (2x2)",               target:"7/7", built:true},
+  {day:17, focus:"Eigenvectors",               technique:"Null space of (A - lambda*I)",                  target:"7/7", built:true},
+  {day:18, focus:"Diagonalization",            technique:"PDP-inverse",                                   target:"7/7", built:true},
+  {day:19, focus:"Special matrices",           technique:"Orthogonal & symmetric properties",             target:"7/7", built:true},
+  {day:20, focus:"Mixed mastery check",        technique:"Cumulative review",                             target:"7/7", built:true},
+];
+
+function matrixHTML(rows){
+  var r = rows.length, c = rows[0].length, cells = '';
+  rows.forEach(function(row){ row.forEach(function(v){ cells += '<div class="cell">' + v + '</div>'; }); });
+  return '<div class="matrix"><div class="bracket left"></div>' +
+    '<div class="grid-body" style="grid-template-columns:repeat(' + c + ',1fr);grid-template-rows:repeat(' + r + ',1fr);">' + cells + '</div>' +
+    '<div class="bracket right"></div></div>';
+}
+function matrixInputHTML(prefix, rows, cols){
+  var cells = '';
+  for(var i=0;i<rows;i++){ for(var j=0;j<cols;j++){ cells += '<input type="number" class="cell input" id="' + prefix + '_' + i + '_' + j + '">'; } }
+  return '<div class="matrix"><div class="bracket left"></div>' +
+    '<div class="grid-body" style="grid-template-columns:repeat(' + cols + ',1fr);grid-template-rows:repeat(' + rows + ',1fr);">' + cells + '</div>' +
+    '<div class="bracket right"></div></div>';
+}
+function num(id){ var el = document.getElementById(id); var v = el ? el.value : ''; return v === '' ? NaN : Number(v); }
+function pairMatches(id1, id2, expected){
+  var a = num(id1), b = num(id2);
+  if(isNaN(a) || isNaN(b)) return false;
+  var got = [a,b].sort(function(x,y){return x-y;});
+  var exp = expected.slice().sort(function(x,y){return x-y;});
+  return got[0] === exp[0] && got[1] === exp[1];
+}
+function cellsMatch(prefix, expected){
+  for(var i=0;i<expected.length;i++){ for(var j=0;j<expected[i].length;j++){
+    var el = document.getElementById(prefix + '_' + i + '_' + j);
+    if(!el || Number(el.value) !== expected[i][j]) return false;
+  }}
+  return true;
+}
+
+/* ============================================================
+   DAY 1 — TASKS
+   ============================================================ */
+var day1Tasks = [
+  { id:1, title:"Order of a matrix", desc:"State the order (rows x columns) of matrix A.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[4,-2],[0,7],[5,1]]) +
+      '<div style="display:flex;align-items:center;gap:6px;"><input type="number" class="plain-input" style="width:50px" id="t1a" placeholder="rows">' +
+      '<span class="op">x</span><input type="number" class="plain-input" style="width:50px" id="t1b" placeholder="cols"></div></div>'; },
+    check: function(){ return num('t1a') === 3 && num('t1b') === 2; },
+    hint: "Count rows first, then columns — a matrix with 3 rows and 2 columns is order 3 x 2, not 2 x 3." },
+  { id:2, title:"Identify an element", desc:"For matrix B below, enter the value of element b23 (row 2, column 3).",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[9,-1,6],[3,8,-4]]) +
+      '<input type="number" class="plain-input" id="t2a" placeholder="b23 = ?"></div>'; },
+    check: function(){ return num('t2a') === -4; },
+    hint: "b(i,j) means row i, column j. Row 2 is [3, 8, -4]; the 3rd entry is column 3." },
+  { id:3, title:"Matrix addition", desc:"Compute A + B, entry by entry.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,5],[-3,1]]) + '<span class="op">+</span>' +
+      matrixHTML([[4,-2],[6,0]]) + '<span class="op">=</span>' + matrixInputHTML('t3',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[6,3],[3,1]]); },
+    hint: "Add matching positions only. Watch the negative signs." },
+  { id:4, title:"Matrix subtraction", desc:"Compute A - B, entry by entry.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[7,0,-1],[2,-5,3]]) + '<span class="op">-</span>' +
+      matrixHTML([[1,4,-1],[-2,3,6]]) + '<span class="op">=</span>' + matrixInputHTML('t4',2,3) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[6,-4,0],[4,-8,-3]]); },
+    hint: "Subtracting a negative flips the sign: -1 - (-1) = 0, and 2 - (-2) = 4." },
+  { id:5, title:"Scalar multiplication", desc:"Compute 3A.",
+    render: function(){ return '<div class="matrix-row"><span class="op mono" style="font-size:16px;">3 x</span>' +
+      matrixHTML([[2,-1],[0,5]]) + '<span class="op">=</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[6,-3],[0,15]]); },
+    hint: "Multiply every single entry by the scalar — including zero." },
+  { id:6, title:"Matrix equality", desc:"Matrices C and D are equal. Solve for x and y.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([['x',7],[3,'y']]) + '<span class="op">=</span>' +
+      matrixHTML([[5,7],[3,-2]]) + '<div style="display:flex;align-items:center;gap:10px;"><span class="mono">x =</span>' +
+      '<input type="number" class="plain-input" style="width:60px" id="t6a"><span class="mono">y =</span>' +
+      '<input type="number" class="plain-input" style="width:60px" id="t6b"></div></div>'; },
+    check: function(){ return num('t6a') === 5 && num('t6b') === -2; },
+    hint: "Two matrices are equal only when every corresponding entry matches. Match x with 5, and y with -2." },
+  { id:7, title:"Combined operation", desc:"Compute 2A - B.",
+    render: function(){ return '<div class="matrix-row"><span class="op mono" style="font-size:16px;">2 x</span>' +
+      matrixHTML([[3,-2],[1,4]]) + '<span class="op">-</span>' + matrixHTML([[5,0],[-2,6]]) +
+      '<span class="op">=</span>' + matrixInputHTML('t7',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[1,-4],[4,2]]); },
+    hint: "Scale first, then subtract: 2A = [[6,-4],[2,8]]. Then subtract B entry-by-entry." }
+];
+
+/* ============================================================
+   DAY 2 — TASKS (matrix multiplication)
+   ============================================================ */
+var day2Tasks = [
+  { id:1, title:"Compatibility & result order",
+    desc:"P is order 2x3 and Q is order 3x4. If P x Q can be multiplied, state the resulting order (rows x columns).",
+    render: function(){ return '<div class="matrix-row">' +
+      '<span class="op mono" style="font-size:14px;">P(2x3) &middot; Q(3x4) = ?</span>' +
+      '<div style="display:flex;align-items:center;gap:6px;"><input type="number" class="plain-input" style="width:50px" id="t1a" placeholder="rows">' +
+      '<span class="op">x</span><input type="number" class="plain-input" style="width:50px" id="t1b" placeholder="cols"></div></div>'; },
+    check: function(){ return num('t1a') === 2 && num('t1b') === 4; },
+    hint: "Multiplication only works when the inner numbers match (3 = 3). The result takes the outer numbers: rows of the first, columns of the second — 2 x 4." },
+  { id:2, title:"A single entry of a product",
+    desc:"For A x B below, compute only the entry c11 (row 1 of A dotted with column 1 of B).",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[3,4]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[5,6],[7,8]]) + '<span class="op">=</span> <span class="op mono" style="font-size:15px;">c11 =</span>' +
+      '<input type="number" class="plain-input" style="width:70px" id="t2a"></div>'; },
+    check: function(){ return num('t2a') === 19; },
+    hint: "c11 = (row 1 of A) . (column 1 of B) = 1x5 + 2x7 = 5 + 14 = 19." },
+  { id:3, title:"Full 2x2 product",
+    desc:"Compute A x B completely.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[3,4]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[5,6],[7,8]]) + '<span class="op">=</span>' + matrixInputHTML('t3',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[19,22],[43,50]]); },
+    hint: "Each entry cij is row i of A dotted with column j of B. c12 = 1x6+2x8=22, c21=3x5+4x7=43, c22=3x6+4x8=50." },
+  { id:4, title:"Matrix times a vector",
+    desc:"Compute A x v, where v is a 2x1 column vector.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[3,4]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[2],[1]]) + '<span class="op">=</span>' + matrixInputHTML('t4',2,1) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[4],[10]]); },
+    hint: "Same rule with one column: row 1 . v = 1x2+2x1=4. Row 2 . v = 3x2+4x1=10." },
+  { id:5, title:"Order matters: compute B x A",
+    desc:"Using the same A and B as before, compute B x A this time — notice it is not the same as A x B.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[5,6],[7,8]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[1,2],[3,4]]) + '<span class="op">=</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[23,34],[31,46]]); },
+    hint: "B x A: row 1 of B is [5,6], columns of A are [1,3] and [2,4]. c11=5x1+6x3=23, c12=5x2+6x4=34, c21=7x1+8x3=31, c22=7x2+8x4=46. Compare to AB = [[19,22],[43,50]] — different, so matrix multiplication is not commutative." },
+  { id:6, title:"2x3 times 3x2",
+    desc:"Compute C x D.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,0,2],[3,1,1]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[1,2],[0,1],[4,0]]) + '<span class="op">=</span>' + matrixInputHTML('t6',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[9,2],[7,7]]); },
+    hint: "c11=1x1+0x0+2x4=9, c12=1x2+0x1+2x0=2, c21=3x1+1x0+1x4=7, c22=3x2+1x1+1x0=7." },
+  { id:7, title:"Combined product",
+    desc:"Compute E x F.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[0,-1],[1,0]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[2,3],[-1,4]]) + '<span class="op">=</span>' + matrixInputHTML('t7',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[1,-4],[2,3]]); },
+    hint: "c11=0x2+(-1)x(-1)=1, c12=0x3+(-1)x4=-4, c21=1x2+0x(-1)=2, c22=1x3+0x4=3." }
+];
+
+/* ============================================================
+   DAY 3 — TASKS (multiplication properties)
+   ============================================================ */
+var day3Tasks = [
+  { id:1, title:"Distributive property, left side", desc:"Compute A(B + C) — add first, then multiply.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[0,3]]) + '<span class="op">&middot;</span>(' +
+      matrixHTML([[2,0],[1,1]]) + '<span class="op">+</span>' + matrixHTML([[0,3],[2,-1]]) + ')<span class="op">=</span>' + matrixInputHTML('t1',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t1', [[8,3],[9,0]]); },
+    hint: "First add B+C = [[2,3],[3,0]], then multiply by A on the left as usual." },
+  { id:2, title:"Distributive property, expanded", desc:"Now compute AB + AC separately using the same matrices — it should match Q1.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[0,3]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[2,0],[1,1]]) + '<span class="op">+</span>' + matrixHTML([[1,2],[0,3]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[0,3],[2,-1]]) + '<span class="op">=</span>' + matrixInputHTML('t2',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[8,3],[9,0]]); },
+    hint: "AB = [[4,2],[3,3]] and AC = [[4,1],[6,-3]]. Add them entry-by-entry — you should land on the same result as Q1: that's the distributive law." },
+  { id:3, title:"Associativity, grouped left", desc:"Compute (AB)C — multiply A and B first, then multiply that result by C.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[1,0],[2,1]]) + '<span class="op">&middot;</span>' + matrixHTML([[3,1],[0,2]]) +
+      ')<span class="op">&middot;</span>' + matrixHTML([[1,1],[1,0]]) + '<span class="op">=</span>' + matrixInputHTML('t3',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[4,3],[10,6]]); },
+    hint: "AB = [[3,1],[6,4]] first, then multiply that by C." },
+  { id:4, title:"Associativity, grouped right", desc:"Now compute A(BC) with the same three matrices — multiply B and C first this time.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,0],[2,1]]) + '<span class="op">&middot;</span>(' + matrixHTML([[3,1],[0,2]]) +
+      '<span class="op">&middot;</span>' + matrixHTML([[1,1],[1,0]]) + ')<span class="op">=</span>' + matrixInputHTML('t4',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[4,3],[10,6]]); },
+    hint: "BC = [[4,3],[2,0]] first, then multiply A by that. Same final answer as Q3, regardless of grouping — that's associativity." },
+  { id:5, title:"Multiplicative identity", desc:"Compute A x I, where I is the 2x2 identity matrix.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[6,-3],[2,4]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[1,0],[0,1]]) + '<span class="op">=</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[6,-3],[2,4]]); },
+    hint: "Multiplying by the identity matrix always returns the original matrix unchanged — the same way multiplying a number by 1 does." },
+  { id:6, title:"Multiplying by the zero matrix", desc:"Compute A x O, where O is the 2x2 zero matrix.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[5,-2],[3,7]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[0,0],[0,0]]) + '<span class="op">=</span>' + matrixInputHTML('t6',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[0,0],[0,0]]); },
+    hint: "Every dot product involves multiplying by 0, so every entry of the result is 0 — regardless of what A is." },
+  { id:7, title:"Order matters", desc:"Compute BA for the matrices below, and notice it does not match AB (already shown to be [[5,1],[3,1]]).",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,0],[3,1]]) + '<span class="op">&middot;</span>' +
+      matrixHTML([[2,1],[0,1]]) + '<span class="op">=</span>' + matrixInputHTML('t7',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[2,1],[6,4]]); },
+    hint: "c11=1x2+0x0=2, c12=1x1+0x1=1, c21=3x2+1x0=6, c22=3x1+1x1=4. Different from AB — multiplication is not commutative in general." }
+];
+
+/* ============================================================
+   DAY 4 — TASKS (transpose & symmetric matrices)
+   ============================================================ */
+var day4Tasks = [
+  { id:1, title:"Transpose a rectangular matrix", desc:"Write A-transpose. A is 2x3, so its transpose is 3x2 — rows become columns.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,4,-2],[3,0,5]]) + '<span class="op mono" style="font-size:15px;">A^T =</span>' + matrixInputHTML('t1',3,2) + '</div>'; },
+    check: function(){ return cellsMatch('t1', [[1,3],[4,0],[-2,5]]); },
+    hint: "Column 1 of A becomes row 1 of A^T: [1, 3]. Column 2 becomes row 2: [4, 0]. Column 3 becomes row 3: [-2, 5]." },
+  { id:2, title:"Transpose of a transpose", desc:"Compute (B^T)^T — transposing twice should return the original matrix.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[2,-1],[3,4]]) + '<span class="op mono" style="font-size:14px;">^T)^T =</span>' + matrixInputHTML('t2',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[2,-1],[3,4]]); },
+    hint: "Flipping rows and columns twice undoes itself — you end up right back where you started." },
+  { id:3, title:"Transpose of a sum", desc:"Compute (A + B)^T directly — add first, then transpose.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[1,2],[3,4]]) + '<span class="op">+</span>' + matrixHTML([[5,6],[7,8]]) + ')<span class="op mono" style="font-size:14px;">^T =</span>' + matrixInputHTML('t3',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[6,10],[8,12]]); },
+    hint: "A+B = [[6,8],[10,12]] first, then swap rows and columns." },
+  { id:4, title:"Sum of transposes", desc:"Now compute A^T + B^T separately, using the same matrices — it should match Q3.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,3],[2,4]]) + '<span class="op">+</span>' + matrixHTML([[5,7],[6,8]]) + '<span class="op">=</span>' + matrixInputHTML('t4',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[6,10],[8,12]]); },
+    hint: "These are A^T and B^T already written out — just add entry by entry. It should equal Q3's answer, confirming (A+B)^T = A^T + B^T." },
+  { id:5, title:"Symmetric matrix check", desc:"Write S^T. S is symmetric, so watch what happens to it.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[4,7],[7,-2]]) + '<span class="op mono" style="font-size:15px;">S^T =</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[4,7],[7,-2]]); },
+    hint: "A symmetric matrix mirrors across its main diagonal, so transposing it changes nothing — S^T = S." },
+  { id:6, title:"Transpose of a product", desc:"Compute (AB)^T directly — multiply first, then transpose.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[1,2],[0,1]]) + '<span class="op">&middot;</span>' + matrixHTML([[3,0],[1,2]]) + ')<span class="op mono" style="font-size:14px;">^T =</span>' + matrixInputHTML('t6',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[5,1],[4,2]]); },
+    hint: "AB = [[5,4],[1,2]] first, then transpose that result." },
+  { id:7, title:"Reversed order of transposes", desc:"Now compute B^T x A^T with the same matrices — this is the rule (AB)^T = B^T A^T. Note the order flips.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[3,1],[0,2]]) + '<span class="op">&middot;</span>' + matrixHTML([[1,0],[2,1]]) + '<span class="op">=</span>' + matrixInputHTML('t7',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[5,1],[4,2]]); },
+    hint: "These are B^T and A^T already written out, in that order. Multiply them and you'll match Q6 — but notice the factors had to swap places to make it work." }
+];
+
+/* ============================================================
+   DAY 5 — TASKS (identity & zero matrices)
+   ============================================================ */
+var day5Tasks = [
+  { id:1, title:"Write the identity matrix", desc:"Fill in the 3x3 identity matrix I3 — 1s on the main diagonal, 0s everywhere else.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t1',3,3) + '</div>'; },
+    check: function(){ return cellsMatch('t1', [[1,0,0],[0,1,0],[0,0,1]]); },
+    hint: "The main diagonal runs top-left to bottom-right. Put 1 there, and 0 in every other position." },
+  { id:2, title:"Matrix times identity", desc:"Compute A x I.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[6,-3],[2,4]]) + '<span class="op">&middot;</span>' + matrixHTML([[1,0],[0,1]]) + '<span class="op">=</span>' + matrixInputHTML('t2',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[6,-3],[2,4]]); },
+    hint: "Multiplying by I leaves a matrix completely unchanged." },
+  { id:3, title:"Identity times matrix", desc:"Now compute I x A — identity on the left this time.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,0],[0,1]]) + '<span class="op">&middot;</span>' + matrixHTML([[6,-3],[2,4]]) + '<span class="op">=</span>' + matrixInputHTML('t3',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[6,-3],[2,4]]); },
+    hint: "It doesn't matter which side the identity sits on — the other matrix passes through unchanged either way." },
+  { id:4, title:"Adding the zero matrix", desc:"Compute A + O.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[7,-5],[0,3]]) + '<span class="op">+</span>' + matrixHTML([[0,0],[0,0]]) + '<span class="op">=</span>' + matrixInputHTML('t4',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[7,-5],[0,3]]); },
+    hint: "Adding the zero matrix changes nothing — it acts exactly like adding 0 to a number." },
+  { id:5, title:"Multiplying by the zero matrix", desc:"Compute O x A.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[0,0],[0,0]]) + '<span class="op">&middot;</span>' + matrixHTML([[6,-3],[2,4]]) + '<span class="op">=</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[0,0],[0,0]]); },
+    hint: "Every entry of the zero matrix is 0, so every dot product in the result comes out to 0 too." },
+  { id:6, title:"Scalar multiplication by 1", desc:"Compute 1 x A.",
+    render: function(){ return '<div class="matrix-row"><span class="op mono" style="font-size:16px;">1 x</span>' + matrixHTML([[-2,9],[4,-6]]) + '<span class="op">=</span>' + matrixInputHTML('t6',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[-2,9],[4,-6]]); },
+    hint: "Multiplying every entry by 1 leaves the matrix unchanged — same idea as the identity matrix, but with a scalar." },
+  { id:7, title:"Scalar multiplication by 0", desc:"Compute 0 x A.",
+    render: function(){ return '<div class="matrix-row"><span class="op mono" style="font-size:16px;">0 x</span>' + matrixHTML([[3,1],[-2,5]]) + '<span class="op">=</span>' + matrixInputHTML('t7',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[0,0],[0,0]]); },
+    hint: "Multiplying every entry by 0 turns the whole matrix into the zero matrix, no matter what A was." }
+];
+
+/* ============================================================
+   DAY 6 — TASKS (2x2 determinants)
+   ============================================================ */
+var day6Tasks = [
+  { id:1, title:"Basic 2x2 determinant", desc:"Compute det(A) using ad - bc.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[3,5],[2,4]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t1a"></div>'; },
+    check: function(){ return num('t1a') === 2; },
+    hint: "det = (3)(4) - (5)(2) = 12 - 10 = 2." },
+  { id:2, title:"Determinant with negatives", desc:"Compute det(B).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[-1,6],[2,3]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t2a"></div>'; },
+    check: function(){ return num('t2a') === -15; },
+    hint: "det = (-1)(3) - (6)(2) = -3 - 12 = -15." },
+  { id:3, title:"Determinant with a zero entry", desc:"Compute det(C).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[7,0],[4,-2]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === -14; },
+    hint: "det = (7)(-2) - (0)(4) = -14 - 0 = -14." },
+  { id:4, title:"Determinant of the identity", desc:"Compute det(I).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,0],[0,1]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === 1; },
+    hint: "det = (1)(1) - (0)(0) = 1. The identity matrix always has determinant 1." },
+  { id:5, title:"Determinant with a zero row", desc:"Compute det(D).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[0,0],[5,3]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t5a"></div>'; },
+    check: function(){ return num('t5a') === 0; },
+    hint: "det = (0)(3) - (0)(5) = 0. Any matrix with a full row (or column) of zeros always has determinant 0." },
+  { id:6, title:"A singular matrix", desc:"Compute det(E).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[2,4],[1,2]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t6a"></div>'; },
+    check: function(){ return num('t6a') === 0; },
+    hint: "det = (2)(2) - (4)(1) = 4 - 4 = 0. Row 2 is exactly half of row 1 — proportional rows always give a zero determinant." },
+  { id:7, title:"Solve for an unknown entry", desc:"If det(F) = 4, find k.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([['k',3],[2,5]]) + '<span class="op">= 4, k =</span><input type="number" class="plain-input" style="width:70px" id="t7a"></div>'; },
+    check: function(){ return num('t7a') === 2; },
+    hint: "5k - 6 = 4, so 5k = 10, so k = 2." }
+];
+
+/* ============================================================
+   DAY 7 — TASKS (3x3 determinants via cofactor expansion)
+   ============================================================ */
+var day7Tasks = [
+  { id:1, title:"3x3 determinant, general case", desc:"Compute det(A) by expanding along the first row.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,2,3],[0,1,4],[5,6,0]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t1a"></div>'; },
+    check: function(){ return num('t1a') === 1; },
+    hint: "det = 1(1x0 - 4x6) - 2(0x0 - 4x5) + 3(0x6 - 1x5) = 1(-24) - 2(-20) + 3(-5) = -24 + 40 - 15 = 1." },
+  { id:2, title:"Upper triangular matrix", desc:"Compute det(B). Look closely at where the zeros sit.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[2,0,0],[1,3,0],[4,5,6]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t2a"></div>'; },
+    check: function(){ return num('t2a') === 36; },
+    hint: "For a triangular matrix, the determinant is just the product of the diagonal: 2 x 3 x 6 = 36 — no expansion needed, but try it by cofactor expansion too and confirm." },
+  { id:3, title:"3x3 determinant with negatives", desc:"Compute det(C) by expanding along the first row.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,0,2],[-1,3,1],[2,4,0]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === -24; },
+    hint: "det = 1(3x0 - 1x4) - 0(...) + 2(-1x4 - 3x2) = 1(-4) + 2(-10) = -4 - 20 = -24." },
+  { id:4, title:"Repeated row", desc:"Compute det(D). Look carefully at rows 1 and 2 before you start expanding.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,2,3],[1,2,3],[4,5,6]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === 0; },
+    hint: "Rows 1 and 2 are identical. Whenever two rows (or columns) of a matrix are the same, the determinant is always 0." },
+  { id:5, title:"Diagonal matrix", desc:"Compute det(E).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[2,0,0],[0,-3,0],[0,0,5]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t5a"></div>'; },
+    check: function(){ return num('t5a') === -30; },
+    hint: "For a diagonal matrix, the determinant is just the product of the diagonal entries: 2 x (-3) x 5 = -30." },
+  { id:6, title:"3x3 determinant, mixed entries", desc:"Compute det(F) by expanding along the first row.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[3,1,0],[2,0,4],[1,5,2]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t6a"></div>'; },
+    check: function(){ return num('t6a') === -60; },
+    hint: "det = 3(0x2 - 4x5) - 1(2x2 - 4x1) + 0(...) = 3(-20) - 1(0) = -60." },
+  { id:7, title:"Solve for an unknown entry", desc:"If det(G) = 18, find k.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([['k',0,0],[0,2,0],[0,0,3]]) + '<span class="op">= 18, k =</span><input type="number" class="plain-input" style="width:70px" id="t7a"></div>'; },
+    check: function(){ return num('t7a') === 3; },
+    hint: "This is a diagonal matrix, so det = k x 2 x 3 = 6k. Set 6k = 18, so k = 3." }
+];
+
+/* ============================================================
+   DAY 8 — TASKS (determinant properties)
+   ============================================================ */
+var day8Tasks = [
+  { id:1, title:"Swapping two rows", desc:"M below came from swapping the rows of [[2,3],[4,1]] (det = -10). Compute det(M).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[4,1],[2,3]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t1a"></div>'; },
+    check: function(){ return num('t1a') === 10; },
+    hint: "det = (4)(3) - (1)(2) = 12 - 2 = 10. Swapping two rows always flips the sign of the determinant." },
+  { id:2, title:"Scaling a row", desc:"M below came from scaling row 1 of [[1,2],[3,4]] (det = -2) by 3. Compute det(M).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[3,6],[3,4]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t2a"></div>'; },
+    check: function(){ return num('t2a') === -6; },
+    hint: "det = (3)(4) - (6)(3) = 12 - 18 = -6, which is 3 x (-2) — scaling one row scales the whole determinant by that factor." },
+  { id:3, title:"Adding a multiple of one row to another", desc:"M below came from [[1,2],[3,4]] (det = -2) by replacing row 2 with row2 + 2xrow1. Compute det(M).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,2],[5,8]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === -2; },
+    hint: "det = (1)(8) - (2)(5) = 8 - 10 = -2 — exactly the same as before. Adding a multiple of one row to another never changes the determinant." },
+  { id:4, title:"Determinant of the transpose", desc:"Compute det(A^T), where A^T is the transpose of A = [[2,1],[5,3]] (det(A) = 1).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[2,5],[1,3]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === 1; },
+    hint: "det = (2)(3) - (5)(1) = 6 - 5 = 1. A matrix and its transpose always share the same determinant." },
+  { id:5, title:"Scaling the whole matrix", desc:"Compute det(2A), where A = [[1,2],[3,4]] (det(A) = -2).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[2,4],[6,8]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t5a"></div>'; },
+    check: function(){ return num('t5a') === -8; },
+    hint: "det = (2)(8) - (4)(6) = 16 - 24 = -8, which is 4 x (-2) = 2^2 x (-2) — for an n x n matrix, det(cA) = c^n x det(A)." },
+  { id:6, title:"Determinant of a product", desc:"For A = [[1,2],[0,1]] (det = 1) and B = [[3,0],[1,2]] (det = 6), compute det(AB) directly.",
+    render: function(){ return '<div class="matrix-row">det (' + matrixHTML([[1,2],[0,1]]) + '<span class="op">&middot;</span>' + matrixHTML([[3,0],[1,2]]) + ')<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t6a"></div>'; },
+    check: function(){ return num('t6a') === 6; },
+    hint: "AB = [[5,4],[1,2]], so det(AB) = 10 - 4 = 6 — which is exactly det(A) x det(B) = 1 x 6." },
+  { id:7, title:"Proportional rows", desc:"Compute det(M). Look at how row 1 relates to row 2 first.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[4,6],[2,3]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t7a"></div>'; },
+    check: function(){ return num('t7a') === 0; },
+    hint: "Row 1 is exactly 2 x row 2, so the rows are proportional (linearly dependent). Any matrix with proportional rows has determinant 0." }
+];
+
+/* ============================================================
+   DAY 9 — TASKS (2x2 inverses)
+   ============================================================ */
+var day9Tasks = [
+  { id:1, title:"Basic 2x2 inverse", desc:"Compute A-inverse using (1/det) x adjugate.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,1],[5,3]]) + '<span class="op mono" style="font-size:14px;">^-1 =</span>' + matrixInputHTML('t1',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t1', [[3,-1],[-5,2]]); },
+    hint: "det = 6 - 5 = 1. For [[a,b],[c,d]], the inverse is (1/det) x [[d,-b],[-c,a]] = [[3,-1],[-5,2]]." },
+  { id:2, title:"Another 2x2 inverse", desc:"Compute A-inverse.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[3,4],[2,3]]) + '<span class="op mono" style="font-size:14px;">^-1 =</span>' + matrixInputHTML('t2',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[3,-4],[-2,3]]); },
+    hint: "det = 9 - 8 = 1. Swap the diagonal entries, negate the off-diagonal entries, then divide by det (which is 1 here)." },
+  { id:3, title:"A third 2x2 inverse", desc:"Compute A-inverse.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[1,3]]) + '<span class="op mono" style="font-size:14px;">^-1 =</span>' + matrixInputHTML('t3',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[3,-2],[-1,1]]); },
+    hint: "det = 3 - 2 = 1. Swap the diagonal (3 and 1), negate the off-diagonal (2 and 1)." },
+  { id:4, title:"Verify the inverse works", desc:"Using A and A-inverse from Q1, compute A x A-inverse — it should come out to the identity matrix.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,1],[5,3]]) + '<span class="op">&middot;</span>' + matrixHTML([[3,-1],[-5,2]]) + '<span class="op">=</span>' + matrixInputHTML('t4',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[1,0],[0,1]]); },
+    hint: "Multiply it out entry by entry — a matrix times its own inverse always gives the identity matrix. If you don't land on I here, recheck Q1." },
+  { id:5, title:"A self-inverse matrix", desc:"Compute A-inverse.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[0,1],[1,0]]) + '<span class="op mono" style="font-size:14px;">^-1 =</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[0,1],[1,0]]); },
+    hint: "det = 0 - 1 = -1. Adjugate is [[0,-1],[-1,0]], divided by -1 gives [[0,1],[1,0]] — this matrix is its own inverse." },
+  { id:6, title:"Recognizing a non-invertible matrix", desc:"Compute det(A) — this will tell you whether A even has an inverse.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[2,4],[1,2]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t6a"></div>'; },
+    check: function(){ return num('t6a') === 0; },
+    hint: "det = 4 - 4 = 0. A determinant of 0 means the matrix has no inverse at all — you can't divide by 0." },
+  { id:7, title:"Inverse with a fractional result", desc:"Compute A-inverse. This one won't come out to whole numbers.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[5,3],[2,2]]) + '<span class="op mono" style="font-size:14px;">^-1 =</span>' + matrixInputHTML('t7',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[0.5,-0.75],[-0.5,1.25]]); },
+    hint: "det = 10 - 6 = 4. Adjugate is [[2,-3],[-2,5]]; divide every entry by 4 to get [[0.5,-0.75],[-0.5,1.25]]." }
+];
+
+/* ============================================================
+   DAY 10 — TASKS (3x3 inverse via adjugate)
+   ============================================================ */
+var day10Tasks = [
+  { id:1, title:"Determinant (recap)", desc:"Recall this matrix from Day 7 — compute det(M) again as your starting point.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,2,3],[0,1,4],[5,6,0]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t1a"></div>'; },
+    check: function(){ return num('t1a') === 1; },
+    hint: "This is the same matrix and expansion from Day 7 Q1 — det = 1." },
+  { id:2, title:"Cofactor C11", desc:"Compute the cofactor C11 — cross out row 1 and column 1, take the determinant of what's left, apply the sign (+ for position 1,1).",
+    render: function(){ return '<div class="matrix-row"><span class="op mono" style="font-size:14px;">C11 =</span><input type="number" class="plain-input" style="width:70px" id="t2a"></div>'; },
+    check: function(){ return num('t2a') === -24; },
+    hint: "Removing row 1 and column 1 leaves [[1,4],[6,0]]. Its determinant is (1)(0)-(4)(6) = -24. Position (1,1) has a + sign, so C11 = -24." },
+  { id:3, title:"Cofactor C22", desc:"Compute the cofactor C22 — cross out row 2 and column 2.",
+    render: function(){ return '<div class="matrix-row"><span class="op mono" style="font-size:14px;">C22 =</span><input type="number" class="plain-input" style="width:70px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === -15; },
+    hint: "Removing row 2 and column 2 leaves [[1,3],[5,0]]. Its determinant is (1)(0)-(3)(5) = -15. Position (2,2) has a + sign, so C22 = -15." },
+  { id:4, title:"Cofactor C33", desc:"Compute the cofactor C33 — cross out row 3 and column 3.",
+    render: function(){ return '<div class="matrix-row"><span class="op mono" style="font-size:14px;">C33 =</span><input type="number" class="plain-input" style="width:70px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === 1; },
+    hint: "Removing row 3 and column 3 leaves [[1,2],[0,1]]. Its determinant is (1)(1)-(2)(0) = 1. Position (3,3) has a + sign, so C33 = 1." },
+  { id:5, title:"The full cofactor matrix", desc:"Using the same process as Q2-Q4 for all nine positions, fill in the complete cofactor matrix.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t5',3,3) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[-24,20,-5],[18,-15,4],[5,-4,1]]); },
+    hint: "Each entry Cij is the determinant of the 2x2 left after deleting row i and column j, with alternating signs (+,-,+ / -,+,- / +,-,+) across the grid." },
+  { id:6, title:"The adjugate", desc:"The adjugate is the transpose of the cofactor matrix from Q5. Fill it in.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t6',3,3) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[-24,18,5],[20,-15,-4],[-5,4,1]]); },
+    hint: "Flip the cofactor matrix across its main diagonal — the same operation as a regular transpose." },
+  { id:7, title:"The inverse", desc:"Compute M-inverse = (1/det) x adjugate. Since det(M) = 1, this step is simple.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t7',3,3) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[-24,18,5],[20,-15,-4],[-5,4,1]]); },
+    hint: "Because det = 1, dividing by it changes nothing — the inverse is identical to the adjugate you found in Q6." }
+];
+
+/* ============================================================
+   DAY 11 — TASKS (solving systems via inverse)
+   ============================================================ */
+var day11Tasks = [
+  { id:1, title:"System 1: find det(A)", desc:"For the system 2x + y = 5, x + 3y = 10, write it as Ax = b and compute det(A).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[2,1],[1,3]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t1a"></div>'; },
+    check: function(){ return num('t1a') === 5; },
+    hint: "det = (2)(3) - (1)(1) = 6 - 1 = 5." },
+  { id:2, title:"System 1: find A-inverse", desc:"Compute A-inverse.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,1],[1,3]]) + '<span class="op mono" style="font-size:14px;">^-1 =</span>' + matrixInputHTML('t2',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[0.6,-0.2],[-0.2,0.4]]); },
+    hint: "Swap the diagonal, negate the off-diagonal, then divide every entry by det = 5: [[3,-1],[-1,2]] / 5 = [[0.6,-0.2],[-0.2,0.4]]." },
+  { id:3, title:"System 1: solve x = A-inverse b", desc:"With b = [5, 10], compute x = A-inverse x b.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[0.6,-0.2],[-0.2,0.4]]) + '<span class="op">&middot;</span>' + matrixHTML([[5],[10]]) + '<span class="op">=</span>' + matrixInputHTML('t3',2,1) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[1],[3]]); },
+    hint: "Row 1: 0.6x5 + (-0.2)x10 = 3 - 2 = 1. Row 2: -0.2x5 + 0.4x10 = -1 + 4 = 3. So x = 1, y = 3." },
+  { id:4, title:"System 2: find det(A)", desc:"For the system x + 2y = 4, 3x + 4y = 10, compute det(A).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,2],[3,4]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === -2; },
+    hint: "det = (1)(4) - (2)(3) = 4 - 6 = -2." },
+  { id:5, title:"System 2: find A-inverse", desc:"Compute A-inverse.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[3,4]]) + '<span class="op mono" style="font-size:14px;">^-1 =</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[-2,1],[1.5,-0.5]]); },
+    hint: "Swap diagonal, negate off-diagonal, divide by det = -2: [[4,-2],[-3,1]] / -2 = [[-2,1],[1.5,-0.5]]." },
+  { id:6, title:"System 2: solve x = A-inverse b", desc:"With b = [4, 10], compute x = A-inverse x b.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[-2,1],[1.5,-0.5]]) + '<span class="op">&middot;</span>' + matrixHTML([[4],[10]]) + '<span class="op">=</span>' + matrixInputHTML('t6',2,1) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[2],[1]]); },
+    hint: "Row 1: -2x4 + 1x10 = -8+10 = 2. Row 2: 1.5x4 + (-0.5)x10 = 6-5 = 1. So x = 2, y = 1." },
+  { id:7, title:"System 3: solve directly", desc:"For the system x + y = 3, 2x + 3y = 5, use the same method mentally and give the final solution.",
+    render: function(){ return '<div class="matrix-row"><span class="mono">x =</span><input type="number" class="plain-input" style="width:60px" id="t7a"><span class="mono">y =</span><input type="number" class="plain-input" style="width:60px" id="t7b"></div>'; },
+    check: function(){ return num('t7a') === 4 && num('t7b') === -1; },
+    hint: "det = 3-2 = 1, A-inverse = [[3,-1],[-2,1]], and A-inverse x [3,5] = [3x3-1x5, -2x3+1x5] = [4,-1]. So x = 4, y = -1." }
+];
+
+/* ============================================================
+   DAY 12 — TASKS (Gaussian elimination)
+   ============================================================ */
+var day12Tasks = [
+  { id:1, title:"Eliminate below the first pivot", desc:"Starting from M = [[1,2,3],[2,5,7],[1,1,4]], apply R2 -> R2 - 2R1. Fill in the new row 2.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2,3],['?','?','?'],[1,1,4]]) + '<span class="op mono" style="font-size:13px;">R2 &rarr; R2-2R1</span>' + matrixInputHTML('t1',1,3) + '</div>'; },
+    check: function(){ return cellsMatch('t1', [[0,1,1]]); },
+    hint: "R2 - 2R1 = [2,5,7] - 2x[1,2,3] = [2-2, 5-4, 7-6] = [0,1,1]." },
+  { id:2, title:"Eliminate below the first pivot, row 3", desc:"Using the original M, apply R3 -> R3 - R1. Fill in the new row 3.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2,3],[0,1,1],['?','?','?']]) + '<span class="op mono" style="font-size:13px;">R3 &rarr; R3-R1</span>' + matrixInputHTML('t2',1,3) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[0,-1,1]]); },
+    hint: "R3 - R1 = [1,1,4] - [1,2,3] = [0,-1,1]." },
+  { id:3, title:"Eliminate below the second pivot", desc:"With the matrix now [[1,2,3],[0,1,1],[0,-1,1]], apply R3 -> R3 + R2. Fill in the new row 3.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2,3],[0,1,1],['?','?','?']]) + '<span class="op mono" style="font-size:13px;">R3 &rarr; R3+R2</span>' + matrixInputHTML('t3',1,3) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[0,0,2]]); },
+    hint: "R3 + R2 = [0,-1,1] + [0,1,1] = [0,0,2]. There's now a zero below every pivot." },
+  { id:4, title:"Write the full row echelon form", desc:"Assemble everything from Q1-Q3 into the complete row echelon form of M.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t4',3,3) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[1,2,3],[0,1,1],[0,0,2]]); },
+    hint: "Stack the pieces you already found: row 1 unchanged, row 2 from Q1, row 3 from Q3." },
+  { id:5, title:"Normalize the last pivot", desc:"Divide row 3 (currently [0,0,2]) by its pivot value so the pivot becomes 1.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t5',1,3) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[0,0,1]]); },
+    hint: "Dividing [0,0,2] by 2 gives [0,0,1]." },
+  { id:6, title:"Read off the rank", desc:"In the row echelon form [[1,2,3],[0,1,1],[0,0,2]], how many nonzero rows are there? That number is the rank.",
+    render: function(){ return '<div class="matrix-row"><span class="mono">rank =</span><input type="number" class="plain-input" style="width:60px" id="t6a"></div>'; },
+    check: function(){ return num('t6a') === 3; },
+    hint: "Every one of the 3 rows has a pivot (a leading nonzero entry), so the rank is 3 — full rank for a 3x3 matrix." },
+  { id:7, title:"A simple normalization step", desc:"For N = [[2,4],[1,3]], apply R1 -> (1/2)R1. Fill in the new row 1.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([['?','?'],[1,3]]) + '<span class="op mono" style="font-size:13px;">R1 &rarr; (1/2)R1</span>' + matrixInputHTML('t7',1,2) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[1,2]]); },
+    hint: "Divide every entry in row 1 by 2: [2,4] / 2 = [1,2]." }
+];
+
+/* ============================================================
+   DAY 13 — TASKS (rank)
+   ============================================================ */
+var day13Tasks = [
+  { id:1, title:"Rank of the identity", desc:"What is the rank of the 3x3 identity matrix?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,0,0],[0,1,0],[0,0,1]]) + '<span class="op">rank =</span><input type="number" class="plain-input" style="width:60px" id="t1a"></div>'; },
+    check: function(){ return num('t1a') === 3; },
+    hint: "Every row has its own pivot, so the identity matrix always has full rank — 3 in this case." },
+  { id:2, title:"Rank of the zero matrix", desc:"What is the rank of a 3x3 matrix of all zeros?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[0,0,0],[0,0,0],[0,0,0]]) + '<span class="op">rank =</span><input type="number" class="plain-input" style="width:60px" id="t2a"></div>'; },
+    check: function(){ return num('t2a') === 0; },
+    hint: "There are no nonzero rows at all, so the rank is 0." },
+  { id:3, title:"Rank with a zero row", desc:"What is the rank of this matrix?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[0,0]]) + '<span class="op">rank =</span><input type="number" class="plain-input" style="width:60px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === 1; },
+    hint: "Only row 1 is nonzero, so the rank is 1." },
+  { id:4, title:"Rank from a row echelon form", desc:"This is the row echelon form from Day 12. What is its rank?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2,3],[0,1,1],[0,0,2]]) + '<span class="op">rank =</span><input type="number" class="plain-input" style="width:60px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === 3; },
+    hint: "All three rows have a pivot (leading nonzero entry), so this matrix has full rank, 3." },
+  { id:5, title:"Rank with a repeated row", desc:"What is the rank of this matrix?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[1,2]]) + '<span class="op">rank =</span><input type="number" class="plain-input" style="width:60px" id="t5a"></div>'; },
+    check: function(){ return num('t5a') === 1; },
+    hint: "Row 2 is identical to row 1, so subtracting one from the other leaves a zero row. Only 1 independent row remains." },
+  { id:6, title:"Rank with proportional rows", desc:"What is the rank of this matrix?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,4,6],[1,2,3],[0,0,1]]) + '<span class="op">rank =</span><input type="number" class="plain-input" style="width:60px" id="t6a"></div>'; },
+    check: function(){ return num('t6a') === 2; },
+    hint: "Row 1 is exactly 2 x row 2, so they're dependent — only one of them counts. Row 3 is independent of both. Rank = 2." },
+  { id:7, title:"Find where rank drops", desc:"For what value of k does [[1,2],[3,k]] fail to have full rank?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2],[3,'k']]) + '<span class="op">k =</span><input type="number" class="plain-input" style="width:60px" id="t7a"></div>'; },
+    check: function(){ return num('t7a') === 6; },
+    hint: "Rank drops below full exactly when det = 0: (1)(k) - (2)(3) = k - 6 = 0, so k = 6." }
+];
+
+/* ============================================================
+   DAY 14 — TASKS (row operations & RREF)
+   ============================================================ */
+var day14Tasks = [
+  { id:1, title:"Clear above the last pivot", desc:"Starting from the REF [[1,2,3],[0,1,1],[0,0,1]], apply R1 -> R1 - 3R3. Fill in the new row 1.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([['?','?','?'],[0,1,1],[0,0,1]]) + '<span class="op mono" style="font-size:13px;">R1 &rarr; R1-3R3</span>' + matrixInputHTML('t1',1,3) + '</div>'; },
+    check: function(){ return cellsMatch('t1', [[1,2,0]]); },
+    hint: "R1 - 3R3 = [1,2,3] - 3x[0,0,1] = [1,2,0]." },
+  { id:2, title:"Clear above the last pivot, row 2", desc:"With row 1 now [1,2,0], apply R2 -> R2 - R3. Fill in the new row 2.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,2,0],['?','?','?'],[0,0,1]]) + '<span class="op mono" style="font-size:13px;">R2 &rarr; R2-R3</span>' + matrixInputHTML('t2',1,3) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[0,1,0]]); },
+    hint: "R2 - R3 = [0,1,1] - [0,0,1] = [0,1,0]." },
+  { id:3, title:"Clear above the second pivot", desc:"With the matrix now [[1,2,0],[0,1,0],[0,0,1]], apply R1 -> R1 - 2R2. Fill in the new row 1.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([['?','?','?'],[0,1,0],[0,0,1]]) + '<span class="op mono" style="font-size:13px;">R1 &rarr; R1-2R2</span>' + matrixInputHTML('t3',1,3) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[1,0,0]]); },
+    hint: "R1 - 2R2 = [1,2,0] - 2x[0,1,0] = [1,0,0]." },
+  { id:4, title:"Write the final RREF", desc:"Assemble the pieces from Q1-Q3 into the reduced row echelon form.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t4',3,3) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[1,0,0],[0,1,0],[0,0,1]]); },
+    hint: "Every pivot is now 1, and every other entry in each pivot column is 0 — this matrix reduces all the way to the identity." },
+  { id:5, title:"A smaller elimination", desc:"For N = [[1,3],[0,1]], apply R1 -> R1 - 3R2. Fill in the new row 1.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([['?','?'],[0,1]]) + '<span class="op mono" style="font-size:13px;">R1 &rarr; R1-3R2</span>' + matrixInputHTML('t5',1,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[1,0]]); },
+    hint: "R1 - 3R2 = [1,3] - 3x[0,1] = [1,0]." },
+  { id:6, title:"Count the pivot columns", desc:"This matrix is already in RREF. How many pivot columns (leading 1s) does it have?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,0,2],[0,1,-1],[0,0,0]]) + '<span class="op">pivots =</span><input type="number" class="plain-input" style="width:60px" id="t6a"></div>'; },
+    check: function(){ return num('t6a') === 2; },
+    hint: "Columns 1 and 2 each have a leading 1 with zeros elsewhere in that column. The last row is all zeros, so there's no third pivot." },
+  { id:7, title:"Read a solution off an RREF", desc:"This augmented matrix is in RREF, representing a solved system. Read off x, y, and z.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,0,0,5],[0,1,0,-2],[0,0,1,3]]) +
+      '<div style="display:flex;flex-direction:column;gap:6px;"><span class="mono">x=<input type="number" class="plain-input" style="width:60px" id="t7a"></span>' +
+      '<span class="mono">y=<input type="number" class="plain-input" style="width:60px" id="t7b"></span>' +
+      '<span class="mono">z=<input type="number" class="plain-input" style="width:60px" id="t7c"></span></div></div>'; },
+    check: function(){ return num('t7a') === 5 && num('t7b') === -2 && num('t7c') === 3; },
+    hint: "Once a system reaches RREF, each row reads directly as a variable's value: x=5, y=-2, z=3. This is the whole point of reducing all the way." }
+];
+
+/* ============================================================
+   DAY 15 — TASKS (linear independence & span)
+   ============================================================ */
+var day15Tasks = [
+  { id:1, title:"Check independence via determinant", desc:"v1=(1,2) and v2=(2,4) form the columns below. Compute the determinant to test independence.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,2],[2,4]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t1a"></div>'; },
+    check: function(){ return num('t1a') === 0; },
+    hint: "det = (1)(4) - (2)(2) = 0. A zero determinant means the vectors are linearly dependent — indeed v2 = 2v1." },
+  { id:2, title:"Check independence, standard basis", desc:"v1=(1,0) and v2=(0,1). Compute the determinant.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,0],[0,1]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t2a"></div>'; },
+    check: function(){ return num('t2a') === 1; },
+    hint: "det = 1. Nonzero, so these two vectors are independent — as expected, since they're the standard basis of the plane." },
+  { id:3, title:"Check independence with larger entries", desc:"v1=(2,3) and v2=(4,7). Compute the determinant.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[2,4],[3,7]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === 2; },
+    hint: "det = (2)(7) - (4)(3) = 14 - 12 = 2. Nonzero, so v1 and v2 are independent." },
+  { id:4, title:"Independence of three vectors in 3D", desc:"Check whether these three vectors (as columns) are independent by computing the 3x3 determinant.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,0,1],[0,1,1],[1,1,0]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === -2; },
+    hint: "Expanding along the first row: 1(1x0-1x1) - 0(...) + 1(0x1-1x1) = 1(-1) + 1(-1) = -2. Nonzero, so all three vectors are independent." },
+  { id:5, title:"Find k for dependence", desc:"For what value of k are (1,2) and (k,4) linearly dependent?",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,'k'],[2,4]]) + '<span class="op">dependent when k =</span><input type="number" class="plain-input" style="width:70px" id="t5a"></div>'; },
+    check: function(){ return num('t5a') === 2; },
+    hint: "Dependence means det = 0: (1)(4) - (k)(2) = 4 - 2k = 0, so k = 2." },
+  { id:6, title:"Coordinates in the standard basis", desc:"Write b=(5,6) as a x (1,0) + b x (0,1). Find a and b.",
+    render: function(){ return '<div class="matrix-row"><span class="mono">a =</span><input type="number" class="plain-input" style="width:60px" id="t6a"><span class="mono">b =</span><input type="number" class="plain-input" style="width:60px" id="t6b"></div>'; },
+    check: function(){ return num('t6a') === 5 && num('t6b') === 6; },
+    hint: "With the standard basis, the coefficients are just the vector's own coordinates: a=5, b=6." },
+  { id:7, title:"Coordinates in a non-standard basis", desc:"Write b=(4,1) as a x (1,1) + b x (2,-1). Find a and b.",
+    render: function(){ return '<div class="matrix-row"><span class="mono">a =</span><input type="number" class="plain-input" style="width:60px" id="t7a"><span class="mono">b =</span><input type="number" class="plain-input" style="width:60px" id="t7b"></div>'; },
+    check: function(){ return num('t7a') === 2 && num('t7b') === 1; },
+    hint: "This gives the system a+2b=4 and a-b=1. From the second equation a=b+1; substituting gives 3b=3, so b=1 and a=2." }
+];
+
+/* ============================================================
+   DAY 16 — TASKS (eigenvalues, 2x2 characteristic polynomial)
+   ============================================================ */
+var day16Tasks = [
+  { id:1, title:"Trace and determinant", desc:"For A below, compute the trace (sum of diagonal entries) and the determinant — the two ingredients of the characteristic polynomial.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[4,1],[2,3]]) +
+      '<span class="mono">trace =</span><input type="number" class="plain-input" style="width:60px" id="t1a"><span class="mono">det =</span><input type="number" class="plain-input" style="width:60px" id="t1b"></div>'; },
+    check: function(){ return num('t1a') === 7 && num('t1b') === 10; },
+    hint: "trace = 4 + 3 = 7. det = 4x3 - 1x2 = 10." },
+  { id:2, title:"Solve for the eigenvalues", desc:"The characteristic equation is lambda^2 - 7*lambda + 10 = 0 (from Q1's trace and det). Find both eigenvalues.",
+    render: function(){ return '<div class="matrix-row"><span class="mono">lambda1 =</span><input type="number" class="plain-input" style="width:60px" id="t2a"><span class="mono">lambda2 =</span><input type="number" class="plain-input" style="width:60px" id="t2b"></div>'; },
+    check: function(){ return pairMatches('t2a','t2b',[5,2]); },
+    hint: "lambda^2 - 7lambda + 10 factors as (lambda-5)(lambda-2) = 0, so lambda = 5 or lambda = 2." },
+  { id:3, title:"Eigenvalues of a diagonal matrix", desc:"For a diagonal matrix, the eigenvalues are just the diagonal entries. Confirm this for D below.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,0],[0,5]]) + '<span class="mono">lambda1 =</span><input type="number" class="plain-input" style="width:60px" id="t3a"><span class="mono">lambda2 =</span><input type="number" class="plain-input" style="width:60px" id="t3b"></div>'; },
+    check: function(){ return pairMatches('t3a','t3b',[2,5]); },
+    hint: "For any diagonal matrix, the eigenvalues sit right on the diagonal: 2 and 5." },
+  { id:4, title:"Determinant for a new matrix", desc:"For A3 below, compute det(A3) as a first step toward its eigenvalues.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,2],[2,1]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === -3; },
+    hint: "det = 1x1 - 2x2 = 1 - 4 = -3." },
+  { id:5, title:"Eigenvalues of A3", desc:"A3 has trace 2 and det -3 (from Q4), giving lambda^2 - 2*lambda - 3 = 0. Solve for both eigenvalues.",
+    render: function(){ return '<div class="matrix-row"><span class="mono">lambda1 =</span><input type="number" class="plain-input" style="width:60px" id="t5a"><span class="mono">lambda2 =</span><input type="number" class="plain-input" style="width:60px" id="t5b"></div>'; },
+    check: function(){ return pairMatches('t5a','t5b',[3,-1]); },
+    hint: "lambda^2 - 2lambda - 3 factors as (lambda-3)(lambda+1) = 0, so lambda = 3 or lambda = -1." },
+  { id:6, title:"Eigenvalues, another matrix", desc:"Find the eigenvalues of A4.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[5,4],[1,2]]) + '<span class="mono">lambda1 =</span><input type="number" class="plain-input" style="width:60px" id="t6a"><span class="mono">lambda2 =</span><input type="number" class="plain-input" style="width:60px" id="t6b"></div>'; },
+    check: function(){ return pairMatches('t6a','t6b',[6,1]); },
+    hint: "trace = 7, det = 10-4 = 6, so lambda^2-7lambda+6=0, which factors as (lambda-6)(lambda-1)=0. Eigenvalues: 6 and 1." },
+  { id:7, title:"Eigenvalues, a third matrix", desc:"Find the eigenvalues of A5.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[0,1],[-2,3]]) + '<span class="mono">lambda1 =</span><input type="number" class="plain-input" style="width:60px" id="t7a"><span class="mono">lambda2 =</span><input type="number" class="plain-input" style="width:60px" id="t7b"></div>'; },
+    check: function(){ return pairMatches('t7a','t7b',[1,2]); },
+    hint: "trace = 3, det = 0x3-1x(-2) = 2, so lambda^2-3lambda+2=0, which factors as (lambda-1)(lambda-2)=0. Eigenvalues: 1 and 2." }
+];
+
+/* ============================================================
+   DAY 17 — TASKS (eigenvectors)
+   ============================================================ */
+var day17Tasks = [
+  { id:1, title:"Eigenvector for lambda=5", desc:"For A=[[4,1],[2,3]] (eigenvalues 5, 2 from Day 16), solve (A - 5I)v = 0. Fixing x=1, find y.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[4,1],[2,3]]) + '<span class="op">- 5I) v = 0</span>' +
+      '<span class="mono">x=1, y=</span><input type="number" class="plain-input" style="width:60px" id="t1a"></div>'; },
+    check: function(){ return num('t1a') === 1; },
+    hint: "A - 5I = [[-1,1],[2,-2]]. The first row gives -x + y = 0, so y = x. With x = 1, y = 1." },
+  { id:2, title:"Eigenvector for lambda=2", desc:"Using the same A, solve (A - 2I)v = 0. Fixing x=1, find y.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[4,1],[2,3]]) + '<span class="op">- 2I) v = 0</span>' +
+      '<span class="mono">x=1, y=</span><input type="number" class="plain-input" style="width:60px" id="t2a"></div>'; },
+    check: function(){ return num('t2a') === -2; },
+    hint: "A - 2I = [[2,1],[2,1]]. The first row gives 2x + y = 0, so y = -2x. With x = 1, y = -2." },
+  { id:3, title:"Eigenvector for lambda=3", desc:"For A3=[[1,2],[2,1]] (eigenvalues 3, -1), solve (A3 - 3I)v = 0. Fixing x=1, find y.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[1,2],[2,1]]) + '<span class="op">- 3I) v = 0</span>' +
+      '<span class="mono">x=1, y=</span><input type="number" class="plain-input" style="width:60px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === 1; },
+    hint: "A3 - 3I = [[-2,2],[2,-2]]. The first row gives -2x + 2y = 0, so y = x. With x = 1, y = 1." },
+  { id:4, title:"Eigenvector for lambda=-1", desc:"Using the same A3, solve (A3 + I)v = 0. Fixing x=1, find y.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[1,2],[2,1]]) + '<span class="op">+ I) v = 0</span>' +
+      '<span class="mono">x=1, y=</span><input type="number" class="plain-input" style="width:60px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === -1; },
+    hint: "A3 + I = [[2,2],[2,2]]. The first row gives 2x + 2y = 0, so y = -x. With x = 1, y = -1." },
+  { id:5, title:"Eigenvector for lambda=6", desc:"For A4=[[5,4],[1,2]] (eigenvalues 6, 1), solve (A4 - 6I)v = 0. Fixing y=1, find x.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[5,4],[1,2]]) + '<span class="op">- 6I) v = 0</span>' +
+      '<span class="mono">y=1, x=</span><input type="number" class="plain-input" style="width:60px" id="t5a"></div>'; },
+    check: function(){ return num('t5a') === 4; },
+    hint: "A4 - 6I = [[-1,4],[1,-4]]. The first row gives -x + 4y = 0, so x = 4y. With y = 1, x = 4." },
+  { id:6, title:"Eigenvector for lambda=1", desc:"Using the same A4, solve (A4 - I)v = 0. Fixing x=1, find y.",
+    render: function(){ return '<div class="matrix-row">(' + matrixHTML([[5,4],[1,2]]) + '<span class="op">- I) v = 0</span>' +
+      '<span class="mono">x=1, y=</span><input type="number" class="plain-input" style="width:60px" id="t6a"></div>'; },
+    check: function(){ return num('t6a') === -1; },
+    hint: "A4 - I = [[4,4],[1,1]]. The first row gives 4x + 4y = 0, so y = -x. With x = 1, y = -1." },
+  { id:7, title:"Verify the eigen-equation", desc:"Confirm that A x v = lambda x v for A=[[4,1],[2,3]], v=(1,1), lambda=5.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[4,1],[2,3]]) + '<span class="op">&middot;</span>' + matrixHTML([[1],[1]]) + '<span class="op">=</span>' + matrixInputHTML('t7',2,1) + '</div>'; },
+    check: function(){ return cellsMatch('t7', [[5],[5]]); },
+    hint: "A x v = [4x1+1x1, 2x1+3x1] = [5,5], which is exactly 5 x (1,1) — confirming (1,1) really is the eigenvector for lambda=5." }
+];
+
+/* ============================================================
+   DAY 18 — TASKS (diagonalization)
+   ============================================================ */
+var day18Tasks = [
+  { id:1, title:"Build D from the eigenvalues", desc:"A=[[2,1],[1,2]] has eigenvalues 3 and 1. Write D, the diagonal matrix of eigenvalues.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t1',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t1', [[3,0],[0,1]]); },
+    hint: "D always places the eigenvalues on the diagonal with zeros elsewhere: [[3,0],[0,1]]." },
+  { id:2, title:"Build P from the eigenvectors", desc:"The eigenvector for lambda=3 is (1,1), and for lambda=1 is (1,-1). Write P with these as its columns, in that order.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t2',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[1,1],[1,-1]]); },
+    hint: "Each eigenvector becomes a column of P: column 1 is (1,1), column 2 is (1,-1)." },
+  { id:3, title:"Determinant of P", desc:"Compute det(P) — you'll need it for the next step.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,1],[1,-1]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === -2; },
+    hint: "det = (1)(-1) - (1)(1) = -1 - 1 = -2." },
+  { id:4, title:"Compute P-inverse", desc:"Using det(P) = -2, compute P-inverse.",
+    render: function(){ return '<div class="matrix-row">' + matrixInputHTML('t4',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[0.5,0.5],[0.5,-0.5]]); },
+    hint: "Swap the diagonal, negate the off-diagonal, divide by det=-2: [[-1,-1],[-1,1]] / -2 = [[0.5,0.5],[0.5,-0.5]]." },
+  { id:5, title:"Compute P x D", desc:"Multiply P by D as a step toward rebuilding A.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,1],[1,-1]]) + '<span class="op">&middot;</span>' + matrixHTML([[3,0],[0,1]]) + '<span class="op">=</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[3,1],[3,-1]]); },
+    hint: "c11=1x3+1x0=3, c12=1x0+1x1=1, c21=1x3+(-1)x0=3, c22=1x0+(-1)x1=-1." },
+  { id:6, title:"Compute (P x D) x P-inverse", desc:"Finish rebuilding A: multiply your Q5 result by P-inverse from Q4. It should land back on the original A.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[3,1],[3,-1]]) + '<span class="op">&middot;</span>' + matrixHTML([[0.5,0.5],[0.5,-0.5]]) + '<span class="op">=</span>' + matrixInputHTML('t6',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[2,1],[1,2]]); },
+    hint: "Working it out gives [[2,1],[1,2]] — exactly the original A = PDP^-1. This is what diagonalization means: A is fully determined by its eigenvalues and eigenvectors." },
+  { id:7, title:"Orthogonality of the eigenvectors", desc:"A is symmetric. Compute the dot product of its two eigenvectors, (1,1) and (1,-1).",
+    render: function(){ return '<div class="matrix-row">(1,1) &middot; (1,-1) = <input type="number" class="plain-input" style="width:70px" id="t7a"></div>'; },
+    check: function(){ return num('t7a') === 0; },
+    hint: "(1)(1) + (1)(-1) = 1 - 1 = 0. For a symmetric matrix, eigenvectors from different eigenvalues are always orthogonal — this is exactly why." }
+];
+
+/* ============================================================
+   DAY 19 — TASKS (special matrices: orthogonal & symmetric)
+   ============================================================ */
+var day19Tasks = [
+  { id:1, title:"Confirm a symmetric matrix", desc:"S is symmetric — compute S^T and confirm it's identical to S.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[3,5],[5,3]]) + '<span class="op mono" style="font-size:14px;">^T =</span>' + matrixInputHTML('t1',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t1', [[3,5],[5,3]]); },
+    hint: "Transposing means swapping across the main diagonal — since S already mirrors itself there, S^T = S exactly." },
+  { id:2, title:"Test an orthogonal matrix", desc:"Compute Q x Q^T. An orthogonal matrix always gives the identity here.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[0,-1],[1,0]]) + '<span class="op">&middot;</span>' + matrixHTML([[0,1],[-1,0]]) + '<span class="op">=</span>' + matrixInputHTML('t2',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[1,0],[0,1]]); },
+    hint: "c11=0x0+(-1)x(-1)=1, c12=0x1+(-1)x0=0, c21=1x0+0x(-1)=0, c22=1x1+0x0=1. Result: the identity — confirming Q is orthogonal." },
+  { id:3, title:"Determinant of an orthogonal matrix", desc:"Compute det(Q) for the same matrix.",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[0,-1],[1,0]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t3a"></div>'; },
+    check: function(){ return num('t3a') === 1; },
+    hint: "det = (0)(0) - (-1)(1) = 1. Every orthogonal matrix has determinant +1 or -1." },
+  { id:4, title:"Determinant of a reflection matrix", desc:"R below reflects points across the x-axis. Compute det(R).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[1,0],[0,-1]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t4a"></div>'; },
+    check: function(){ return num('t4a') === -1; },
+    hint: "det = (1)(-1) - (0)(0) = -1. Reflections are orthogonal too, but with determinant -1 instead of +1 (rotations)." },
+  { id:5, title:"Another symmetric matrix check", desc:"Compute S2^T and confirm it matches S2.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,4],[4,-1]]) + '<span class="op mono" style="font-size:14px;">^T =</span>' + matrixInputHTML('t5',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t5', [[2,4],[4,-1]]); },
+    hint: "The off-diagonal entries already match (both 4), so transposing leaves S2 unchanged." },
+  { id:6, title:"A diagonal orthogonal matrix", desc:"Compute D x D^T for this diagonal matrix of +/-1 entries.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[1,0],[0,-1]]) + '<span class="op">&middot;</span>' + matrixHTML([[1,0],[0,-1]]) + '<span class="op">=</span>' + matrixInputHTML('t6',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[1,0],[0,1]]); },
+    hint: "Since D is symmetric here, D^T = D, and D x D = [[1,0],[0,1]] because (-1)x(-1)=1. Any diagonal matrix of +/-1s is orthogonal." },
+  { id:7, title:"Determinant of a permutation matrix", desc:"P below swaps the two coordinates. Compute det(P).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[0,1],[1,0]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t7a"></div>'; },
+    check: function(){ return num('t7a') === -1; },
+    hint: "det = (0)(0) - (1)(1) = -1. Permutation matrices are always orthogonal, with determinant +1 or -1 depending on the swap." }
+];
+
+/* ============================================================
+   DAY 20 — TASKS (mixed mastery review)
+   ============================================================ */
+var day20Tasks = [
+  { id:1, title:"Order of a matrix", desc:"State the order (rows x columns) of M.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,5],[0,-1],[3,4]]) +
+      '<div style="display:flex;align-items:center;gap:6px;"><input type="number" class="plain-input" style="width:50px" id="t1a" placeholder="rows">' +
+      '<span class="op">x</span><input type="number" class="plain-input" style="width:50px" id="t1b" placeholder="cols"></div></div>'; },
+    check: function(){ return num('t1a') === 3 && num('t1b') === 2; },
+    hint: "3 rows, 2 columns — order 3 x 2." },
+  { id:2, title:"Matrix addition", desc:"Compute A + B.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[3,-1],[2,4]]) + '<span class="op">+</span>' + matrixHTML([[1,5],[-3,2]]) + '<span class="op">=</span>' + matrixInputHTML('t2',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t2', [[4,4],[-1,6]]); },
+    hint: "Add matching positions: [3+1,-1+5],[2-3,4+2] = [4,4],[-1,6]." },
+  { id:3, title:"Matrix multiplication", desc:"Compute A x B.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,1],[0,3]]) + '<span class="op">&middot;</span>' + matrixHTML([[1,4],[2,0]]) + '<span class="op">=</span>' + matrixInputHTML('t3',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t3', [[4,8],[6,0]]); },
+    hint: "c11=2x1+1x2=4, c12=2x4+1x0=8, c21=0x1+3x2=6, c22=0x4+3x0=0." },
+  { id:4, title:"Transpose", desc:"Write A^T. A is 2x3, so A^T is 3x2.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[2,5,-1],[0,3,4]]) + '<span class="op mono" style="font-size:14px;">^T =</span>' + matrixInputHTML('t4',3,2) + '</div>'; },
+    check: function(){ return cellsMatch('t4', [[2,0],[5,3],[-1,4]]); },
+    hint: "Each column of A becomes a row of A^T: (2,0), (5,3), (-1,4)." },
+  { id:5, title:"2x2 determinant", desc:"Compute det(M).",
+    render: function(){ return '<div class="matrix-row">det ' + matrixHTML([[4,2],[3,5]]) + '<span class="op">=</span><input type="number" class="plain-input" style="width:70px" id="t5a"></div>'; },
+    check: function(){ return num('t5a') === 14; },
+    hint: "det = (4)(5) - (2)(3) = 20 - 6 = 14." },
+  { id:6, title:"2x2 inverse", desc:"Compute A-inverse.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[3,2],[1,1]]) + '<span class="op mono" style="font-size:14px;">^-1 =</span>' + matrixInputHTML('t6',2,2) + '</div>'; },
+    check: function(){ return cellsMatch('t6', [[1,-2],[-1,3]]); },
+    hint: "det = 3-2 = 1. Swap the diagonal, negate the off-diagonal, and since det=1 that's the final answer: [[1,-2],[-1,3]]." },
+  { id:7, title:"Eigenvalues", desc:"Find the eigenvalues of A.",
+    render: function(){ return '<div class="matrix-row">' + matrixHTML([[3,1],[2,2]]) + '<span class="mono">lambda1 =</span><input type="number" class="plain-input" style="width:60px" id="t7a"><span class="mono">lambda2 =</span><input type="number" class="plain-input" style="width:60px" id="t7b"></div>'; },
+    check: function(){ return pairMatches('t7a','t7b',[4,1]); },
+    hint: "trace = 5, det = 6-2 = 4, so lambda^2-5lambda+4=0, which factors as (lambda-4)(lambda-1)=0. Eigenvalues: 4 and 1." }
+];
+
+var DAY_CONTENT = {
+  1: { eyebrow: "Day 1 of 20 — Foundations", title: "Matrix Foundations",
+    subtitle: "Order, elements, addition, subtraction, scalar multiplication, and matrix equality. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> every later day (multiplication, determinants, inverses, eigenvalues) assumes you can read a matrix's shape and combine matrices without slipping a sign or misplacing an index.",
+    briefHow: "<strong>How to work each task:</strong> read the matrix carefully, fill in every box, then press \"Check answer.\" Wrong answers show a hint, not the solution.",
+    nextTopic: "Day 2 — matrix multiplication — unlocks next.", tasks: day1Tasks },
+  2: { eyebrow: "Day 2 of 20 — Multiplication", title: "Matrix Multiplication",
+    subtitle: "Compatibility checks, row-by-column products, matrix-vector products, and why order matters. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> multiplication is the operation everything else in this track sits on top of — determinants, inverses, and eigenvalues are all built from products of matrices.",
+    briefHow: "<strong>How to work each task:</strong> take each entry as its own dot product — row of the left matrix against column of the right one. Don't rush; a single sign slip breaks the whole answer.",
+    nextTopic: "Day 3 — multiplication properties — unlocks next.", tasks: day2Tasks },
+  3: { eyebrow: "Day 3 of 20 — Properties", title: "Multiplication Properties",
+    subtitle: "Distributivity, associativity, the identity and zero matrices, and why order matters. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> once you trust that matrix multiplication behaves predictably — distributes, associates, has an identity — you can rearrange bigger expressions with confidence instead of recomputing everything from scratch.",
+    briefHow: "<strong>How to work each task:</strong> several pairs of questions ask you to compute the same result two different ways. If your two answers in a pair don't match, you made an arithmetic slip somewhere — go back and recheck before moving on.",
+    nextTopic: "Day 4 — transpose — unlocks next.", tasks: day3Tasks },
+  4: { eyebrow: "Day 4 of 20 — Transpose", title: "Transpose & Symmetric Matrices",
+    subtitle: "Flipping rows into columns, symmetric matrices, and how transpose interacts with addition and multiplication. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> transpose shows up constantly from here on — in symmetric matrices, in the normal equations of least squares, and in the rule (AB)^T = B^T A^T, which you'll rely on later.",
+    briefHow: "<strong>How to work each task:</strong> to transpose, read down each column of the original and write it across as a row of the result. Watch Q6 and Q7 closely — the factors swap order.",
+    nextTopic: "Day 5 — identity & zero matrices — unlocks next.", tasks: day4Tasks },
+  5: { eyebrow: "Day 5 of 20 — Special Matrices", title: "Identity & Zero Matrices",
+    subtitle: "The matrix equivalents of 1 and 0 — how they behave under addition, multiplication, and scalar multiplication. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> the identity and zero matrices are the anchors you'll use to check your own work in every later topic — inverses, in particular, are defined entirely in terms of the identity matrix.",
+    briefHow: "<strong>How to work each task:</strong> most of these should feel almost too easy — that's the point. If one doesn't feel obvious, that's exactly the gap worth catching now.",
+    nextTopic: "Day 6 — 2x2 determinants — unlocks next.", tasks: day5Tasks },
+  6: { eyebrow: "Day 6 of 20 — Determinants", title: "2x2 Determinants",
+    subtitle: "The ad - bc formula, what a zero determinant means, and solving for an unknown entry. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> the determinant tells you whether a matrix is invertible at all — a zero determinant means no inverse exists, which you'll rely on constantly starting Day 9.",
+    briefHow: "<strong>How to work each task:</strong> for [[a,b],[c,d]], the determinant is always ad - bc. Watch your signs carefully, especially with negative entries.",
+    nextTopic: "Day 7 — 3x3 determinants — unlocks next.", tasks: day6Tasks },
+  7: { eyebrow: "Day 7 of 20 — Determinants", title: "3x3 Determinants",
+    subtitle: "Cofactor expansion along the first row, plus the shortcuts for triangular and diagonal matrices. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> cofactor expansion is the general method behind every determinant you'll compute from here on, including the ones used to build 3x3 inverses on Day 10.",
+    briefHow: "<strong>How to work each task:</strong> expand along the first row: det = a(ei-fh) - b(di-fg) + c(dh-eg) for [[a,b,c],[d,e,f],[g,h,i]]. Alternate the +/-/+ signs across the row.",
+    nextTopic: "Day 8 — determinant properties — unlocks next.", tasks: day7Tasks },
+  8: { eyebrow: "Day 8 of 20 — Determinants", title: "Determinant Properties",
+    subtitle: "How row swaps, row scaling, and row addition each affect a determinant — plus det(A^T), det(cA), and det(AB). Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> knowing how row operations move a determinant is what lets you compute large determinants efficiently by reducing first, and it explains why singular matrices always have a zero determinant.",
+    briefHow: "<strong>How to work each task:</strong> each question gives you the determinant of a starting matrix, then a matrix formed by one operation on it. Predict the effect, then check by computing directly.",
+    nextTopic: "Day 9 — 2x2 inverses — unlocks next.", tasks: day8Tasks },
+  9: { eyebrow: "Day 9 of 20 — Inverses", title: "2x2 Inverses",
+    subtitle: "The (1/det) x adjugate formula, checking invertibility, and verifying A x A-inverse = I. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> the inverse is what lets you solve Ax = b directly, which is exactly what Day 11 builds on. A zero determinant means no inverse exists at all.",
+    briefHow: "<strong>How to work each task:</strong> for [[a,b],[c,d]], swap a and d, negate b and c, then divide every entry by the determinant.",
+    nextTopic: "Day 10 — 3x3 inverses — unlocks next.", tasks: day9Tasks },
+  10: { eyebrow: "Day 10 of 20 — Inverses", title: "3x3 Inverses",
+    subtitle: "Building a full 3x3 inverse step by step: determinant, cofactors, adjugate, then the final division. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> this is the same matrix from Day 7, so you already know its determinant — now you'll see exactly how that number, plus a full grid of cofactors, produces the inverse.",
+    briefHow: "<strong>How to work each task:</strong> work through it in order — each question builds on the last, so a mistake early on will cascade. Recheck a cofactor before moving to the next step if something looks off.",
+    nextTopic: "Day 11 — solving systems — unlocks next.", tasks: day10Tasks },
+  11: { eyebrow: "Day 11 of 20 — Systems", title: "Solving Systems via the Inverse",
+    subtitle: "Turning a system of equations into Ax = b, then solving with x = A-inverse x b. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> this is the payoff for Days 6 and 9 — determinants and inverses exist specifically so you can solve systems this way, instead of juggling substitution by hand.",
+    briefHow: "<strong>How to work each task:</strong> each system gets broken into three steps — determinant, inverse, then the final matrix-vector product. Keep your inverse from the previous question handy for the next one.",
+    nextTopic: "Day 12 — Gaussian elimination — unlocks next.", tasks: day11Tasks },
+  12: { eyebrow: "Day 12 of 20 — Elimination", title: "Gaussian Elimination",
+    subtitle: "Turning a matrix into row echelon form one elementary row operation at a time. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> elimination is the general-purpose method that works even when a matrix has no inverse — it's the backbone of solving systems, finding rank, and computing RREF on Day 14.",
+    briefHow: "<strong>How to work each task:</strong> apply exactly the row operation stated, to the row stated — nothing else changes. Carry forward the updated matrix from one question into the next.",
+    nextTopic: "Day 13 — rank — unlocks next.", tasks: day12Tasks },
+  13: { eyebrow: "Day 13 of 20 — Rank", title: "Rank",
+    subtitle: "Counting independent rows — from the identity and zero matrix up through proportional and repeated rows. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> rank tells you how much genuinely independent information a matrix holds, which decides whether a system has a unique solution, no solution, or infinitely many.",
+    briefHow: "<strong>How to work each task:</strong> look for rows that are zero, repeated, or proportional to another row first — those never count toward the rank.",
+    nextTopic: "Day 14 — row operations & RREF — unlocks next.", tasks: day13Tasks },
+  14: { eyebrow: "Day 14 of 20 — RREF", title: "Row Operations & RREF",
+    subtitle: "Continuing elimination past row echelon form, all the way to reduced row echelon form — and reading a solved system straight off it. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> RREF is the cleanest possible form of a matrix — once you're there, a system's solution is just sitting in the last column, no back-substitution required.",
+    briefHow: "<strong>How to work each task:</strong> this picks up exactly where Day 12 left off — you're now clearing entries above each pivot instead of below it.",
+    nextTopic: "Day 15 — linear independence — unlocks next.", tasks: day14Tasks },
+  15: { eyebrow: "Day 15 of 20 — Independence", title: "Linear Independence & Span",
+    subtitle: "Using a determinant to test independence, and finding coordinates within a basis. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> independence is what a nonzero determinant has been signaling all along — this is where that connection becomes explicit, and it sets up eigenvectors starting Day 16.",
+    briefHow: "<strong>How to work each task:</strong> line the vectors up as columns of a matrix and take the determinant. Zero means dependent; nonzero means independent.",
+    nextTopic: "Day 16 — eigenvalues — unlocks next.", tasks: day15Tasks },
+  16: { eyebrow: "Day 16 of 20 — Eigenvalues", title: "Eigenvalues",
+    subtitle: "Building the characteristic polynomial from trace and determinant, then solving it for both eigenvalues. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> eigenvalues describe how a matrix stretches space along its own natural directions — they're the foundation for eigenvectors (Day 17) and diagonalization (Day 18).",
+    briefHow: "<strong>How to work each task:</strong> for a 2x2 matrix, the characteristic equation is always lambda^2 - (trace)*lambda + det = 0. Factor it like any quadratic.",
+    nextTopic: "Day 17 — eigenvectors — unlocks next.", tasks: day16Tasks },
+  17: { eyebrow: "Day 17 of 20 — Eigenvectors", title: "Eigenvectors",
+    subtitle: "Solving (A - lambda*I)v = 0 for the eigenvectors that go with each eigenvalue from Day 16. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> an eigenvalue on its own only tells you the stretch factor — the eigenvector tells you the direction, and together they're what diagonalization assembles into P and D on Day 18.",
+    briefHow: "<strong>How to work each task:</strong> substitute lambda into A - lambda*I, then solve the resulting system. Since it has infinitely many solutions, we fix one coordinate (usually x=1) to pin down a single answer.",
+    nextTopic: "Day 18 — diagonalization — unlocks next.", tasks: day17Tasks },
+  18: { eyebrow: "Day 18 of 20 — Diagonalization", title: "Diagonalization",
+    subtitle: "Assembling P and D from eigenvectors and eigenvalues, then confirming A = PDP-inverse. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> once a matrix is diagonalized, raising it to a power or analyzing its long-term behavior becomes almost trivial — this is the payoff for everything built since Day 16.",
+    briefHow: "<strong>How to work each task:</strong> D holds the eigenvalues on its diagonal, and P holds the matching eigenvectors as columns, in the same order. Everything else follows mechanically from there.",
+    nextTopic: "Day 19 — special matrices — unlocks next.", tasks: day18Tasks },
+  19: { eyebrow: "Day 19 of 20 — Special Matrices", title: "Special Matrices",
+    subtitle: "Symmetric matrices (S = S^T), orthogonal matrices (Q x Q^T = I), and what their determinants reveal. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> symmetric and orthogonal matrices show up constantly in applications — rotations, reflections, and the covariance matrices behind PCA are all built from these two properties.",
+    briefHow: "<strong>How to work each task:</strong> for symmetric checks, compare the matrix to its own transpose. For orthogonal checks, multiply the matrix by its transpose and look for the identity.",
+    nextTopic: "Day 20 — mixed mastery check — unlocks next.", tasks: day19Tasks },
+  20: { eyebrow: "Day 20 of 20 — Mastery Check", title: "Mixed Mastery Review",
+    subtitle: "One question from each major skill in this track — order, addition, multiplication, transpose, determinants, inverses, and eigenvalues. Seven questions.",
+    briefWhy: "<strong>Why this matters:</strong> this is the cumulative check — every skill from the last 19 days shows up here once, with nothing to remind you which day it came from.",
+    briefHow: "<strong>How to work each task:</strong> no hand-holding this time — treat each question as its own cold start, exactly like Day 1 felt on day one.",
+    nextTopic: "All 20 days complete. Track finished.", tasks: day20Tasks }
+};
+
+var progressCache = {};
+
+async function loadAllProgress(){
+  for(var i=0;i<CURRICULUM.length;i++){
+    var d = CURRICULUM[i];
+    var raw = await storeGet('day-progress:'+d.day);
+    if(raw){ try{ progressCache[d.day] = JSON.parse(raw); }catch(e){} }
+  }
+}
+async function saveProgress(day, data){
+  var curriculumEntry = CURRICULUM.find(function(d){ return d.day === day; });
+  var merged = Object.assign(
+    {day: day, focus: curriculumEntry ? curriculumEntry.focus : null},
+    progressCache[day]||{}, data
+  );
+  progressCache[day] = merged;
+  var ok = await storeSet('day-progress:'+day, JSON.stringify(merged));
+  var el = document.getElementById('save-state');
+  if(el) el.textContent = ok ? 'Scores save automatically to your account.' : 'Could not save to the server — check your connection.';
+}
+function buildProgressJSON(){
+  var out = {};
+  for(var i=0;i<CURRICULUM.length;i++){
+    var day = CURRICULUM[i].day;
+    if(progressCache[day]){ out['day' + day] = progressCache[day]; }
+  }
+  return JSON.stringify(out, null, 2);
+}
+
+function renderDashboard(){
+  var body = document.getElementById('table-body');
+  body.innerHTML = '';
+  var loggedCount = 0, accSum = 0, best = null;
+
+  CURRICULUM.forEach(function(d){
+    var p = progressCache[d.day];
+    var row = document.createElement('div');
+    row.className = 'row' + (p && p.completed ? ' active' : '');
+    var scoreDisplay = (p && p.completed) ? p.accuracy + '%' : '\u2014';
+    var scoreClass = (p && p.completed) ? 'score-cell' : 'score-cell empty';
+    var actionHtml;
+    if(!d.built){ actionHtml = '<button class="day-action locked" disabled title="Not built yet">Locked</button>'; }
+    else if(p && p.completed){ actionHtml = '<button class="day-action review" data-day="' + d.day + '">Review</button>'; }
+    else{ actionHtml = '<button class="day-action" data-day="' + d.day + '">Start</button>'; }
+    var noteVal = (p && p.notes) ? p.notes.replace(/"/g,'&quot;') : '';
+
+    row.innerHTML =
+      '<div class="day-num mono">' + String(d.day).padStart(2,'0') + '</div>' +
+      '<div class="focus-cell">' + d.focus + '</div>' +
+      '<div class="technique-cell">' + d.technique + '</div>' +
+      '<div class="target-cell mono">' + d.target + '</div>' +
+      '<div class="' + scoreClass + '">' + scoreDisplay + '</div>' +
+      '<div><input class="notes-input" data-note-day="' + d.day + '" placeholder="' + (d.built ? 'notes / error caught' : '') + '" value="' + noteVal + '" ' + (d.built ? '' : 'disabled') + '></div>' +
+      '<div>' + actionHtml + '</div>';
+    body.appendChild(row);
+
+    if(p && p.completed){ loggedCount++; accSum += p.accuracy; if(best === null || p.accuracy > best) best = p.accuracy; }
+  });
+
+  document.getElementById('stat-days').textContent = loggedCount + '/20';
+  document.getElementById('stat-avg').textContent = loggedCount ? Math.round(accSum/loggedCount) + '%' : '\u2014';
+  document.getElementById('stat-best').textContent = best !== null ? best + '%' : '\u2014';
+
+  var builtDays = CURRICULUM.filter(function(d){ return d.built; });
+  document.getElementById('built-status').textContent =
+    (builtDays.length === 1 ? 'DAY 1 OF 20 BUILT' : 'DAYS 1-' + builtDays[builtDays.length-1].day + ' OF 20 BUILT') + ' \u00b7 REST UNLOCK AS WE GO';
+
+  var nextIncomplete = builtDays.find(function(d){ return !(progressCache[d.day] && progressCache[d.day].completed); });
+  var banner = document.getElementById('today-banner');
+  var focusSpan = document.getElementById('today-focus');
+  var ctaText = document.getElementById('cta-text');
+  var ctaSub = document.getElementById('cta-sub-text');
+  var ctaBtn = document.getElementById('cta-btn');
+
+  if(nextIncomplete){
+    ctaBtn.querySelector('.arrow').textContent = '\u25b6';
+    ctaText.textContent = 'Start Day ' + nextIncomplete.day + ' \u2014 ' + nextIncomplete.focus;
+    ctaSub.textContent = '7 questions \u00b7 ~10 minutes';
+    ctaBtn.setAttribute('data-target-day', nextIncomplete.day);
+    banner.style.display = 'none';
+  } else {
+    var lastBuilt = builtDays[builtDays.length-1];
+    ctaBtn.querySelector('.arrow').textContent = '\u21bb';
+    ctaText.textContent = 'Review Day ' + lastBuilt.day + ' \u2014 ' + lastBuilt.focus;
+    ctaSub.textContent = 'All built days complete';
+    ctaBtn.setAttribute('data-target-day', lastBuilt.day);
+    banner.style.display = 'flex';
+    var hasLocked = CURRICULUM.some(function(d){ return !d.built; });
+    focusSpan.innerHTML = hasLocked
+      ? 'All ' + builtDays.length + ' built day' + (builtDays.length===1?'':'s') + ' complete. Ask for the next day to keep going.'
+      : 'All 20 days complete. Nicely done.';
+  }
+
+  renderChart();
+}
+
+function renderChart(){
+  var completedDays = CURRICULUM.filter(function(d){ return progressCache[d.day] && progressCache[d.day].completed; })
+    .sort(function(a,b){ return a.day-b.day; });
+  var card = document.getElementById('chart-card');
+  if(completedDays.length < 2){ card.classList.remove('visible'); return; }
+  card.classList.add('visible');
+  var svg = document.getElementById('chart-svg');
+  var W = 900, H = 140, pad = 20, n = completedDays.length;
+  var pts = completedDays.map(function(d,i){
+    var x = pad + (i/(n-1)) * (W - pad*2);
+    var acc = progressCache[d.day].accuracy;
+    var y = H - pad - (acc/100)*(H - pad*2);
+    return {x:x,y:y,day:d.day};
+  });
+  var svgHtml = '<line x1="' + pad + '" y1="' + (H-pad) + '" x2="' + (W-pad) + '" y2="' + (H-pad) + '" stroke="var(--grid)" stroke-width="1"/>';
+  var pathD = pts.map(function(p,i){ return (i===0?'M':'L') + p.x + ' ' + p.y; }).join(' ');
+  svgHtml += '<path d="' + pathD + '" fill="none" stroke="var(--green)" stroke-width="2"/>';
+  pts.forEach(function(p){
+    svgHtml += '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="var(--panel)" stroke="var(--green)" stroke-width="2"/>';
+    svgHtml += '<text x="' + p.x + '" y="' + (H-4) + '" font-size="10" fill="var(--muted)" text-anchor="middle" font-family="JetBrains Mono, monospace">D' + p.day + '</text>';
+  });
+  svg.innerHTML = svgHtml;
+}
+
+function goHome(){
+  document.getElementById('day-view').style.display = 'none';
+  document.getElementById('home-view').style.display = 'block';
+  renderDashboard();
+}
+
+var currentDay = null;
+var dayState = {};
+
+function openDay(day){
+  var entry = CURRICULUM.find(function(d){ return d.day === day; });
+  if(!entry || !entry.built || !DAY_CONTENT[day]) return;
+  currentDay = day;
+  var content = DAY_CONTENT[day];
+
+  document.getElementById('day-eyebrow').textContent = content.eyebrow;
+  document.getElementById('day-title').textContent = content.title;
+  document.getElementById('day-subtitle').textContent = content.subtitle;
+  document.getElementById('brief-why').innerHTML = content.briefWhy;
+  document.getElementById('brief-how').innerHTML = content.briefHow;
+  document.getElementById('summary-title').textContent = 'Day ' + day + ' complete';
+  document.getElementById('summary-next').textContent = 'Saved to your account. ' + content.nextTopic;
+
+  document.getElementById('home-view').style.display = 'none';
+  document.getElementById('day-view').style.display = 'block';
+  initDayTasks(day, content.tasks);
+  window.scrollTo(0,0);
+}
+
+function initDayTasks(day, tasks){
+  dayState = {};
+  var container = document.getElementById('tasks');
+  container.innerHTML = '';
+  document.getElementById('summary').classList.remove('show');
+
+  tasks.forEach(function(t, idx){
+    dayState[t.id] = {solved:false, attempts:0, failedOnce:false};
+    var el = document.createElement('div');
+    el.className = 'task';
+    el.id = 'task-' + t.id;
+    el.innerHTML =
+      '<div class="task-head"><span class="task-num">Q' + (idx+1) + '</span><span class="task-title">' + t.title + '</span></div>' +
+      '<div class="task-desc">' + t.desc + '</div>' + t.render() +
+      '<div class="task-foot"><button class="check" data-task-id="' + t.id + '">Check answer</button>' +
+      '<span class="feedback" id="fb-' + t.id + '"></span></div>' +
+      '<div class="hint" id="hint-' + t.id + '">' + t.hint + '</div>';
+    container.appendChild(el);
+  });
+  updateDayScore(tasks);
+}
+
+function checkTask(id){
+  var tasks = DAY_CONTENT[currentDay].tasks;
+  var t = tasks.find(function(x){ return x.id === id; });
+  if(!t) return;
+  var state = dayState[id];
+  if(state.solved) return;
+  state.attempts++;
+  var correct = t.check();
+  var el = document.getElementById('task-' + id);
+  var fb = document.getElementById('fb-' + id);
+  var hint = document.getElementById('hint-' + id);
+
+  if(correct){
+    state.solved = true;
+    el.classList.add('solved'); el.classList.remove('failed-once');
+    fb.className = 'feedback correct';
+    fb.textContent = state.attempts === 1 ? '\u2713 Correct \u2014 first try.' : '\u2713 Correct.';
+    hint.style.display = 'none';
+    el.querySelector('button.check').disabled = true;
+  } else {
+    state.failedOnce = true;
+    el.classList.add('failed-once');
+    fb.className = 'feedback wrong';
+    fb.textContent = '\u2717 Not quite \u2014 rework it.';
+    hint.style.display = 'block';
+  }
+  updateDayScore(tasks);
+}
+
+function updateDayScore(tasks){
+  var total = tasks.length;
+  var states = Object.keys(dayState).map(function(k){ return dayState[k]; });
+  var solvedCount = states.filter(function(s){ return s.solved; }).length;
+  var firstTryCorrect = states.filter(function(s){ return s.solved && s.attempts===1; }).length;
+
+  document.getElementById('progressCount').textContent = solvedCount + '/' + total;
+  var accuracy = total ? Math.round((firstTryCorrect/total)*100) : 0;
+  document.getElementById('scoreText').textContent = solvedCount ? 'ACCURACY: ' + accuracy + '% (first-try)' : 'ACCURACY: \u2014';
+
+  if(solvedCount === total){ finishDay(currentDay, firstTryCorrect, total); }
+}
+
+async function finishDay(day, firstTryCorrect, total){
+  var accuracy = Math.round((firstTryCorrect/total)*100);
+  var summary = document.getElementById('summary');
+  document.getElementById('accuracyBig').textContent = accuracy + '%';
+  document.getElementById('summaryDetail').textContent =
+    firstTryCorrect + ' of ' + total + ' correct on the first attempt.' +
+    (accuracy === 100 ? ' Clean sweep.' : ' Revisit the ones that took more than one try before the next day.');
+  summary.classList.add('show');
+
+  await saveProgress(day, { completed:true, correct:firstTryCorrect, total:total, accuracy:accuracy, timestamp:new Date().toISOString() });
+  renderDashboard();
+}
+
+document.getElementById('reset-btn').addEventListener('click', async function(){
+  if(!window.confirm('Reset all logged progress for all 20 days? This cannot be undone.')) return;
+  for(var i=0;i<CURRICULUM.length;i++){ await storeDelete('day-progress:' + CURRICULUM[i].day); }
+  progressCache = {};
+  renderDashboard();
+});
+document.getElementById('cta-btn').addEventListener('click', function(){
+  var day = Number(this.getAttribute('data-target-day'));
+  if(day) openDay(day);
+});
+document.getElementById('back-link-top').addEventListener('click', goHome);
+document.getElementById('back-link-bottom').addEventListener('click', goHome);
+document.getElementById('table-body').addEventListener('click', function(e){
+  var btn = e.target.closest('button.day-action[data-day]');
+  if(btn){ openDay(Number(btn.getAttribute('data-day'))); }
+});
+document.getElementById('table-body').addEventListener('focusout', function(e){
+  var input = e.target.closest('input.notes-input[data-note-day]');
+  if(input){ saveProgress(Number(input.getAttribute('data-note-day')), {notes: input.value}); }
+});
+document.getElementById('tasks').addEventListener('click', function(e){
+  var btn = e.target.closest('button.check[data-task-id]');
+  if(btn){ checkTask(Number(btn.getAttribute('data-task-id'))); }
+});
+
+document.getElementById('view-json-btn').addEventListener('click', function(){
+  var content = buildProgressJSON();
+  var pre = document.getElementById('json-content');
+  if(content === '{}'){ pre.innerHTML = '<span class="json-empty">No days completed yet.</span>'; }
+  else{ pre.textContent = content; }
+  document.getElementById('json-import-textarea').value = '';
+  document.getElementById('json-import-status').textContent = '';
+  document.getElementById('json-modal').style.display = 'flex';
+});
+document.getElementById('json-close').addEventListener('click', function(){ document.getElementById('json-modal').style.display = 'none'; });
+document.getElementById('json-modal').addEventListener('click', function(e){ if(e.target.id === 'json-modal'){ document.getElementById('json-modal').style.display = 'none'; } });
+document.getElementById('json-download-btn').addEventListener('click', function(){
+  var content = buildProgressJSON();
+  var blob = new Blob([content], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href = url; a.download = 'matrix-accuracy-progress.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+});
+document.getElementById('json-copy-btn').addEventListener('click', async function(){
+  var content = buildProgressJSON();
+  var btn = document.getElementById('json-copy-btn');
+  try{
+    await navigator.clipboard.writeText(content);
+    var original = btn.textContent; btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = original; }, 1500);
+  }catch(e){
+    var pre = document.getElementById('json-content');
+    var range = document.createRange(); range.selectNode(pre);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+  }
+});
+document.getElementById('json-import-file-btn').addEventListener('click', function(){ document.getElementById('json-import-file').click(); });
+document.getElementById('json-import-file').addEventListener('change', function(e){
+  var file = e.target.files[0]; if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(evt){ document.getElementById('json-import-textarea').value = evt.target.result; };
+  reader.onerror = function(){ setImportStatus('Could not read that file.', false); };
+  reader.readAsText(file);
+});
+function setImportStatus(msg, ok){
+  var el = document.getElementById('json-import-status');
+  el.textContent = msg; el.className = 'json-import-status ' + (ok ? 'ok' : 'err');
+}
+async function importProgressJSON(raw){
+  var parsed;
+  try{ parsed = JSON.parse(raw); }catch(e){ setImportStatus('That is not valid JSON — check for a missing bracket or quote.', false); return; }
+  if(typeof parsed !== 'object' || parsed === null){ setImportStatus('Expected a JSON object like the one you downloaded.', false); return; }
+  var validDayNumbers = CURRICULUM.map(function(d){ return d.day; });
+  var imported = 0, skipped = 0;
+  var keys = Object.keys(parsed);
+  for(var i=0;i<keys.length;i++){
+    var key = keys[i], entry = parsed[key];
+    if(!entry || typeof entry !== 'object'){ skipped++; continue; }
+    var dayNum = null;
+    if(entry.day && validDayNumbers.indexOf(Number(entry.day)) !== -1){ dayNum = Number(entry.day); }
+    else{ var m = key.match(/(\d+)/); if(m && validDayNumbers.indexOf(Number(m[1])) !== -1){ dayNum = Number(m[1]); } }
+    if(dayNum === null){ skipped++; continue; }
+    await saveProgress(dayNum, entry);
+    imported++;
+  }
+  if(imported === 0){ setImportStatus('No recognizable day entries found in that file.', false); return; }
+  setImportStatus('Loaded ' + imported + ' day' + (imported===1?'':'s') + (skipped ? (' (' + skipped + ' entry skipped)') : '') + '. Continuing from here.', true);
+  renderDashboard();
+}
+document.getElementById('json-import-load-btn').addEventListener('click', function(){
+  var raw = document.getElementById('json-import-textarea').value.trim();
+  if(!raw){ setImportStatus('Paste your JSON or choose a file first.', false); return; }
+  importProgressJSON(raw);
+});
+
+(async function init(){
+  var saveState = document.getElementById('save-state');
+  if(saveState) saveState.textContent = 'loading...';
+  await loadAllProgress();
+  renderDashboard();
+})();
+</script>
+</body>
+</html>

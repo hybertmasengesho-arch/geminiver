@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teams — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .teams-grid{ display:grid; grid-template-columns:1fr; gap:18px; margin-top:22px; max-width:720px; }
+  .team-block{ margin-bottom:10px; }
+  .team-block h3{ font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:19px; color:var(--ink); margin:0 0 4px; }
+  .team-owner-tag{ font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:2px 8px; border-radius:20px; background:var(--green-soft); color:var(--green); margin-left:8px; vertical-align:middle; }
+  .member-row{ display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--grid); font-size:13.5px; }
+  .member-row:last-child{ border-bottom:none; }
+  .member-name{ color:var(--ink); font-weight:600; }
+  .member-email{ color:var(--muted); font-size:12px; }
+  .status-pill{ font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 8px; border-radius:20px; text-transform:uppercase; letter-spacing:.03em; }
+  .status-pill.accepted{ background:var(--green-soft); color:var(--green); }
+  .status-pill.pending{ background:var(--amber-soft,rgba(192,138,46,0.12)); color:var(--amber); }
+  .status-pill.declined{ background:rgba(178,58,46,0.10); color:var(--red); }
+  .mini-btn{
+    border:1.5px solid var(--line); background:var(--panel); border-radius:6px; padding:4px 10px;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; cursor:pointer; color:var(--ink); margin-left:6px;
+  }
+  .mini-btn.accept{ border-color:var(--green); color:var(--green); }
+  .mini-btn.decline, .mini-btn.remove{ border-color:var(--red); color:var(--red); }
+  .create-row{ display:flex; gap:8px; margin-top:6px; }
+  .create-row input{
+    flex:1; padding:9px 12px; border:1.5px solid var(--line); border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink); background:var(--paper);
+  }
+  .create-row button, .invite-row button{
+    background:var(--ink); color:#fff; border:none; border-radius:8px; padding:9px 16px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13px; cursor:pointer; white-space:nowrap;
+  }
+  .invite-row{ display:flex; gap:8px; margin-top:12px; }
+  .invite-row input{
+    flex:1; padding:8px 11px; border:1.5px solid var(--line); border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:13px; color:var(--ink); background:var(--paper);
+  }
+  .search-results{ margin-top:8px; }
+  .search-hit{ display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border:1px solid var(--grid); border-radius:8px; margin-top:6px; font-size:13px; }
+  .search-hit button{ background:var(--blue); color:#fff; border:none; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; }
+  .empty-state{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding:20px 0; text-align:center; }
+  .msg{ font-size:13px; margin-top:10px; display:none; }
+  .msg.ok{ color:var(--green); display:block; }
+  .msg.err{ color:var(--red); display:block; }
+  .file-row{ display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--grid); }
+  .file-row:last-child{ border-bottom:none; }
+  .file-icon{
+    width:38px; height:38px; border-radius:8px; background:var(--blue-soft); color:var(--blue);
+    display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; flex:none;
+  }
+  .file-meta{ flex:1; min-width:0; }
+  .file-name{ font-weight:600; color:var(--ink); font-size:14px; }
+  .file-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .file-desc{ font-size:13px; color:var(--graphite); margin-top:4px; line-height:1.5; }
+  .file-actions a{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; text-decoration:none; color:var(--ink);
+    border:1.5px solid var(--line); border-radius:7px; padding:6px 12px; white-space:nowrap;
+  }
+  .file-actions a:hover{ border-color:var(--blue); color:var(--blue); }
+
+  /* ---------- ergonomic / mobile ---------- */
+  .team-block{ transition:box-shadow .15s ease; }
+  .search-hit{ transition:background .12s ease; }
+  .search-hit:hover{ background:var(--hover-bg,var(--paper)); }
+  .invite-row input:focus, .create-row input:focus{ outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
+  .skeleton{
+    height:14px; border-radius:6px; background:linear-gradient(90deg, var(--grid) 25%, var(--hover-bg) 37%, var(--grid) 63%);
+    background-size:400% 100%; animation:skeleton-shimmer 1.4s ease infinite; margin:8px 0;
+  }
+  @keyframes skeleton-shimmer{ 0%{background-position:100% 50%;} 100%{background-position:0 50%;} }
+  .section-hint{ font-size:12.5px; color:var(--muted); margin:2px 0 0; }
+  .team-count{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted); margin-left:6px; }
+
+  @media (max-width: 760px){
+    .teams-grid, .hub-card, .team-block{ max-width:100% !important; }
+    .create-row{ flex-direction:column; align-items:stretch; }
+    .create-row button{ width:100%; }
+    .invite-row{ flex-direction:column; }
+    .member-row{ flex-wrap:wrap; gap:6px; }
+    .member-row > div:last-child{ display:flex; align-items:center; gap:6px; width:100%; justify-content:flex-end; }
+    .search-hit{ flex-direction:column; align-items:flex-start; gap:8px; }
+    .search-hit button{ align-self:flex-end; }
+    .file-row{ flex-wrap:wrap; }
+    .file-actions{ width:100%; display:flex; justify-content:flex-end; }
+    .mini-btn{ margin-left:0; margin-top:4px; }
+  }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Shared access</div>
+  <h1 class="hub-h1">Teams</h1>
+  <p class="hub-sub">Create a small trusted group (up to 8 people). Everyone you invite and accept can view and download the files you choose to share with the team — without making them public.</p>
+
+  <div class="hub-card" style="max-width:520px; margin-top:20px;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Create a team</div>
+    <div class="create-row">
+      <input type="text" id="newTeamName" maxlength="100" placeholder="Team name (e.g. Study Group)">
+      <button id="createBtn">Create</button>
+    </div>
+    <div class="msg" id="createMsg"></div>
+  </div>
+
+  <h2 style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:34px 0 4px;">Invitations for you</h2>
+  <p class="section-hint" style="max-width:520px;">Teams you've been invited to join. Accept to start seeing their shared files.</p>
+  <div class="hub-card" id="invitesCard" style="max-width:520px; margin-top:10px;"><div class="skeleton" style="width:70%;"></div></div>
+
+  <h2 style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:34px 0 4px;">My Teams</h2>
+  <p class="section-hint" style="max-width:640px;">Teams you own or have already joined. As the owner, search for people below to invite them.</p>
+  <div id="myTeamsList" style="margin-top:10px;"><div class="hub-card" style="max-width:640px;"><div class="skeleton" style="width:40%;"></div><div class="skeleton" style="width:80%;"></div><div class="skeleton" style="width:60%;"></div></div></div>
+
+  <h2 style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:34px 0 4px;">Files shared with my teams</h2>
+  <div class="hub-card" id="teamFilesCard" style="max-width:720px; margin-top:10px;"><div class="skeleton" style="width:50%;"></div></div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+function esc(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtSize(b){ if(b < 1024) return b + ' B'; if(b < 1024*1024) return (b/1024).toFixed(1) + ' KB'; return (b/1024/1024).toFixed(1) + ' MB'; }
+function extLabel(name){ const m = name.match(/\.([a-z0-9]+)$/i); return m ? m[1].toUpperCase() : 'FILE'; }
+
+let currentUserId = null;
+
+async function loadInvites(teams){
+  const card = document.getElementById('invitesCard');
+  const pending = teams.filter(t => t.my_status === 'pending' && t.owner_id !== currentUserId);
+  if(!pending.length){ card.innerHTML = '<div class="empty-state">No pending invitations.</div>'; return; }
+  card.innerHTML = pending.map(t => `
+    <div class="member-row">
+      <div><span class="member-name">${esc(t.name)}</span></div>
+      <div>
+        <button class="mini-btn accept" data-team="${t.id}" data-accept="1">Accept</button>
+        <button class="mini-btn decline" data-team="${t.id}" data-accept="0">Decline</button>
+      </div>
+    </div>
+  `).join('');
+  card.querySelectorAll('button[data-team]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await fetch('/api/teams/' + btn.dataset.team + '/respond', {
+        method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ accept: btn.dataset.accept === '1' })
+      });
+      loadAll();
+    });
+  });
+}
+
+async function renderTeamBlock(team){
+  const wrap = document.createElement('div');
+  wrap.className = 'hub-card team-block';
+  wrap.style.maxWidth = '640px';
+
+  const isOwner = team.owner_id === currentUserId;
+  wrap.innerHTML = `
+    <h3>${esc(team.name)} ${isOwner ? '<span class="team-owner-tag">you created this</span>' : ''}<span class="team-count" id="count-${team.id}"></span></h3>
+    <div class="members-mount"><div class="skeleton" style="width:60%;"></div><div class="skeleton" style="width:40%;"></div></div>
+    ${isOwner ? `
+      <div class="invite-row">
+        <input type="text" class="invite-search" placeholder="Search by name or email to invite…">
+      </div>
+      <div class="search-results"></div>
+    ` : ''}
+  `;
+
+  const membersMount = wrap.querySelector('.members-mount');
+  try{
+    const res = await fetch('/api/teams/' + team.id + '/members', { headers: authHeaders() });
+    const data = await res.json();
+    const members = data.members || [];
+    membersMount.innerHTML = members.map(m => `
+      <div class="member-row">
+        <div>
+          <span class="member-name">${esc(m.name || m.email)}</span>
+          ${m.name ? '<span class="member-email"> · ' + esc(m.email) + '</span>' : ''}
+        </div>
+        <div>
+          <span class="status-pill ${m.status}">${m.status}</span>
+          ${isOwner && m.user_id !== currentUserId ? `<button class="mini-btn remove" data-team="${team.id}" data-user="${m.user_id}">Remove</button>` : ''}
+        </div>
+      </div>
+    `).join('') || '<div class="empty-state">No members yet.</div>';
+
+    const countEl = document.getElementById('count-' + team.id);
+    const acceptedCount = members.filter(m => m.status === 'accepted').length;
+    const pendingCount = members.filter(m => m.status === 'pending').length;
+    if(countEl){
+      countEl.textContent = acceptedCount + '/8 members';
+    }
+    const searchBox = wrap.querySelector('.invite-search');
+    if(searchBox && acceptedCount + pendingCount >= 8){
+      searchBox.disabled = true;
+      searchBox.placeholder = 'Team is full (8 max) — remove someone to invite another.';
+    }
+
+    membersMount.querySelectorAll('button.remove').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(!confirm('Remove this person from the team?')) return;
+        await fetch('/api/teams/' + btn.dataset.team + '/members/' + btn.dataset.user, {
+          method: 'DELETE', headers: authHeaders()
+        });
+        loadAll();
+      });
+    });
+  }catch(e){
+    membersMount.innerHTML = '<div class="empty-state">Could not load members.</div>';
+  }
+
+  if(isOwner){
+    const searchInput = wrap.querySelector('.invite-search');
+    const resultsMount = wrap.querySelector('.search-results');
+    let debounceTimer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const q = searchInput.value.trim();
+      if(q.length < 2){ resultsMount.innerHTML = ''; return; }
+      debounceTimer = setTimeout(async () => {
+        const res = await fetch('/api/teams/' + team.id + '/search?q=' + encodeURIComponent(q), { headers: authHeaders() });
+        const data = await res.json();
+        const users = data.users || [];
+        resultsMount.innerHTML = users.length ? users.map(u => `
+          <div class="search-hit">
+            <span>${esc(u.name || u.email)} ${u.name ? '<span class="member-email">· ' + esc(u.email) + '</span>' : ''}</span>
+            <button data-user="${u.id}">Invite</button>
+          </div>
+        `).join('') : '<div class="empty-state">No matching users.</div>';
+        resultsMount.querySelectorAll('button[data-user]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            btn.disabled = true; btn.textContent = 'Sending…';
+            const r = await fetch('/api/teams/' + team.id + '/invite', {
+              method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+              body: JSON.stringify({ userId: Number(btn.dataset.user) })
+            });
+            if(r.ok){ btn.textContent = 'Invited'; loadAll(); }
+            else { const d = await r.json(); btn.disabled = false; btn.textContent = 'Invite'; alert(d.error || 'Could not invite'); }
+          });
+        });
+      }, 300);
+    });
+  }
+
+  return wrap;
+}
+
+async function loadTeamFiles(){
+  const card = document.getElementById('teamFilesCard');
+  try{
+    const res = await fetch('/api/teams/files', { headers: authHeaders() });
+    const data = await res.json();
+    const files = data.files || [];
+    if(!files.length){ card.innerHTML = '<div class="empty-state">No files shared with your teams yet.</div>'; return; }
+    card.innerHTML = files.map(f => `
+      <div class="file-row">
+        <div class="file-icon">${extLabel(f.original_name)}</div>
+        <div class="file-meta">
+          <div class="file-name">${esc(f.title || f.original_name)}</div>
+          <div class="file-sub">${fmtSize(f.size_bytes)} · shared by ${esc(f.uploader_name || f.uploader_email)} · team "${esc(f.team_name)}" · ${(f.created_at||'').slice(0,10)}</div>
+          ${f.description ? `<div class="file-desc">${esc(f.description)}</div>` : ''}
+        </div>
+        <div class="file-actions">
+          <a href="/api/files/${f.id}/download" target="_blank" rel="noopener">Open</a>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){
+    card.innerHTML = '<div class="empty-state">Could not load team files.</div>';
+  }
+}
+
+async function loadAll(){
+  const res = await fetch('/api/teams/mine', { headers: authHeaders() });
+  const data = await res.json();
+  const teams = data.teams || [];
+
+  await loadInvites(teams);
+
+  const listMount = document.getElementById('myTeamsList');
+  const accepted = teams.filter(t => t.my_status === 'accepted');
+  if(!accepted.length){
+    listMount.innerHTML = '<div class="hub-card empty-state" style="max-width:640px;">You\'re not part of any team yet. Create one above, or wait for an invite.</div>';
+  } else {
+    listMount.innerHTML = '';
+    for(const t of accepted){
+      listMount.appendChild(await renderTeamBlock(t));
+    }
+  }
+
+  loadTeamFiles();
+}
+
+document.getElementById('newTeamName').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('createBtn').click();
+});
+
+document.getElementById('createBtn').addEventListener('click', async () => {
+  const input = document.getElementById('newTeamName');
+  const msg = document.getElementById('createMsg');
+  const name = input.value.trim();
+  if(!name){ return; }
+  const btn = document.getElementById('createBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try{
+    const res = await fetch('/api/teams', {
+      method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not create team');
+    input.value = '';
+    msg.textContent = 'Team created.'; msg.className = 'msg ok';
+    loadAll();
+  }catch(err){
+    msg.textContent = err.message; msg.className = 'msg err';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Create';
+  }
+});
+
+(async function init(){
+  const user = await window.HubNav.init('teams', true);
+  if(!user) return;
+  currentUserId = user.id;
+  loadAll();
+})();
+</script>
+</body>
+</html>

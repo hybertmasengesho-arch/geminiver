@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reader — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js" defer></script>
+<style>
+  .picker-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; padding:20px; margin-top:22px; }
+  .picker-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .status-line{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin-top:10px; min-height:16px; }
+  .viewer{ margin-top:20px; }
+  .text-view{
+    white-space:pre-wrap; max-height:70vh; overflow-y:auto; background:var(--panel);
+    border:1.5px solid var(--grid); border-radius:10px; padding:22px;
+    font-family:'JetBrains Mono',monospace; font-size:13.5px; line-height:1.65; color:var(--ink);
+  }
+  .docx-view{
+    max-height:70vh; overflow-y:auto; background:var(--panel); border:1.5px solid var(--grid); border-radius:10px;
+    padding:26px 30px; font-family:'Inter',sans-serif; font-size:14.5px; line-height:1.7; color:var(--ink);
+  }
+  .docx-view img{ max-width:100%; }
+  .unsupported{
+    background:#fbeceA; border:1px solid #f0c9c4; color:var(--red); border-radius:10px; padding:16px 18px; font-size:13.5px;
+  }
+  .pdf-toolbar{ display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; font-size:13px; }
+  .pdf-toolbar input{ padding:6px 8px; border:1.5px solid var(--line); border-radius:6px; width:64px; font-family:'JetBrains Mono',monospace; }
+  .pdf-toolbar button{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px; padding:7px 13px; border-radius:6px;
+    border:1.5px solid var(--grid); background:var(--panel); cursor:pointer;
+  }
+  .pdf-toolbar button:hover{ border-color:var(--blue); color:var(--blue); }
+  .pdf-frame{ width:100%; height:75vh; border:1.5px solid var(--grid); border-radius:10px; }
+  .resume-badge{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--green); }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Read without saving</div>
+  <h1 class="hub-h1">Reader</h1>
+  <p class="hub-sub">Pick a file to read — it's never uploaded or stored. Only a tiny bookmark is saved, so opening the exact same file again picks up where you left off.</p>
+
+  <div class="picker-card">
+    <div class="picker-row">
+      <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.odt,.txt,.md,.csv,.rtf">
+    </div>
+    <div class="status-line" id="statusLine"></div>
+  </div>
+
+  <div class="viewer" id="viewer"></div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+
+async function hashFile(file){
+  const buf = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+async function getProgress(hash){
+  try{
+    const res = await fetch('/api/kv?' + new URLSearchParams({ app:'reader', key:'progress:'+hash, shared:false }), { headers: authHeaders() });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.value ? JSON.parse(data.value) : null;
+  }catch(e){ return null; }
+}
+async function saveProgress(hash, obj){
+  try{
+    await fetch('/api/kv', {
+      method:'POST',
+      headers: authHeaders({ 'Content-Type':'application/json' }),
+      body: JSON.stringify({ app:'reader', key:'progress:'+hash, value: JSON.stringify(obj), shared:false })
+    });
+  }catch(e){ /* non-fatal */ }
+}
+
+let scrollSaveTimer = null;
+function attachScrollResume(el, hash, filename, initialSaved){
+  if(initialSaved && initialSaved.percent){
+    requestAnimationFrame(() => {
+      el.scrollTop = (el.scrollHeight - el.clientHeight) * (initialSaved.percent / 100);
+    });
+    document.getElementById('statusLine').innerHTML = '<span class="resume-badge">Resumed from your last position.</span>';
+  }
+  el.addEventListener('scroll', () => {
+    clearTimeout(scrollSaveTimer);
+    scrollSaveTimer = setTimeout(() => {
+      const scrollable = el.scrollHeight - el.clientHeight;
+      const percent = scrollable > 0 ? (el.scrollTop / scrollable) * 100 : 0;
+      saveProgress(hash, { percent, filename, lastOpened: new Date().toISOString() });
+    }, 700);
+  });
+}
+
+async function renderText(file, hash, saved){
+  const text = await file.text();
+  const viewer = document.getElementById('viewer');
+  viewer.innerHTML = '<div class="text-view" id="textView"></div>';
+  document.getElementById('textView').textContent = text;
+  attachScrollResume(document.getElementById('textView'), hash, file.name, saved);
+}
+
+async function renderDocx(file, hash, saved){
+  const viewer = document.getElementById('viewer');
+  if(!window.mammoth){
+    viewer.innerHTML = '<div class="unsupported">Word preview isn\'t available right now (the converter failed to load). Try a PDF or plain text file, or download and open this file directly.</div>';
+    return;
+  }
+  try{
+    const buf = await file.arrayBuffer();
+    const result = await window.mammoth.convertToHtml({ arrayBuffer: buf });
+    viewer.innerHTML = '<div class="docx-view" id="docxView">' + result.value + '</div>';
+    attachScrollResume(document.getElementById('docxView'), hash, file.name, saved);
+  }catch(e){
+    viewer.innerHTML = '<div class="unsupported">Could not preview this .docx file. Older .doc files aren\'t supported — try re-saving it as .docx, or download it instead.</div>';
+  }
+}
+
+function renderPDF(file, hash, saved){
+  const viewer = document.getElementById('viewer');
+  const url = URL.createObjectURL(file);
+  const startPage = saved && saved.page ? saved.page : 1;
+  viewer.innerHTML = `
+    <div class="pdf-toolbar">
+      <label>Page <input type="number" id="pageInput" min="1" value="${startPage}"></label>
+      <button id="jumpBtn">Go to page</button>
+      <button id="saveSpotBtn">Save my spot here</button>
+      <span class="resume-badge" id="pdfStatus">${saved ? 'Resumed to page ' + startPage + '.' : ''}</span>
+    </div>
+    <embed class="pdf-frame" id="pdfEmbed" src="${url}#page=${startPage}" type="application/pdf" />
+  `;
+  document.getElementById('jumpBtn').onclick = () => {
+    const n = Number(document.getElementById('pageInput').value) || 1;
+    document.getElementById('pdfEmbed').src = url + '#page=' + n;
+  };
+  document.getElementById('saveSpotBtn').onclick = async () => {
+    const n = Number(document.getElementById('pageInput').value) || 1;
+    await saveProgress(hash, { page: n, filename: file.name, lastOpened: new Date().toISOString() });
+    document.getElementById('pdfStatus').textContent = 'Saved page ' + n + '.';
+  };
+}
+
+document.getElementById('fileInput').addEventListener('change', async () => {
+  const file = document.getElementById('fileInput').files[0];
+  const statusLine = document.getElementById('statusLine');
+  const viewer = document.getElementById('viewer');
+  viewer.innerHTML = '';
+  if(!file) return;
+
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const supported = ['pdf','doc','docx','odt','txt','md','csv','rtf'];
+  if(!supported.includes(ext)){
+    statusLine.textContent = '';
+    viewer.innerHTML = '<div class="unsupported">That file type isn\'t supported here. Use PDF, Word, ODT, RTF, TXT, MD, or CSV.</div>';
+    return;
+  }
+
+  statusLine.textContent = 'Checking for a saved reading position…';
+  const hash = await hashFile(file);
+  const saved = await getProgress(hash);
+  statusLine.textContent = '';
+
+  if(ext === 'pdf'){
+    renderPDF(file, hash, saved);
+  } else if(ext === 'txt' || ext === 'md' || ext === 'csv'){
+    renderText(file, hash, saved);
+  } else if(ext === 'docx'){
+    renderDocx(file, hash, saved);
+  } else {
+    viewer.innerHTML = '<div class="unsupported">Preview isn\'t available for .' + ext + ' files here — try PDF, DOCX, TXT, MD, or CSV, or use <a href="/files.html">My Files</a> to store and download it instead.</div>';
+  }
+});
+
+(async function init(){
+  const user = await window.HubNav.init('reader', true);
+  if(!user) return;
+})();
+</script>
+</body>
+</html>

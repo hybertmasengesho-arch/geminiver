@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .account-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; padding:24px; margin-top:22px; max-width:480px; }
+  .account-card .auth-field{ margin-bottom:16px; }
+  .account-card .auth-field small{ display:block; color:var(--muted); font-size:11.5px; margin-top:4px; }
+  .account-save-msg{ font-size:13px; margin-top:12px; display:none; }
+  .account-save-msg.ok{ color:var(--green); display:block; }
+  .account-save-msg.err{ color:var(--red); display:block; }
+  .account-email-row{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--grid); }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Your account</div>
+  <h1 class="hub-h1">Account Center</h1>
+  <p class="hub-sub">This is what other users see if they click your name on a file you've posted publicly. Leave anything blank to keep it private.</p>
+
+  <div class="account-card">
+    <div class="account-email-row" id="emailRow"></div>
+    <form id="profileForm">
+      <div class="auth-field">
+        <label for="name">Display name</label>
+        <input type="text" id="name" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label for="phone">Phone number</label>
+        <input type="tel" id="phone" autocomplete="tel" placeholder="+1 555 123 4567">
+        <small>Shown on your public profile if filled in — anyone who clicks your name on a public file will see it.</small>
+      </div>
+      <div class="auth-field">
+        <label for="instagram">Instagram</label>
+        <input type="text" id="instagram" placeholder="@yourhandle or full profile URL">
+      </div>
+      <div class="auth-field">
+        <label for="tiktok">TikTok</label>
+        <input type="text" id="tiktok" placeholder="@yourhandle or full profile URL">
+      </div>
+      <button class="auth-submit" type="submit" id="saveBtn">Save changes</button>
+      <div class="account-save-msg" id="saveMsg"></div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(){ return { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
+
+async function loadProfile(){
+  const res = await fetch('/api/profile/me', { headers: authHeaders() });
+  const data = await res.json();
+  if(!res.ok || !data.profile) return;
+  const p = data.profile;
+  document.getElementById('emailRow').textContent = p.email;
+  document.getElementById('name').value = p.name || '';
+  document.getElementById('phone').value = p.phone || '';
+  document.getElementById('instagram').value = p.instagram_url || '';
+  document.getElementById('tiktok').value = p.tiktok_url || '';
+}
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const saveBtn = document.getElementById('saveBtn');
+  const msg = document.getElementById('saveMsg');
+  msg.className = 'account-save-msg';
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+  try {
+    const res = await fetch('/api/profile/me', {
+      method: 'PUT', headers: authHeaders(),
+      body: JSON.stringify({
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        instagram: document.getElementById('instagram').value,
+        tiktok: document.getElementById('tiktok').value
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not save');
+    // Reflect any normalization the server did (e.g. "@handle" -> full URL).
+    if(data.profile){
+      document.getElementById('instagram').value = data.profile.instagram_url || '';
+      document.getElementById('tiktok').value = data.profile.tiktok_url || '';
+    }
+    msg.textContent = 'Saved.'; msg.classList.add('ok');
+  } catch(err) {
+    msg.textContent = err.message; msg.classList.add('err');
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'Save changes';
+  }
+});
+
+(async function init(){
+  const user = await window.HubNav.init('account', true);
+  if(!user) return;
+  loadProfile();
+})();
+</script>
+</body>
+</html>

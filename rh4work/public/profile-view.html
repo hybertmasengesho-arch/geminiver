@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .profile-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; padding:26px; margin-top:22px; max-width:440px; }
+  .profile-name{ font-family:'Newsreader',serif; font-size:24px; font-weight:600; color:var(--ink); margin-bottom:4px; }
+  .profile-row{ display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px solid var(--grid); }
+  .profile-row:first-of-type{ border-top:none; margin-top:14px; }
+  .profile-label{ font-family:'JetBrains Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); width:80px; flex:none; }
+  .profile-value a{ color:var(--blue); text-decoration:none; font-weight:600; }
+  .profile-value a:hover{ text-decoration:underline; }
+  .profile-empty{ font-family:'JetBrains Mono',monospace; color:var(--muted); font-size:13px; padding:24px 0; }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow"><a href="/public-files.html" style="color:inherit;text-decoration:none;">&larr; Public Files</a></div>
+  <div id="profileArea"><div class="profile-empty">Loading…</div></div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+
+function socialLabel(url){
+  try{ return new URL(url).hostname.replace(/^www\./,''); }catch(e){ return url; }
+}
+
+async function loadProfile(){
+  const params = new URLSearchParams(location.search);
+  const id = params.get('user');
+  const area = document.getElementById('profileArea');
+  if(!id){ area.innerHTML = '<div class="profile-empty">No user specified.</div>'; return; }
+
+  const res = await fetch('/api/profile/' + id + '/public', { headers: { Authorization: 'Bearer ' + getToken() } });
+  if(!res.ok){ area.innerHTML = '<div class="profile-empty">Could not load this profile.</div>'; return; }
+  const data = await res.json();
+  const p = data.profile;
+
+  let rows = '';
+  if(p.phone) rows += `<div class="profile-row"><div class="profile-label">Phone</div><div class="profile-value">${p.phone}</div></div>`;
+  if(p.instagram_url) rows += `<div class="profile-row"><div class="profile-label">Instagram</div><div class="profile-value"><a href="${p.instagram_url}" target="_blank" rel="noopener">${socialLabel(p.instagram_url)}</a></div></div>`;
+  if(p.tiktok_url) rows += `<div class="profile-row"><div class="profile-label">TikTok</div><div class="profile-value"><a href="${p.tiktok_url}" target="_blank" rel="noopener">${socialLabel(p.tiktok_url)}</a></div></div>`;
+  if(!rows) rows = '<div class="profile-row"><div class="profile-value" style="color:var(--muted);">This user hasn\'t added any public contact details.</div></div>';
+
+  area.innerHTML = `
+    <div class="profile-card">
+      <div class="profile-name">${p.name || 'Reasoning Hub user'}</div>
+      ${rows}
+    </div>
+  `;
+}
+
+(async function init(){
+  const user = await window.HubNav.init('', true);
+  if(!user) return;
+  loadProfile();
+})();
+</script>
+</body>
+</html>

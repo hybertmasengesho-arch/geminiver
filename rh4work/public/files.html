@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Files — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .upload-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; padding:20px; margin-top:22px; }
+  .upload-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+  .upload-row input[type="file"]{ font-family:'Inter',sans-serif; font-size:13.5px; }
+  .checkbox-row{ display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--graphite); }
+  .upload-btn{
+    background:var(--ink); color:#fff; border:none; border-radius:8px; padding:10px 18px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer;
+  }
+  .upload-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .upload-hint{ font-size:12px; color:var(--muted); margin-top:8px; }
+  .upload-msg{ font-size:13px; margin-top:10px; display:none; }
+  .upload-msg.ok{ color:var(--green); display:block; }
+  .upload-msg.err{ color:var(--red); display:block; }
+
+  .file-list{ margin-top:22px; display:grid; gap:10px; }
+  .file-row{
+    background:var(--panel); border:1.5px solid var(--grid); border-radius:10px; padding:14px 16px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .file-icon{
+    width:38px; height:38px; border-radius:8px; background:var(--blue-soft); color:var(--blue);
+    display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace;
+    font-size:10.5px; font-weight:700; flex:none;
+  }
+  .file-meta{ flex:1; min-width:160px; }
+  .file-name{ font-size:14px; font-weight:600; color:var(--ink); }
+  .file-sub{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-top:2px; }
+  .file-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .file-actions button, .file-actions a{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; padding:6px 12px; border-radius:6px;
+    border:1.5px solid var(--grid); background:var(--panel); cursor:pointer; color:var(--ink); text-decoration:none;
+  }
+  .file-actions button:hover, .file-actions a:hover{ border-color:var(--blue); color:var(--blue); }
+  .file-actions .danger:hover{ border-color:var(--red); color:var(--red); }
+  .public-tag{ font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:20px; background:var(--blue-soft); color:var(--blue); }
+  .empty-state{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding:30px 0; text-align:center; }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Your account</div>
+  <h1 class="hub-h1">My Files</h1>
+  <p class="hub-sub">Upload documents to keep in your account. Mark one public to share it with everyone on <a href="/public-files.html">Public Files</a>.</p>
+
+  <div class="upload-card">
+    <div class="trend-title" style="margin:0;">UPLOAD A FILE</div>
+    <div class="upload-row">
+      <label class="upload-picker-label" for="fileInput">
+        📄 Choose a file
+        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.odt,.txt,.md,.csv,.rtf">
+      </label>
+      <span class="upload-picked-name" id="pickedName">No file chosen</span>
+    </div>
+    <div class="upload-row">
+      <label class="checkbox-row"><input type="checkbox" id="publicCheck"> Post to Public Files</label>
+    </div>
+    <div class="upload-row">
+      <label style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);">Share with team</label>
+      <select id="teamSelect" style="padding:7px 10px; border:1.5px solid var(--grid); border-radius:6px; font-family:'Inter',sans-serif; font-size:13px; background:var(--paper); color:var(--ink);">
+        <option value="">None — keep private</option>
+      </select>
+    </div>
+    <fieldset class="scope-fieldset" id="scopeFieldset" style="display:none;">
+      <legend>Who can open it</legend>
+      <label class="scope-option">
+        <input type="radio" name="accessMode" id="scopeOpen" value="open" checked>
+        <span>Anyone signed in<small>Listed on Public Files and opens immediately for anyone.</small></span>
+      </label>
+      <label class="scope-option">
+        <input type="radio" name="accessMode" id="scopeRestricted" value="restricted">
+        <span>Protected — ask my permission first<small>Still listed on Public Files, but people must request access and you approve or deny each one.</small></span>
+      </label>
+    </fieldset>
+    <div class="upload-row" id="detailsRow" style="display:none;">
+      <input type="text" id="titleInput" placeholder="Title (optional — shown instead of the filename)" style="flex:1;min-width:200px;padding:8px 10px;border:1.5px solid var(--grid);border-radius:6px;font-family:'Inter',sans-serif;font-size:13.5px;">
+    </div>
+    <div class="upload-row" id="descRow" style="display:none;">
+      <textarea id="descInput" placeholder="Description (optional — helps people know what this is before opening it)" style="flex:1;min-width:200px;min-height:60px;padding:8px 10px;border:1.5px solid var(--grid);border-radius:6px;font-family:'Inter',sans-serif;font-size:13.5px;resize:vertical;"></textarea>
+    </div>
+    <div class="upload-row">
+      <button class="upload-btn" id="uploadBtn">Upload</button>
+    </div>
+    <div class="upload-hint">PDF, Word (.doc/.docx), ODT, RTF, TXT, MD, or CSV — up to 5MB. No video or other file types.</div>
+    <div class="upload-hint" id="usageHint"></div>
+    <div class="upload-msg" id="uploadMsg"></div>
+  </div>
+
+  <div class="file-list" id="fileList"></div>
+
+  <div class="access-requests-panel" id="requestsPanel" style="display:none;">
+    <div class="admin-section-title" style="font-family:'Newsreader',serif;font-style:italic;font-weight:600;font-size:20px;color:var(--ink);margin:36px 0 4px;">Access requests</div>
+    <p class="hub-sub" style="margin-bottom:14px;">People asking to open one of your protected files.</p>
+    <div id="requestsList"></div>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+
+function fmtSize(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024*1024) return Math.round(bytes/1024) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+function extLabel(name){
+  const m = name.match(/\.([a-z0-9]+)$/i);
+  return m ? m[1].toUpperCase() : 'FILE';
+}
+function esc(s){
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+
+async function loadFiles(){
+  const res = await fetch('/api/files/mine', { headers: authHeaders() });
+  const data = await res.json();
+  const list = document.getElementById('fileList');
+  const usageHint = document.getElementById('usageHint');
+  if(usageHint && typeof data.used === 'number' && typeof data.limit === 'number'){
+    usageHint.textContent = data.used + ' of ' + data.limit + ' saved documents used' + (data.used >= data.limit ? ' — limit reached, delete one to upload another, or ask an admin to raise your limit.' : '.');
+    usageHint.style.color = data.used >= data.limit ? 'var(--red)' : 'var(--muted)';
+  }
+  if(!data.files || !data.files.length){
+    list.innerHTML = '<div class="empty-state">No files yet — upload one above.</div>';
+    return;
+  }
+  list.innerHTML = data.files.map(f => `
+    <div class="file-row" data-id="${f.id}">
+      <div class="file-icon">${extLabel(f.original_name)}</div>
+      <div class="file-meta">
+        <div class="file-name">${esc(f.title) || esc(f.original_name)} ${f.is_public ? '<span class="public-tag">public</span>' : ''} ${f.is_public && f.access_mode === 'restricted' ? '<span class="protected-tag">protected</span>' : ''} ${f.team_name ? '<span class="public-tag" style="background:var(--green-soft);color:var(--green);">team: ' + esc(f.team_name) + '</span>' : ''}</div>
+        <div class="file-sub">${fmtSize(f.size_bytes)} · uploaded ${(f.created_at||'').slice(0,10)}${f.description ? ' · ' + esc(f.description.slice(0,80)) + (f.description.length > 80 ? '…' : '') : ''}</div>
+      </div>
+      <div class="file-actions">
+        <a href="/api/files/${f.id}/download" target="_blank" rel="noopener">Open</a>
+        <button data-action="toggle" data-public="${f.is_public}">${f.is_public ? 'Make private' : 'Make public'}</button>
+        ${f.is_public ? `<button data-action="toggle-access" data-mode="${f.access_mode}">${f.access_mode === 'restricted' ? 'Open to all' : 'Require permission'}</button>` : ''}
+        <button data-action="edit" data-title="${(f.title||'').replace(/"/g,'&quot;')}" data-desc="${(f.description||'').replace(/"/g,'&quot;')}">Edit details</button>
+        <button data-action="delete" class="danger">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadTeamOptions(){
+  const select = document.getElementById('teamSelect');
+  try{
+    const res = await fetch('/api/teams/mine', { headers: authHeaders() });
+    const data = await res.json();
+    const accepted = (data.teams || []).filter(t => t.my_status === 'accepted');
+    select.innerHTML = '<option value="">None — keep private</option>' +
+      accepted.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  }catch(e){ /* leave default option only */ }
+}
+
+async function loadRequests(){
+  const res = await fetch('/api/files/access-requests', { headers: authHeaders() });
+  if(!res.ok) return;
+  const data = await res.json();
+  const panel = document.getElementById('requestsPanel');
+  const list = document.getElementById('requestsList');
+  const reqs = data.requests || [];
+  if(!reqs.length){ panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  list.innerHTML = reqs.map(r => `
+    <div class="access-request-row" data-id="${r.id}">
+      <div class="access-request-info">
+        ${esc(r.requester_name || r.requester_email)} wants to open <strong>${esc(r.file_title)}</strong>
+        <small>requested ${(r.created_at||'').slice(0,10)}</small>
+      </div>
+      ${r.status === 'pending'
+        ? `<div class="access-request-actions">
+             <button data-action="approve" class="approve">Approve</button>
+             <button data-action="deny" class="deny">Deny</button>
+           </div>`
+        : `<span class="request-status-pill ${r.status}">${r.status}</span>`}
+    </div>
+  `).join('');
+}
+
+document.getElementById('requestsList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if(!btn) return;
+  const row = btn.closest('.access-request-row');
+  const id = row.getAttribute('data-id');
+  const approve = btn.getAttribute('data-action') === 'approve';
+  btn.disabled = true;
+  await fetch('/api/files/access-requests/' + id + '/decide', {
+    method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ approve })
+  });
+  loadRequests();
+});
+
+document.getElementById('fileInput').addEventListener('change', () => {
+  const input = document.getElementById('fileInput');
+  document.getElementById('pickedName').textContent = input.files[0] ? input.files[0].name : 'No file chosen';
+});
+
+document.getElementById('publicCheck').addEventListener('change', () => {
+  const show = document.getElementById('publicCheck').checked;
+  document.getElementById('detailsRow').style.display = show ? 'flex' : 'none';
+  document.getElementById('descRow').style.display = show ? 'flex' : 'none';
+  document.getElementById('scopeFieldset').style.display = show ? 'block' : 'none';
+});
+
+document.getElementById('uploadBtn').addEventListener('click', async () => {
+  const input = document.getElementById('fileInput');
+  const msg = document.getElementById('uploadMsg');
+  msg.className = 'upload-msg';
+  if(!input.files[0]){ msg.textContent = 'Choose a file first.'; msg.classList.add('err'); return; }
+
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true; btn.textContent = 'Uploading…';
+
+  const isPublic = document.getElementById('publicCheck').checked;
+  const accessMode = document.querySelector('input[name="accessMode"]:checked').value;
+
+  const form = new FormData();
+  form.append('file', input.files[0]);
+  form.append('isPublic', isPublic ? 'true' : 'false');
+  form.append('accessMode', accessMode);
+  form.append('title', document.getElementById('titleInput').value);
+  form.append('description', document.getElementById('descInput').value);
+  const teamId = document.getElementById('teamSelect').value;
+  if(teamId) form.append('teamId', teamId);
+
+  try{
+    const res = await fetch('/api/files/upload', { method:'POST', headers: authHeaders(), body: form });
+    let data;
+    try { data = await res.json(); } catch(e){ throw new Error('Unexpected response from server.'); }
+    if(!res.ok) throw new Error(data.error || 'Upload failed');
+    msg.textContent = 'Uploaded.'; msg.classList.add('ok');
+    input.value = ''; document.getElementById('pickedName').textContent = 'No file chosen';
+    document.getElementById('publicCheck').checked = false;
+    document.getElementById('scopeOpen').checked = true;
+    document.getElementById('titleInput').value = ''; document.getElementById('descInput').value = '';
+    document.getElementById('teamSelect').value = '';
+    document.getElementById('detailsRow').style.display = 'none';
+    document.getElementById('descRow').style.display = 'none';
+    document.getElementById('scopeFieldset').style.display = 'none';
+    loadFiles();
+  }catch(err){
+    msg.textContent = err.message; msg.classList.add('err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Upload';
+  }
+});
+
+document.getElementById('fileList').addEventListener('click', async (e) => {
+  const row = e.target.closest('.file-row');
+  if(!row) return;
+  const id = row.getAttribute('data-id');
+
+  const toggleBtn = e.target.closest('button[data-action="toggle"]');
+  if(toggleBtn){
+    // Bug fix: data-public carries the string "true"/"false" (from a JS
+    // boolean interpolated into HTML), not "1"/"0" — comparing against
+    // '1' always evaluated true, so this used to always flip TO public
+    // no matter its current state. Compare against 'true' instead.
+    const nowPublic = toggleBtn.getAttribute('data-public') !== 'true';
+    await fetch('/api/files/' + id, {
+      method:'PATCH',
+      headers: authHeaders({ 'Content-Type':'application/json' }),
+      body: JSON.stringify({ isPublic: nowPublic })
+    });
+    loadFiles();
+    return;
+  }
+
+  const accessBtn = e.target.closest('button[data-action="toggle-access"]');
+  if(accessBtn){
+    const nextMode = accessBtn.getAttribute('data-mode') === 'restricted' ? 'open' : 'restricted';
+    await fetch('/api/files/' + id, {
+      method:'PATCH',
+      headers: authHeaders({ 'Content-Type':'application/json' }),
+      body: JSON.stringify({ accessMode: nextMode })
+    });
+    loadFiles();
+    return;
+  }
+
+  const editBtn = e.target.closest('button[data-action="edit"]');
+  if(editBtn){
+    const currentTitle = editBtn.getAttribute('data-title') || '';
+    const currentDesc = editBtn.getAttribute('data-desc') || '';
+    const newTitle = prompt('Title for this file (leave blank to just use the filename):', currentTitle);
+    if(newTitle === null) return;
+    const newDesc = prompt('Description (optional):', currentDesc);
+    if(newDesc === null) return;
+    await fetch('/api/files/' + id, {
+      method:'PATCH',
+      headers: authHeaders({ 'Content-Type':'application/json' }),
+      body: JSON.stringify({ title: newTitle, description: newDesc })
+    });
+    loadFiles();
+    return;
+  }
+
+  const delBtn = e.target.closest('button[data-action="delete"]');
+  if(delBtn){
+    if(!confirm('Delete this file? This cannot be undone.')) return;
+    await fetch('/api/files/' + id, { method:'DELETE', headers: authHeaders() });
+    loadFiles();
+  }
+});
+
+(async function init(){
+  const user = await window.HubNav.init('files', true);
+  if(!user) return;
+  loadFiles();
+  loadRequests();
+  loadTeamOptions();
+})();
+</script>
+</body>
+</html>

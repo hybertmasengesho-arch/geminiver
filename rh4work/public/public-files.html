@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Public Files — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .file-list{ margin-top:22px; display:grid; gap:10px; }
+  .file-row{
+    background:var(--panel); border:1.5px solid var(--grid); border-radius:10px; padding:14px 16px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .file-icon{
+    width:38px; height:38px; border-radius:8px; background:var(--blue-soft); color:var(--blue);
+    display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace;
+    font-size:10.5px; font-weight:700; flex:none;
+  }
+  .file-meta{ flex:1; min-width:180px; }
+  .file-name{ font-size:14px; font-weight:600; color:var(--ink); }
+  .file-sub{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted); margin-top:2px; }
+  .file-actions a{
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; padding:6px 12px; border-radius:6px;
+    border:1.5px solid var(--grid); background:var(--panel); cursor:pointer; color:var(--ink); text-decoration:none;
+  }
+  .file-actions a:hover{ border-color:var(--blue); color:var(--blue); }
+  .file-desc{ font-size:13px; color:var(--graphite); margin-top:6px; line-height:1.5; }
+  .author-link{ color:var(--blue); text-decoration:none; font-weight:600; }
+  .author-link:hover{ text-decoration:underline; }
+  .empty-state{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding:30px 0; text-align:center; }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Shared with everyone</div>
+  <h1 class="hub-h1">Public Files</h1>
+  <p class="hub-sub">Documents any user chose to share. Post your own from <a href="/files.html">My Files</a>.</p>
+
+  <div class="file-list" id="fileList"></div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function fmtSize(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024*1024) return Math.round(bytes/1024) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+function extLabel(name){
+  const m = name.match(/\.([a-z0-9]+)$/i);
+  return m ? m[1].toUpperCase() : 'FILE';
+}
+function esc(s){
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
+
+async function loadPublicFiles(){
+  const res = await fetch('/api/files/public', { headers: { Authorization: 'Bearer ' + getToken() } });
+  const data = await res.json();
+  const list = document.getElementById('fileList');
+  if(!data.files || !data.files.length){
+    list.innerHTML = '<div class="empty-state">No public files yet.</div>';
+    return;
+  }
+  list.innerHTML = data.files.map(f => {
+    const isRestricted = f.access_mode === 'restricted';
+    let actionHtml;
+    if(!isRestricted){
+      actionHtml = `<a href="/api/files/${f.id}/download" target="_blank" rel="noopener">Open</a>`;
+    } else if(f.my_request_status === 'approved'){
+      actionHtml = `<a href="/api/files/${f.id}/download" target="_blank" rel="noopener">Open</a>`;
+    } else if(f.my_request_status === 'pending'){
+      actionHtml = `<button class="request-btn" disabled>Request pending</button>`;
+    } else {
+      actionHtml = `<button class="request-btn" data-action="request" data-id="${f.id}">${f.my_request_status === 'denied' ? 'Request again' : 'Request access'}</button>`;
+    }
+    return `
+    <div class="file-row">
+      <div class="file-icon">${extLabel(f.original_name)}</div>
+      <div class="file-meta">
+        <div class="file-name">${esc(f.title) || esc(f.original_name)} ${isRestricted ? '<span class="protected-tag">protected</span>' : ''}</div>
+        <div class="file-sub">${fmtSize(f.size_bytes)} · posted by <a class="author-link" href="/profile-view.html?user=${f.owner_id}">${esc(f.uploader_name || f.uploader_email)}</a> · ${(f.created_at||'').slice(0,10)}</div>
+        ${f.description ? `<div class="file-desc">${esc(f.description)}</div>` : ''}
+      </div>
+      <div class="file-actions">
+        ${actionHtml}
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+document.getElementById('fileList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-action="request"]');
+  if(!btn) return;
+  btn.disabled = true; btn.textContent = 'Requesting…';
+  try{
+    const res = await fetch('/api/files/' + btn.getAttribute('data-id') + '/request-access', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + getToken() }
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not send request');
+    loadPublicFiles();
+  }catch(err){
+    alert(err.message);
+    btn.disabled = false; btn.textContent = 'Request access';
+  }
+});
+
+(async function init(){
+  const user = await window.HubNav.init('public-files', true);
+  if(!user) return;
+  loadPublicFiles();
+})();
+</script>
+</body>
+</html>

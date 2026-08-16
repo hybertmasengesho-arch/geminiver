@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Reasoning Lab — 20 Day Integration &amp; Logic Track</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  :root{
+    --ink:#0F1720;
+    --ink-2:#161f2b;
+    --card:#F6F1E4;
+    --card-2:#EDE6D2;
+    --paper-line:#d9d0b8;
+    --text-dark:#1B2430;
+    --text-dim:#5b6472;
+    --text-light:#EDEFF3;
+    --text-light-dim:#95a0b3;
+    --gold:#C9932B;
+    --gold-soft:#E4B95C;
+    --teal:#3FA796;
+    --teal-soft:#7FCBBD;
+    --violet:#6C7BF5;
+    --coral:#E1585A;
+    --tier1:#C9932B;
+    --tier2:#A79846;
+    --tier3:#849D61;
+    --tier4:#62A27B;
+    --tier5:#3FA796;
+    --radius:14px;
+    --shadow: 0 10px 30px rgba(10,15,22,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, #1a2432 0%, transparent 45%),
+      radial-gradient(circle at 90% 20%, #17222e 0%, transparent 40%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0px, rgba(255,255,255,.025) 1px, transparent 1px, transparent 34px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0px, rgba(255,255,255,.025) 1px, transparent 1px, transparent 34px),
+      var(--ink);
+    color:var(--text-light);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  #siteNav{ background:rgba(15,23,32,0.94); border-bottom:1.5px solid rgba(255,255,255,.08); }
+  #siteNav .hub-nav-brand{ color:var(--text-light); }
+  #siteNav .hub-nav-links a{ color:var(--text-light-dim); }
+  #siteNav .hub-nav-links a:hover{ background:rgba(255,255,255,.06); color:var(--text-light); }
+  #siteNav .hub-nav-links a.active{ background:rgba(228,185,92,.16); color:var(--gold-soft); }
+  #siteNav .hub-nav-email{ color:var(--text-light-dim); }
+  #siteNav #hubLogoutBtn, #siteNav .hub-nav-user a{ background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.12); color:var(--text-light); }
+  :focus-visible{ outline:2px solid var(--gold-soft); outline-offset:2px; border-radius:4px; }
+  ::selection{ background:var(--gold); color:var(--ink); }
+
+  /* ---------- entrance overlay ---------- */
+  #entrance{
+    position:fixed; inset:0; z-index:999;
+    background:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    transition:opacity .7s ease, visibility .7s ease;
+  }
+  #entrance.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+  #entrance svg{ width:120px; height:120px; }
+  #entrance .e-path{
+    fill:none; stroke:var(--gold-soft); stroke-width:3;
+    stroke-linecap:round;
+    stroke-dasharray:400;
+    stroke-dashoffset:400;
+    animation: draw 1.4s ease forwards;
+  }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+
+  /* ---------- layout ---------- */
+  .wrap{ max-width:1080px; margin:0 auto; padding:28px 20px 80px; }
+  .hero{
+    display:flex; align-items:center; gap:28px; flex-wrap:wrap;
+    padding:32px 8px 20px;
+    opacity:0; transform:translateY(14px);
+    animation: rise .7s ease forwards; animation-delay:.15s;
+  }
+  @keyframes rise{ to{ opacity:1; transform:translateY(0); } }
+  .hero-sig{ position:relative; width:150px; height:110px; flex:none; }
+  .hero-sig svg{ width:100%; height:100%; overflow:visible; }
+  .hero-sig .chain-line{
+    stroke:var(--teal-soft); stroke-width:2.25; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:150; stroke-dashoffset:150;
+    animation: drawChain 1.1s ease forwards; animation-delay:1.15s;
+  }
+  .hero-sig .chain-dot{
+    fill:var(--teal); opacity:0; transform-origin:center;
+    animation: dotPop .45s cubic-bezier(.3,1.4,.4,1) forwards;
+  }
+  @keyframes drawChain{ to{ stroke-dashoffset:0; } }
+  @keyframes dotPop{ from{ opacity:0; transform:scale(0);} to{ opacity:1; transform:scale(1);} }
+  .hero-title{ flex:1; min-width:260px; }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--gold-soft); margin:0 0 8px;
+  }
+  h1{
+    font-family:'Fraunces',serif; font-weight:600; font-size:clamp(28px,4.4vw,42px);
+    margin:0 0 8px; line-height:1.08; color:var(--text-light);
+  }
+  h1 em{ font-style:italic; color:var(--teal-soft); }
+  .hero p{ margin:0; color:var(--text-light-dim); font-size:15px; max-width:52ch; line-height:1.55; }
+
+  .stat-row{
+    display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;
+  }
+  .stat{
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+    border-radius:10px; padding:10px 16px; min-width:96px;
+  }
+  .stat .n{ font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; color:var(--gold-soft); }
+  .stat .l{ font-size:11px; color:var(--text-light-dim); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }
+
+  /* ---------- performance chart ---------- */
+  .perf-shell{
+    background:var(--card); border:1px solid var(--paper-line); border-radius:var(--radius);
+    padding:18px 20px; box-shadow:0 2px 0 rgba(0,0,0,.15); color:var(--text-dark);
+  }
+  .perf-shell .trend-title{ color:var(--text-dim); }
+
+  /* ---------- day grid ---------- */
+  .section-label{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--text-light-dim); margin:38px 4px 14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-label::after{ content:''; flex:1; height:1px; background:rgba(255,255,255,.1); }
+
+  .day-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr));
+    gap:14px;
+  }
+  .day-card{
+    background:var(--card); color:var(--text-dark); border-radius:var(--radius);
+    padding:16px 14px 14px; cursor:pointer; position:relative; overflow:hidden;
+    border:1px solid var(--paper-line);
+    box-shadow:0 2px 0 rgba(0,0,0,.15);
+    opacity:0; transform:translateY(10px) scale(.97);
+    animation: cardIn .5s cubic-bezier(.2,.8,.3,1) forwards;
+    transition: transform .2s cubic-bezier(.2,.8,.3,1), box-shadow .2s ease, border-color .2s ease;
+    --tc: var(--tier1);
+  }
+  .day-card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:var(--tc);
+  }
+  .day-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 14px 28px -8px color-mix(in srgb, var(--tc) 45%, rgba(10,15,22,.4));
+    border-color:var(--tc);
+  }
+  .day-card:active{ transform:translateY(-1px) scale(.98); }
+  @keyframes cardIn{ to{ opacity:1; transform:translateY(0) scale(1); } }
+  .day-card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:6px; }
+  .day-card .dn{ font-family:'Fraunces',serif; font-size:23px; font-weight:600; line-height:1; }
+  .day-card .tier{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim); margin-top:4px; text-transform:uppercase; letter-spacing:.05em;}
+  .day-card .ring{ width:34px; height:34px; flex:none; }
+  .day-card .ring circle.track{ fill:none; stroke:var(--paper-line); stroke-width:3; }
+  .day-card .ring circle.fill{ fill:none; stroke:var(--tc); stroke-width:3; stroke-linecap:round; transform:rotate(-90deg); transform-origin:50% 50%; transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.3,1); }
+  .day-card .ring text{ font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:700; fill:var(--text-dark); text-anchor:middle; }
+  .day-card .score-line{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim); margin-top:12px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .day-card .status-dot{ width:7px; height:7px; border-radius:50%; display:inline-block; background:#c9c2a8; }
+  .day-card.complete .status-dot{ background:var(--teal); }
+  .day-card.progress .status-dot{ background:var(--gold); }
+
+  /* ---------- quiz panel ---------- */
+  #quizPanel{
+    display:none; margin-top:20px; position:relative;
+    background:var(--card); color:var(--text-dark);
+    border-radius:var(--radius); border:1px solid var(--paper-line);
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  #quizPanel::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:4px; background:var(--tc,var(--gold));
+  }
+  #quizPanel.show{ display:block; animation: panelIn .45s cubic-bezier(.2,.8,.3,1); }
+  @keyframes panelIn{ from{ opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);} }
+
+  .quiz-head{
+    padding:18px 22px 14px; border-bottom:1px solid var(--paper-line);
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    background:linear-gradient(180deg, rgba(0,0,0,.03), transparent);
+  }
+  .quiz-head h2{ font-family:'Fraunces',serif; font-size:20px; margin:0; font-weight:600; }
+  .quiz-head .sub{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-dim); }
+  .close-btn{
+    background:none; border:1px solid var(--paper-line); color:var(--text-dim);
+    border-radius:8px; padding:6px 12px; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px;
+    transition:.15s;
+  }
+  .close-btn:hover{ background:var(--card-2); color:var(--text-dark); }
+
+  .progress-track{ display:flex; gap:5px; padding:14px 22px 0; }
+  .progress-seg{ flex:1; height:5px; border-radius:3px; background:var(--paper-line); overflow:hidden; }
+  .progress-seg i{ display:block; height:100%; width:0%; background:var(--text-dim); transition:width .3s ease; }
+  .progress-seg.correct i{ background:var(--teal); width:100%; }
+  .progress-seg.wrong i{ background:var(--coral); width:100%; }
+  .progress-seg.current{ background:#e4dcc2; }
+
+  .q-body{ padding:22px; min-height:260px; }
+  .q-tag{
+    display:inline-flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace;
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; padding:4px 10px;
+    border-radius:20px; margin-bottom:14px;
+  }
+  .q-tag.integration{ background:rgba(201,147,43,.15); color:#9c7118; }
+  .q-tag.logic{ background:rgba(63,167,150,.15); color:#227465; }
+
+  .q-prompt{
+    font-family:'JetBrains Mono',monospace; font-size:17px; line-height:1.6;
+    background:var(--card-2); border:1px dashed var(--paper-line); border-radius:10px;
+    padding:16px 18px; margin-bottom:18px;
+  }
+  .q-prompt sup{ font-size:.7em; }
+
+  .choices{ display:grid; gap:10px; }
+  .choice{
+    text-align:left; background:#fff; border:1.5px solid var(--paper-line); border-radius:10px;
+    padding:12px 16px; font-family:'JetBrains Mono',monospace; font-size:14.5px; color:var(--text-dark);
+    cursor:pointer; transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    display:flex; align-items:center; gap:10px;
+  }
+  .choice .k{ font-family:'Inter',sans-serif; font-weight:700; font-size:11px; color:var(--text-dim);
+    background:var(--card-2); border-radius:5px; width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex:none;}
+  .choice:hover:not(.locked){ transform:translateX(3px); border-color:var(--gold); }
+  .choice.correct{ background:rgba(63,167,150,.15); border-color:var(--teal); animation:pulseGood .5s ease; }
+  .choice.wrong{ background:rgba(225,88,90,.13); border-color:var(--coral); animation:shake .4s ease; }
+  .choice.reveal{ border-color:var(--teal); }
+  .choice.locked{ cursor:default; }
+  @keyframes pulseGood{ 0%{transform:scale(1);} 40%{transform:scale(1.03);} 100%{transform:scale(1);} }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(6px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(4px);} }
+
+  .feedback{
+    margin-top:14px; display:flex; align-items:center; gap:10px; font-size:14px;
+    opacity:0; transform:translateY(4px); transition:.25s ease;
+  }
+  .feedback.show{ opacity:1; transform:translateY(0); }
+  .feedback .icon{ width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; color:#fff; font-size:14px; }
+  .feedback.good .icon{ background:var(--teal); }
+  .feedback.bad .icon{ background:var(--coral); }
+
+  .steps-btn{
+    margin-top:14px; background:none; border:1px solid var(--gold); color:#8a6412;
+    padding:8px 14px; border-radius:8px; font-family:'Inter',sans-serif; font-size:13px; font-weight:600;
+    cursor:pointer; display:none;
+  }
+  .steps-btn.show{ display:inline-flex; align-items:center; gap:6px; }
+  .steps-btn:hover{ background:rgba(201,147,43,.12); }
+  .steps{
+    margin-top:12px; padding:14px 16px; background:#fffaf0; border-left:3px solid var(--gold);
+    border-radius:0 10px 10px 0; display:none; font-size:13.5px; line-height:1.7;
+  }
+  .steps.show{ display:block; animation:panelIn .3s ease; }
+  .steps ol{ margin:0; padding-left:18px; }
+  .steps li{ margin-bottom:6px; font-family:'JetBrains Mono',monospace; font-size:12.8px; }
+  .steps li:last-child{ color:#8a6412; font-weight:700; }
+
+  .q-footer{ display:flex; justify-content:flex-end; padding:0 22px 22px; }
+  .next-btn{
+    background:var(--ink); color:var(--text-light); border:none; border-radius:9px;
+    padding:11px 22px; font-family:'Inter',sans-serif; font-weight:600; font-size:14px; cursor:pointer;
+    opacity:0; pointer-events:none; transition:.2s;
+  }
+  .next-btn.ready{ opacity:1; pointer-events:auto; }
+  .next-btn:hover{ background:#232f3d; }
+
+  /* ---------- summary ---------- */
+  .summary{ padding:40px 22px; text-align:center; }
+  .summary .ring-big{ width:120px; height:120px; margin:0 auto 18px; position:relative; }
+  .summary h3{ font-family:'Fraunces',serif; font-size:26px; margin:6px 0 4px; }
+  .summary p{ color:var(--text-dim); font-size:14px; margin:0 0 20px; }
+  .summary .actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--gold); color:#3a2705; border:none; border-radius:9px; padding:11px 20px;
+    font-weight:700; font-size:14px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .btn-ghost{
+    background:none; color:var(--text-dark); border:1px solid var(--paper-line); border-radius:9px;
+    padding:11px 20px; font-weight:600; font-size:14px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+
+  footer{ text-align:center; color:var(--text-light-dim); font-size:12px; margin-top:50px; font-family:'JetBrains Mono',monospace;}
+
+  #confetti{ position:fixed; inset:0; pointer-events:none; z-index:1000; }
+  .confetti-piece{ position:absolute; top:-10px; border-radius:2px; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="siteNav"></div>
+
+<div id="entrance">
+  <svg viewBox="0 0 100 120">
+    <path class="e-path" d="M 68 8 C 40 8, 40 30, 40 42 L 40 78 C 40 96, 34 108, 20 108 M 26 30 L 54 30 M 20 100 L 40 92" />
+  </svg>
+</div>
+
+<div id="confetti"></div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-sig">
+      <svg viewBox="0 0 150 120">
+        <path id="sigPath" d="M 68 8 C 40 8, 40 30, 40 42 L 40 78 C 40 96, 34 108, 20 108 M 26 30 L 54 30 M 20 100 L 40 92"
+          fill="none" stroke="url(#sigGrad)" stroke-width="5" stroke-linecap="round" />
+        <path class="chain-line" d="M 20 108 L 46 116 L 74 106 L 102 114 L 128 104" fill="none" />
+        <circle class="chain-dot" cx="20" cy="108" r="4" style="animation-delay:1.25s"/>
+        <circle class="chain-dot" cx="46" cy="116" r="3.5" style="animation-delay:1.45s"/>
+        <circle class="chain-dot" cx="74" cy="106" r="3.5" style="animation-delay:1.6s"/>
+        <circle class="chain-dot" cx="102" cy="114" r="3.5" style="animation-delay:1.75s"/>
+        <circle class="chain-dot" cx="128" cy="104" r="4.5" style="animation-delay:1.9s"/>
+        <defs>
+          <linearGradient id="sigGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E4B95C"/>
+            <stop offset="100%" stop-color="#6C7BF5"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="hero-title">
+      <p class="eyebrow">Twenty Day Track · Calculus + Deduction</p>
+      <h1>The <em>Reasoning</em> Lab</h1>
+      <p>Twenty days of eight questions each — five integration drills that get harder tier by tier, plus three logic puzzles to sharpen deduction. Every step is worked out, every score is saved to your account.</p>
+      <div class="stat-row">
+        <div class="stat"><div class="n" id="statDone">0/20</div><div class="l">Days complete</div></div>
+        <div class="stat"><div class="n" id="statAcc">—</div><div class="l">Accuracy</div></div>
+        <div class="stat"><div class="n" id="statStreak">0</div><div class="l">Day streak</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Performance</div>
+  <div class="perf-shell">
+    <div class="trend-title">ACCURACY TREND · BY DAY COMPLETED</div>
+    <div id="perfChart"></div>
+  </div>
+
+  <div class="section-label">20-day track</div>
+  <div class="day-grid" id="dayGrid"></div>
+
+  <div id="quizPanel"></div>
+
+  <footer>∫ accuracy grows one worked step at a time — logic sharpens the same way.</footer>
+</div>
+
+<script>window.APP_NAME = 'reasoning';</script>
+<script src="/js/nav.js"></script>
+<script src="/js/storage-shim.js"></script>
+<script src="/js/trend-chart.js"></script>
+<script>(function(){ window.HubNav.init('reasoning', true); })();</script>
+
+<script>
+/* ============================================================
+   PRNG + FRACTIONS
+   ============================================================ */
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function randInt(rng,min,max){ return Math.floor(rng()*(max-min+1))+min; }
+function randNonZero(rng,min,max){ let v=0; while(v===0) v=randInt(rng,min,max); return v; }
+function pick(rng,arr){ return arr[Math.floor(rng()*arr.length)]; }
+function sampleDistinct(rng,arr,count){
+  const pool=arr.slice(); const out=[];
+  for(let i=0;i<count && pool.length;i++){ const idx=Math.floor(rng()*pool.length); out.push(pool[idx]); pool.splice(idx,1); }
+  return out;
+}
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a||1; }
+class Frac{
+  constructor(n,d=1){ if(d<0){n=-n;d=-d;} const g=gcd(n,d)||1; this.n=n/g; this.d=d/g; }
+  add(o){ return new Frac(this.n*o.d+o.n*this.d, this.d*o.d); }
+  sub(o){ return new Frac(this.n*o.d-o.n*this.d, this.d*o.d); }
+  mul(o){ return new Frac(this.n*o.n, this.d*o.d); }
+  scale(k){ return new Frac(this.n*k, this.d); }
+  neg(){ return new Frac(-this.n, this.d); }
+  isZero(){ return this.n===0; }
+  toString(){ if(this.n===0) return '0'; if(this.d===1) return `${this.n}`; return `${this.n}/${this.d}`; }
+}
+function term(coeff, varPart){ return { neg: coeff.n<0, mag: fmtMag(coeff,varPart) }; }
+function fmtMag(coeff, varPart){
+  const abs=new Frac(Math.abs(coeff.n),coeff.d); const cs=abs.toString();
+  if(varPart==='') return cs;
+  if(cs==='1') return varPart;
+  return `${cs}${varPart}`;
+}
+function joinTerms(terms){
+  let out='';
+  terms.forEach((t,i)=>{
+    if(i===0) out += (t.neg?'-':'') + t.mag;
+    else out += (t.neg?' - ':' + ') + t.mag;
+  });
+  return out;
+}
+function linLabel(p){ if(p===0) return 'x'; return p>0? `x-${p}` : `x+${-p}`; }
+function innerLabel(b,c){ if(c===0) return `${b}x`; return `${b}x${c>0?'+'+c:c}`; }
+
+/* ============================================================
+   INTEGRATION GENERATORS (tiers 1-5)
+   ============================================================ */
+function genPower(rng, day){
+  const nTerms = day<=2 ? 2 : 3;
+  const maxExp = day<=6 ? 4 : 5;
+  const exps = sampleDistinct(rng, [1,2,3,4,5].slice(0,maxExp), nTerms);
+  const terms = exps.map(n=>({ a: randNonZero(rng,-7,7), n }));
+
+  const prompt = `∫ (${joinTerms(terms.map(t=>term(new Frac(t.a), t.n===1?'x':`x^${t.n}`)))}) dx`;
+  const correct = joinTerms(terms.map(t=>term(new Frac(t.a,t.n+1), `x^${t.n+1}`))) + ' + C';
+  const dA = joinTerms(terms.map(t=>term(new Frac(t.a,t.n), `x^${t.n+1}`))) + ' + C';
+  const dB = joinTerms(terms.map(t=>term(new Frac(t.a,t.n+1), t.n===1?'x':`x^${t.n}`))) + ' + C';
+  const dC = joinTerms(terms.map((t,i)=>term(new Frac(i===terms.length-1? -t.a : t.a, t.n+1), `x^${t.n+1}`))) + ' + C';
+
+  const steps = [
+    `Apply the power rule to each term on its own: ∫ a·xⁿ dx = (a / (n+1))·x^(n+1).`,
+    ...terms.map(t=>`∫ ${t.a}x^${t.n} dx  →  (${t.a}/${t.n+1})x^${t.n+1}`),
+    `Add the resulting terms together.`,
+    `Never forget the constant of integration, + C — the derivative of any constant is 0, so infinitely many antiderivatives share this form.`,
+    `Final answer: ${correct}`
+  ];
+  return finalize(prompt, correct, [dA,dB,dC], steps, 'Power rule');
+}
+
+function genLinearSub(rng, day, qIndex){
+  const kind = qIndex % 3;
+  const a = randNonZero(rng,-5,5);
+  const b = randInt(rng,2,5);
+  const c = randInt(rng,-4,4);
+  const inner = innerLabel(b,c);
+
+  if(kind===0){
+    const n = randInt(rng,2,4);
+    const prompt = `∫ ${a===1?'':a}(${inner})^${n} dx`;
+    const coeff = new Frac(a, b*(n+1));
+    const correct = joinTerms([term(coeff, `(${inner})^${n+1}`)]) + ' + C';
+    const dA = joinTerms([term(new Frac(a,n+1), `(${inner})^${n+1}`)]) + ' + C';
+    const dB = joinTerms([term(coeff, `(${inner})^${n}`)]) + ' + C';
+    const dC = joinTerms([term(coeff.neg(), `(${inner})^${n+1}`)]) + ' + C';
+    const steps = [
+      `Let u = ${inner}, so du = ${b} dx, meaning dx = du/${b}.`,
+      `Rewrite: ∫ ${a}u^${n}·(du/${b}) = (${a}/${b}) ∫ u^${n} du.`,
+      `Integrate: (${a}/${b}) · u^${n+1}/${n+1} = ${coeff.toString()}·u^${n+1}.`,
+      `Substitute back u = ${inner}: ${correct}`
+    ];
+    return finalize(prompt, correct, [dA,dB,dC], steps, 'u-substitution');
+  } else if(kind===1){
+    const prompt = `∫ ${a===1?'':a}e^(${inner}) dx`;
+    const coeff = new Frac(a,b);
+    const correct = joinTerms([term(coeff, `e^(${inner})`)]) + ' + C';
+    const dA = joinTerms([term(new Frac(a,1), `e^(${inner})`)]) + ' + C';
+    const dB = joinTerms([term(coeff.neg(), `e^(${inner})`)]) + ' + C';
+    const dC = joinTerms([term(new Frac(a,b*b), `e^(${inner})`)]) + ' + C';
+    const steps = [
+      `Let u = ${inner}, so du = ${b} dx, meaning dx = du/${b}.`,
+      `Rewrite: ∫ ${a}e^u·(du/${b}) = (${a}/${b}) ∫ e^u du.`,
+      `Integrate: (${a}/${b})·e^u.`,
+      `Substitute back: ${correct}`
+    ];
+    return finalize(prompt, correct, [dA,dB,dC], steps, 'u-substitution');
+  } else {
+    const trig = pick(rng,['sin','cos']);
+    const prompt = `∫ ${a===1?'':a}${trig}(${inner}) dx`;
+    const coeff = new Frac(a,b);
+    const outTrig = trig==='sin' ? 'cos' : 'sin';
+    const outSign = trig==='sin' ? -1 : 1;
+    const finalCoeff = coeff.scale(outSign);
+    const correct = joinTerms([term(finalCoeff, `${outTrig}(${inner})`)]) + ' + C';
+    const dA = joinTerms([term(finalCoeff.neg(), `${outTrig}(${inner})`)]) + ' + C';
+    const dB = joinTerms([term(finalCoeff, `${trig}(${inner})`)]) + ' + C';
+    const dC = joinTerms([term(new Frac(finalCoeff.n*b, finalCoeff.d), `${outTrig}(${inner})`)]) + ' + C';
+    const steps = [
+      `Let u = ${inner}, so du = ${b} dx, meaning dx = du/${b}.`,
+      `Rewrite: ∫ ${a}${trig}(u)·(du/${b}) = (${a}/${b}) ∫ ${trig}(u) du.`,
+      `Recall ∫sin(u)du = −cos(u)+C and ∫cos(u)du = sin(u)+C.`,
+      `Substitute back: ${correct}`
+    ];
+    return finalize(prompt, correct, [dA,dB,dC], steps, 'u-substitution');
+  }
+}
+
+function genByParts(rng, day, qIndex){
+  const kind = qIndex % 3;
+  const a = randNonZero(rng,-4,4);
+  const b = randInt(rng,2,4);
+  if(kind===0){
+    const prompt = `∫ ${a===1?'':a}x·e^(${b}x) dx`;
+    const c1=new Frac(a,b), c2=new Frac(a,b*b);
+    const correct = joinTerms([term(c1,`x·e^(${b}x)`), term(c2.neg(),`e^(${b}x)`)]) + ' + C';
+    const dA = joinTerms([term(c1,`x·e^(${b}x)`)]) + ' + C';
+    const dB = joinTerms([term(c1,`x·e^(${b}x)`), term(c2,`e^(${b}x)`)]) + ' + C';
+    const dC = joinTerms([term(c2.neg(),`x·e^(${b}x)`), term(c1,`e^(${b}x)`)]) + ' + C';
+    const steps = [
+      `Use ∫u dv = uv − ∫v du with u = x, dv = e^(${b}x) dx.`,
+      `Then du = dx, v = (1/${b})e^(${b}x).`,
+      `∫ ${a}x·e^(${b}x) dx = ${a}·[x·(1/${b})e^(${b}x) − ∫(1/${b})e^(${b}x) dx]`,
+      `Integrate the leftover term, then simplify.`,
+      `Final answer: ${correct}`
+    ];
+    return finalize(prompt, correct, [dA,dB,dC], steps, 'By parts');
+  } else {
+    const trig = kind===1 ? 'sin' : 'cos';
+    const prompt = `∫ ${a===1?'':a}x·${trig}(${b}x) dx`;
+    let c1,term1Fn,c2,term2Fn;
+    if(trig==='sin'){ c1=new Frac(-a,b); term1Fn=`x·cos(${b}x)`; c2=new Frac(a,b*b); term2Fn=`sin(${b}x)`; }
+    else { c1=new Frac(a,b); term1Fn=`x·sin(${b}x)`; c2=new Frac(a,b*b); term2Fn=`cos(${b}x)`; }
+    const correct = joinTerms([term(c1,term1Fn), term(c2,term2Fn)]) + ' + C';
+    const dA = joinTerms([term(c1,term1Fn)]) + ' + C';
+    const dB = joinTerms([term(c1.neg(),term1Fn), term(c2,term2Fn)]) + ' + C';
+    const dC = joinTerms([term(c1,term1Fn), term(c2.neg(),term2Fn)]) + ' + C';
+    const steps = [
+      `Use ∫u dv = uv − ∫v du with u = x, dv = ${trig}(${b}x) dx.`,
+      `Then du = dx, v = ${trig==='sin'?`−(1/${b})cos(${b}x)`:`(1/${b})sin(${b}x)`}.`,
+      `Apply the formula, then integrate the leftover ∫v du term the same way.`,
+      `Final answer: ${correct}`
+    ];
+    return finalize(prompt, correct, [dA,dB,dC], steps, 'By parts');
+  }
+}
+
+function genTrigPF(rng, day, qIndex){
+  const kind = qIndex % 2;
+  if(kind===0){
+    const a = randInt(rng,1,3);
+    const prompt = `∫ sin²(${a===1?'':a}x) dx`;
+    const correct = `x/2 - sin(${2*a}x)/${4*a} + C`;
+    const dA = `x/2 + sin(${2*a}x)/${4*a} + C`;
+    const dB = `x - sin(${2*a}x)/${4*a} + C`;
+    const dC = `x/2 - sin(${2*a}x)/${2*a} + C`;
+    const steps = [
+      `Use the identity sin²(θ) = (1 − cos(2θ))/2, with θ = ${a}x.`,
+      `∫sin²(${a}x)dx = (1/2)∫1 dx − (1/2)∫cos(${2*a}x)dx.`,
+      `= x/2 − (1/2)(1/${2*a})sin(${2*a}x) + C.`,
+      `Final answer: ${correct}`
+    ];
+    return finalize(prompt, correct, [dA,dB,dC], steps, 'Trig identity');
+  } else {
+    let p=randInt(rng,-4,4), q;
+    do{ q=randInt(rng,-4,4); } while(Math.abs(q-p)<2);
+    const pL=linLabel(p), qL=linLabel(q);
+    const prompt = `∫ 1 / ((${pL})(${qL})) dx`;
+    const k = new Frac(1, q-p);
+    const correct = joinTerms([term(k,`ln|${pL}|`), term(k.neg(),`ln|${qL}|`)]) + ' + C';
+    const dA = joinTerms([term(k,`ln|${pL}|`), term(k,`ln|${qL}|`)]) + ' + C';
+    const dB = joinTerms([term(new Frac(1),`ln|${pL}|`), term(new Frac(-1),`ln|${qL}|`)]) + ' + C';
+    const dC = joinTerms([term(k.neg(),`ln|${pL}|`), term(k,`ln|${qL}|`)]) + ' + C';
+    const steps = [
+      `Decompose 1/((${pL})(${qL})) = A/(${pL}) + B/(${qL}) using partial fractions.`,
+      `Solving gives A = 1/(${q}−(${p})) = ${k.toString()} and B = −A.`,
+      `Integrate each simple term: ∫A/(${pL})dx = A·ln|${pL}|, and likewise for B.`,
+      `Final answer: ${correct}`
+    ];
+    return finalize(prompt, correct, [dA,dB,dC], steps, 'Partial fractions');
+  }
+}
+
+function genDefinite(rng, day, qIndex){
+  const kind = qIndex % 2;
+  if(kind===0){
+    const exps = sampleDistinct(rng,[1,2,3],2);
+    const terms = exps.map(n=>({ a: randNonZero(rng,-5,5), n }));
+    let lo=randInt(rng,-2,1), hi=randInt(rng,lo+1,3);
+    const prompt = `∫ from ${lo} to ${hi} of (${joinTerms(terms.map(t=>term(new Frac(t.a), t.n===1?'x':`x^${t.n}`)))}) dx`;
+    const evalAt = (x)=> terms.reduce((acc,t)=> acc.add(new Frac(t.a,t.n+1).mul(new Frac(Math.pow(x,t.n+1)))), new Frac(0));
+    const val = evalAt(hi).sub(evalAt(lo));
+    const dA = evalAt(lo).sub(evalAt(hi));
+    const dB = terms.reduce((acc,t)=> acc.add(new Frac(t.a,t.n).mul(new Frac(Math.pow(hi,t.n)-Math.pow(lo,t.n)))), new Frac(0));
+    const steps = [
+      `Find the antiderivative F(x) using the power rule on each term.`,
+      `By the Fundamental Theorem of Calculus: ∫ = F(${hi}) − F(${lo}).`,
+      `F(${hi}) = ${evalAt(hi).toString()}, F(${lo}) = ${evalAt(lo).toString()}.`,
+      `Final answer: ${val.toString()}`
+    ];
+    return finalizeNumeric(prompt, val, [dA,dB], steps, 'Definite integral');
+  } else {
+    const a = randNonZero(rng,-4,4);
+    const b = randInt(rng,2,3);
+    const n = randInt(rng,1,3);
+    let lo=randInt(rng,0,1), hi=randInt(rng,lo+1,3);
+    const prompt = `∫ from ${lo} to ${hi} of ${a===1?'':a}(${b}x)^${n} dx`;
+    const coeff = new Frac(a, b*(n+1));
+    const F = (x)=> coeff.mul(new Frac(Math.pow(b*x,n+1)));
+    const val = F(hi).sub(F(lo));
+    const dA = F(lo).sub(F(hi));
+    const dB = new Frac(a,n+1).mul(new Frac(Math.pow(b*hi,n+1)-Math.pow(b*lo,n+1)));
+    const steps = [
+      `Let u = ${b}x. The antiderivative is F(x) = (${a}/(${b}·${n+1}))·(${b}x)^${n+1}.`,
+      `Evaluate at the bounds: F(${hi}) − F(${lo}).`,
+      `F(${hi}) = ${F(hi).toString()}, F(${lo}) = ${F(lo).toString()}.`,
+      `Final answer: ${val.toString()}`
+    ];
+    return finalizeNumeric(prompt, val, [dA,dB], steps, 'Definite integral');
+  }
+}
+
+function finalizeNumeric(prompt, valFrac, distractorFracs, steps, topic){
+  const used = new Set([valFrac.toString()]);
+  const finalDs = [];
+  for(const d of distractorFracs){
+    let cand=d, tries=0;
+    while(used.has(cand.toString()) && tries<10){ cand=cand.add(new Frac(1)); tries++; }
+    used.add(cand.toString()); finalDs.push(cand);
+  }
+  while(finalDs.length<3){
+    let cand = valFrac.add(new Frac(finalDs.length+1)), tries=0;
+    while(used.has(cand.toString()) && tries<10){ cand=cand.add(new Frac(1)); tries++; }
+    used.add(cand.toString()); finalDs.push(cand);
+  }
+  return finalize(prompt, valFrac.toString(), finalDs.map(f=>f.toString()), steps, topic);
+}
+function finalize(prompt, correct, distractors, steps, topic){
+  const seen = new Set([correct]);
+  const out = [];
+  for(let d of distractors){
+    let cand=d, guard=0;
+    while(seen.has(cand) && guard<5){ cand=cand+'\u200b'; guard++; }
+    seen.add(cand); out.push(cand);
+  }
+  return { type:'integration', topic, prompt, correct, distractors: out, steps };
+}
+
+function tierForDay(day){ return Math.min(5, Math.ceil(day/4)); }
+function genIntegrationQuestions(day){
+  const tier = tierForDay(day);
+  const fns = [genPower, genLinearSub, genByParts, genTrigPF, genDefinite];
+  const fn = fns[tier-1];
+  const out=[];
+  for(let q=0;q<5;q++){
+    const rng = mulberry32(day*1000 + q*37 + 7);
+    out.push(fn(rng, day, q));
+  }
+  return out;
+}
+
+/* ============================================================
+   LOGIC QUESTION BANK — 3 per day, 60 total
+   ============================================================ */
+const LOGIC_BANK = {
+1:[
+ {prompt:"Find the next number: 2, 4, 8, 16, ?", choices:["24","32","30","20"], correct:1,
+  steps:["Look at how each term relates to the one before it.","4÷2=2, 8÷4=2, 16÷8=2 — each term is double the last.","16 × 2 = 32.","Final answer: 32"]},
+ {prompt:"Premises: 'All engineers are problem-solvers.' 'Maria is a problem-solver.' What follows?", choices:["Maria is an engineer","Maria is not an engineer","We cannot conclude Maria is an engineer","All problem-solvers are engineers"], correct:2,
+  steps:["The premise only says engineers → problem-solvers, not the reverse.","Maria being a problem-solver doesn't place her inside the smaller 'engineers' group.","Concluding she's an engineer would be the fallacy of affirming the consequent.","Final answer: we cannot conclude Maria is an engineer."]},
+ {prompt:"Which number is the odd one out: 3, 7, 11, 13, 15?", choices:["7","11","13","15"], correct:3,
+  steps:["Check each number for primality.","3, 7, 11, 13 are all prime.","15 = 3 × 5, so it's composite — it breaks the pattern.","Final answer: 15"]}
+],
+2:[
+ {prompt:"Find the next number: 1, 1, 2, 3, 5, 8, ?", choices:["11","13","14","12"], correct:1,
+  steps:["This is the Fibonacci sequence: each term is the sum of the two before it.","3+5 = 8, so the next is 5+8.","5 + 8 = 13.","Final answer: 13"]},
+ {prompt:"'If it rains, the game is cancelled.' The game was NOT cancelled. What follows?", choices:["It rained","It did not rain","The game was cancelled","Cannot be determined"], correct:1,
+  steps:["This is modus tollens: if P→Q and not-Q, then not-P.","P = 'it rains', Q = 'game cancelled'.","Since Q is false, P must be false too.","Final answer: it did not rain."]},
+ {prompt:"A is taller than B. B is taller than C. Who is shortest?", choices:["A","B","C","Cannot be determined"], correct:2,
+  steps:["Order them: A > B > C in height.","C is below both A and B.","Final answer: C"]}
+],
+3:[
+ {prompt:"Find the next number: 100, 90, 81, 73, 66, ?", choices:["61","60","59","58"], correct:1,
+  steps:["Look at the differences between terms: -10, -9, -8, -7.","The gaps shrink by 1 each time, so the next gap is -6.","66 - 6 = 60.","Final answer: 60"]},
+ {prompt:"'No fish are mammals. All whales are mammals.' What follows?", choices:["No whales are fish","All whales are fish","Some whales are fish","Cannot be determined"], correct:0,
+  steps:["Whales sit entirely inside 'mammals'.","'Mammals' has zero overlap with 'fish'.","So whales, being mammals, can't be fish either.","Final answer: no whales are fish."]},
+ {prompt:"Three boxes are labeled 'Apples', 'Bananas', and 'Both' — but every label is wrong. You may draw one fruit from one box to figure out all three contents. Which box should you draw from?", choices:["The box labeled Apples","The box labeled Bananas","The box labeled Both","Any box works equally well"], correct:2,
+  steps:["Since every label is wrong, the box labeled 'Both' actually holds only one fruit type.","Drawing from it reveals that true single fruit.","That tells you the 'Both' box's real label, and the wrongness of the other two labels pins down the rest.","Final answer: draw from the box labeled 'Both'."]}
+],
+4:[
+ {prompt:"Find the next number: 2, 6, 12, 20, 30, ?", choices:["40","42","44","36"], correct:1,
+  steps:["Differences: 4, 6, 8, 10 — increasing by 2 each time.","Each term also equals n×(n+1): 1·2, 2·3, 3·4, 4·5, 5·6.","5×6 = 30 was the 5th term, so the 6th is 6×7.","Final answer: 42"]},
+ {prompt:"'All squares are rectangles. Some rectangles are not squares.' Which statement must be FALSE?", choices:["All squares are rectangles","All rectangles are squares","Some rectangles are squares","Some squares are rectangles"], correct:1,
+  steps:["We're told some rectangles are NOT squares.","That directly contradicts 'all rectangles are squares'.","So that statement must be false.","Final answer: 'All rectangles are squares'"]},
+ {prompt:"Which word doesn't belong: Triangle, Square, Circle, Cube?", choices:["Triangle","Square","Circle","Cube"], correct:3,
+  steps:["Triangle, Square, and Circle are all flat, 2-dimensional shapes.","Cube is a 3-dimensional solid.","It belongs to a different category entirely.","Final answer: Cube"]}
+],
+5:[
+ {prompt:"'If P then Q. If Q then R. P is true.' What follows?", choices:["R is true","R is false","Q is false","Cannot be determined"], correct:0,
+  steps:["P is true, and P→Q, so Q is true.","Q is true, and Q→R, so R is true.","This chains two applications of modus ponens.","Final answer: R is true."]},
+ {prompt:"'If a number is divisible by 6, it is divisible by 3.' Which is the logically equivalent contrapositive?", choices:["If not divisible by 3, not divisible by 6","If divisible by 3, divisible by 6","If not divisible by 6, not divisible by 3","If divisible by 6, not divisible by 3"], correct:0,
+  steps:["The contrapositive of 'if P then Q' is 'if not-Q then not-P'.","P = divisible by 6, Q = divisible by 3.","So: if NOT divisible by 3, then NOT divisible by 6.","Final answer: 'If not divisible by 3, not divisible by 6'"]},
+ {prompt:"'All students who play chess also play checkers. Tom plays checkers.' Does Tom play chess?", choices:["Yes","No","Cannot be determined","Only if he's in a club"], correct:2,
+  steps:["The rule only goes one direction: chess players → checkers players.","Playing checkers doesn't guarantee membership in the chess-playing group.","Assuming otherwise is the fallacy of affirming the consequent.","Final answer: cannot be determined."]}
+],
+6:[
+ {prompt:"Find the next number: 3, 9, 27, 81, ?", choices:["162","243","324","729"], correct:1,
+  steps:["Each term is multiplied by 3 to get the next: 3×3=9, 9×3=27, 27×3=81.","Continue the pattern: 81×3.","81 × 3 = 243.","Final answer: 243"]},
+ {prompt:"A person says: 'I always lie.' What can we say about this statement?", choices:["It is true","It is false","It's a paradox — it can't be consistently true or false","It's meaningless"], correct:2,
+  steps:["If the statement is true, then the person always lies — but then this statement is a lie, so it's false. Contradiction.","If the statement is false, then the person doesn't always lie — which is consistent, but doesn't resolve why they'd say it.","The self-referential structure makes it a classic paradox.","Final answer: it's a paradox."]},
+ {prompt:"Exactly one of Alan, Beth, and Carl always tells the truth; the other two always lie. Alan says 'Beth lies.' Beth says 'Carl lies.' Carl says 'Alan lies.' Who is the truth-teller?", choices:["Alan","Beth","Carl","No consistent solution exists"], correct:3,
+  steps:["Try Alan as the truth-teller: then Beth lies, so Beth's claim 'Carl lies' is false, so Carl doesn't lie — but then two people tell the truth. Contradiction.","Try Beth as the truth-teller: then Carl lies, so Carl's claim 'Alan lies' is false, so Alan doesn't lie — again two truth-tellers. Contradiction.","Try Carl as the truth-teller: then Alan lies, so Alan's claim 'Beth lies' is false, so Beth doesn't lie — again two truth-tellers. Contradiction.","Every case breaks down, so no assignment satisfies 'exactly one truth-teller'. Final answer: no consistent solution exists."]}
+],
+7:[
+ {prompt:"Find the next number: 5, 11, 23, 47, ?", choices:["93","94","95","96"], correct:2,
+  steps:["Check the relationship between terms: 5×2+1=11, 11×2+1=23, 23×2+1=47.","Apply the same rule to 47.","47×2+1 = 95.","Final answer: 95"]},
+ {prompt:"An argument has true premises and a true conclusion. Is it necessarily a VALID argument?", choices:["Yes, always","No, not necessarily","Only if the premises are self-evident","Cannot be determined"], correct:1,
+  steps:["Validity is about the logical structure connecting premises to conclusion, not about whether the statements happen to be true.","You can have true premises and a true conclusion joined by a broken logical link.","Truth of content and validity of form are separate things.","Final answer: no, not necessarily."]},
+ {prompt:"Hammer is to Nail as Screwdriver is to ___?", choices:["Screw","Nail","Wrench","Drill"], correct:0,
+  steps:["A hammer is the tool used to drive a nail.","The matching relationship: a screwdriver is the tool used to drive a screw.","Final answer: Screw"]}
+],
+8:[
+ {prompt:"Find the next number: 1, 4, 9, 16, 25, ?", choices:["30","32","36","49"], correct:2,
+  steps:["These are perfect squares: 1², 2², 3², 4², 5².","The next one is 6².","6² = 36.","Final answer: 36"]},
+ {prompt:"'No mammals are cold-blooded. All snakes are cold-blooded.' What follows about snakes and mammals?", choices:["No snakes are mammals","All snakes are mammals","Some snakes are mammals","Cannot be determined"], correct:0,
+  steps:["Snakes sit entirely inside 'cold-blooded animals'.","'Cold-blooded' and 'mammals' don't overlap at all.","So snakes can't be mammals either.","Final answer: no snakes are mammals."]},
+ {prompt:"'Brothers and sisters I have none, but that man's father is my father's son.' Who is in the photo?", choices:["His father","His son","Himself","His brother"], correct:1,
+  steps:["'My father's son', given he has no siblings, is himself.","So the sentence becomes: 'that man's father is myself'.","That means the man in the photo is his son.","Final answer: his son."]}
+],
+9:[
+ {prompt:"Dan finished before Cara. Cara finished before Ana. Ana finished before Ben. Who finished first?", choices:["Dan","Cara","Ana","Ben"], correct:0,
+  steps:["Chain the constraints in order: Dan < Cara < Ana < Ben.","The person with no one ahead of them is first.","That's Dan.","Final answer: Dan"]},
+ {prompt:"'Some A are B. All B are C.' What follows?", choices:["Some A are C","All A are C","No A are C","Cannot be determined"], correct:0,
+  steps:["The A's that are B are, by the second premise, also C.","That guarantees at least some overlap between A and C.","It doesn't guarantee ALL A are C, just some.","Final answer: some A are C."]},
+ {prompt:"On an island, knights always tell the truth and knaves always lie. An inhabitant says: 'I am a knave.' What can this person be?", choices:["A knight","A knave","This is an impossible statement for either to make","Both a knight and a knave"], correct:2,
+  steps:["If a knight said it, the statement would be true — meaning he's a knave. Contradiction.","If a knave said it, the statement would be true — but knaves only lie. Contradiction.","No consistent inhabitant could ever say this sentence.","Final answer: it's an impossible statement for either to make."]}
+],
+10:[
+ {prompt:"Left to right: red is left of blue; green is right of blue; yellow is left of red. Which book is leftmost?", choices:["Yellow","Red","Blue","Green"], correct:0,
+  steps:["Chain the clues: yellow < red < blue < green (left to right).","The book with nothing to its left is leftmost.","That's yellow.","Final answer: Yellow"]},
+ {prompt:"'All A are B. No B are C.' What follows about A and C?", choices:["No A are C","All A are C","Some A are C","Cannot be determined"], correct:0,
+  steps:["Every A is inside B.","B has zero overlap with C.","So A, being entirely inside B, also has zero overlap with C.","Final answer: no A are C."]},
+ {prompt:"Two guards stand at two doors — one leads to freedom, one to doom. One guard always lies, one always tells the truth, but you don't know which is which. You may ask exactly one guard one question. What should you ask?", choices:["'Which door is yours?'","'Are you the truthful guard?'","'What would the OTHER guard say is the door to freedom?' — then pick the opposite door","'Is this the door to freedom?'"], correct:2,
+  steps:["Asking about 'the other guard's answer' routes your question through both a truth-teller and a liar, however you pick.","A truthful guard reports the liar's false answer accurately; a lying guard misreports the truthful guard's real answer.","Either way, the answer you get points to the WRONG door — so you take the opposite one.","Final answer: ask what the other guard would say, then pick the opposite door."]}
+],
+11:[
+ {prompt:"E is at the front of a line. C is directly behind E. D is directly behind C. B is directly behind A, and A/B fill the last two spots. Who is at the very back?", choices:["A","B","C","D"], correct:1,
+  steps:["Build the order front to back: E, C, D, then A, B fill the rest with B behind A.","So the full order is E, C, D, A, B.","The last position is B.","Final answer: B"]},
+ {prompt:"'A shape with 4 equal sides and 4 right angles is a square. Shape X is a square.' What must be true about X?", choices:["It has 4 equal sides and 4 right angles","It might not have right angles","Cannot be determined","It has more than 4 sides"], correct:0,
+  steps:["Being told X is a square means it satisfies the definition given.","The definition requires exactly 4 equal sides and 4 right angles.","This is a straightforward valid inference (affirming the antecedent correctly, since 'square' was stipulated).","Final answer: it has 4 equal sides and 4 right angles."]},
+ {prompt:"A farmer must ferry a wolf, a goat, and a cabbage across a river one at a time. Left alone, the wolf eats the goat, and the goat eats the cabbage. What must the farmer take across first?", choices:["The wolf","The goat","The cabbage","It doesn't matter"], correct:1,
+  steps:["Wolf and cabbage can safely be left together — neither threatens the other.","The goat is the one dangerous item to leave with either neighbor.","Taking the goat first removes it from danger and prevents it from destroying the cabbage.","Final answer: the goat."]}
+],
+12:[
+ {prompt:"X, Y, and Z each won a different medal (gold, silver, bronze). X did not win gold. Z won silver. Who won gold?", choices:["X","Y","Z","Cannot be determined"], correct:1,
+  steps:["Z already has silver, so Z doesn't have gold.","X is explicitly ruled out from gold.","That leaves Y as the only possibility.","Final answer: Y"]},
+ {prompt:"'Some doctors are teachers. All teachers are patient.' Does it follow that some doctors are patient?", choices:["Yes, this follows validly","No, this is a fallacy","Cannot be determined","Only if all doctors are teachers"], correct:0,
+  steps:["The doctors who are teachers form a real, non-empty overlap (given 'some').","Every member of that overlap is patient, since all teachers are patient.","So those specific doctors are patient — meaning some doctors are patient.","Final answer: yes, this follows validly."]},
+ {prompt:"What comes once in a minute, twice in a moment, but never in a thousand years?", choices:["The letter M","Time itself","Nothing","A second"], correct:0,
+  steps:["Count the letter 'M' in each word.","'Minute' has one M, 'moment' has two, 'thousand years' has zero.","It's a wordplay riddle about letter counts, not actual time.","Final answer: the letter M."]}
+],
+13:[
+ {prompt:"A bag has 3 red balls and 2 blue balls. What's the probability of drawing a red ball?", choices:["3/5","2/5","1/2","3/2"], correct:0,
+  steps:["Total balls = 3 + 2 = 5.","Favorable outcomes (red) = 3.","Probability = favorable / total = 3/5.","Final answer: 3/5"]},
+ {prompt:"In a cipher, each letter shifts forward by 1 (CAT → DBU). What does DOG become?", choices:["EPH","DPH","EPI","FQI"], correct:0,
+  steps:["Shift each letter forward by one position in the alphabet.","D→E, O→P, G→H.","Combine the shifted letters.","Final answer: EPH"]},
+ {prompt:"How many distinct ways can 3 different people be arranged in a line?", choices:["6","3","9","12"], correct:0,
+  steps:["This is a permutation of 3 distinct items: 3!","3! = 3 × 2 × 1.","3 × 2 × 1 = 6.","Final answer: 6"]}
+],
+14:[
+ {prompt:"Rolling a fair six-sided die, what's the probability of getting an even number?", choices:["1/2","1/3","1/6","2/3"], correct:0,
+  steps:["Even outcomes on a die: 2, 4, 6 — three outcomes.","Total outcomes: 6.","Probability = 3/6 = 1/2.","Final answer: 1/2"]},
+ {prompt:"In a code, each letter shifts forward by 1 (FOOD → GPPE). How is WATER written?", choices:["XBUFS","XBUFR","YBUFS","XCUFS"], correct:0,
+  steps:["Shift every letter forward by one: W→X, A→B, T→U, E→F, R→S.","Combine the shifted letters in order.","W-A-T-E-R becomes X-B-U-F-S.","Final answer: XBUFS"]},
+ {prompt:"Book is to Reading as Fork is to ___?", choices:["Eating","Kitchen","Spoon","Cooking"], correct:0,
+  steps:["A book is the object used for the activity of reading.","A fork is the object used for the activity of eating.","The relationship is object → its core purpose/activity.","Final answer: Eating"]}
+],
+15:[
+ {prompt:"Two fair coins are flipped. What's the probability both land heads?", choices:["1/4","1/2","1/3","3/4"], correct:0,
+  steps:["Each coin has a 1/2 chance of heads, and the flips are independent.","Multiply the probabilities: 1/2 × 1/2.","1/2 × 1/2 = 1/4.","Final answer: 1/4"]},
+ {prompt:"A password uses exactly 2 digits (0–9), and repeated digits are allowed. How many possible passwords are there?", choices:["100","90","20","10"], correct:0,
+  steps:["Each digit position has 10 possible values (0-9).","Repetition is allowed, so the choices are independent.","10 × 10 = 100.","Final answer: 100"]},
+ {prompt:"5 houses stand in a row, positions 1-5. The blue house is fixed at position 5. A red house sits immediately left of a green house, and green is not at position 5. Which starting position for the red-green pair is impossible?", choices:["1","2","3","4"], correct:3,
+  steps:["If red starts at position 4, green would land at position 5.","But position 5 is blue, and green can't be at 5 anyway per the clue.","So a start of position 4 for the red-green pair is impossible.","Final answer: 4"]}
+],
+16:[
+ {prompt:"A jar has 4 green marbles and 6 yellow marbles. What's the probability of picking a yellow one at random?", choices:["3/5","2/5","1/2","6/4"], correct:0,
+  steps:["Total marbles = 4 + 6 = 10.","Favorable outcomes (yellow) = 6.","Probability = 6/10, which simplifies to 3/5.","Final answer: 3/5"]},
+ {prompt:"In a numeric code, each letter becomes its position in the alphabet (A=1, B=2, ...). What does 'CAB' become?", choices:["3-1-2","3-2-1","1-3-2","2-1-3"], correct:0,
+  steps:["Find each letter's position: C=3, A=1, B=2.","Keep them in the original order of the word.","C-A-B becomes 3-1-2.","Final answer: 3-1-2"]},
+ {prompt:"Doctor is to Hospital as Teacher is to ___?", choices:["School","Book","Student","Classroom"], correct:0,
+  steps:["A doctor's workplace institution is a hospital.","The matching institution for a teacher is a school.","The relationship is profession → workplace institution.","Final answer: School"]}
+],
+17:[
+ {prompt:"'All chess club members like puzzles. Some puzzle-lovers dislike sports. Maria is a chess club member.' Can we conclude Maria dislikes sports?", choices:["Yes, she dislikes sports","No, cannot be determined","She must like sports","She is not in the chess club"], correct:1,
+  steps:["Maria being in the chess club guarantees she likes puzzles.","But 'some puzzle-lovers dislike sports' doesn't mean ALL of them do — it may not include Maria at all.","Nothing pins down Maria's specific stance on sports.","Final answer: cannot be determined."]},
+ {prompt:"Exactly one of these four statements is true. A: 'B is guilty.' B: 'D is guilty.' C: 'I am not guilty.' D: 'B is lying.' Who is guilty?", choices:["A","B","C","D"], correct:2,
+  steps:["Notice B's claim ('D is guilty') and D's claim ('B is lying', i.e. D is NOT guilty) are direct opposites — exactly one of them must be true.","Since only ONE statement total is true, and B/D already supply that one true statement between them, A and C must both be false.","A false means B is not guilty (uninformative). C false means 'I am not guilty' is false — so C IS guilty.","Final answer: C is guilty."]},
+ {prompt:"Find the next number: 2, 3, 5, 8, 13, 21, ?", choices:["33","34","35","36"], correct:1,
+  steps:["Each term is the sum of the two before it (Fibonacci-style): 8+13=21.","Apply the same rule to the last two terms.","13 + 21 = 34.","Final answer: 34"]}
+],
+18:[
+ {prompt:"'If the meeting is Monday, Sam attends. If Sam attends, the report is discussed.' The report was NOT discussed. What follows?", choices:["The meeting was on Monday","The meeting was not on Monday","Sam did not attend","Both 'meeting not Monday' and 'Sam did not attend'"], correct:3,
+  steps:["Report not discussed → by modus tollens on the second rule, Sam did not attend.","Sam did not attend → by modus tollens on the first rule, the meeting was not on Monday.","Both conclusions are forced by the chain.","Final answer: both — Sam didn't attend, and the meeting wasn't on Monday."]},
+ {prompt:"A sequence follows 'multiply by 2, then subtract 3', starting at 4: 4, 5, 7, 11, 19, ?", choices:["33","35","37","39"], correct:1,
+  steps:["Apply the rule to the last term: 19 × 2 − 3.","19 × 2 = 38.","38 − 3 = 35.","Final answer: 35"]},
+ {prompt:"Six people sit clockwise around a round table. Alice sits opposite Ben. Carla sits immediately clockwise of Alice. Dan sits immediately clockwise of Ben. Ellen sits immediately clockwise of Carla. Fay is the sixth person. Fay sits immediately clockwise of whom?", choices:["Alice","Ben","Carla","Dan"], correct:3,
+  steps:["Number seats 1-6 clockwise: Alice=1, opposite (seat 4)=Ben.","Carla is clockwise of Alice → seat 2. Ellen is clockwise of Carla → seat 3.","Dan is clockwise of Ben(4) → seat 5. The only seat left, 6, is Fay.","Fay (seat 6) is immediately clockwise of seat 5, which is Dan. Final answer: Dan."]}
+],
+19:[
+ {prompt:"'All squares are rectangles. All rectangles have 4 right angles. Shape X does not have 4 right angles.' What follows about X?", choices:["X is not a square","X is a square","X might be a square","Cannot be determined"], correct:0,
+  steps:["No right angles → X is not a rectangle (contrapositive of rule 2).","Not a rectangle → X is not a square (contrapositive of rule 1, since squares are a subset of rectangles).","Chaining both contrapositives gives a clean conclusion.","Final answer: X is not a square."]},
+ {prompt:"Find the next number: 1, 2, 4, 7, 11, 16, ?", choices:["21","22","23","24"], correct:1,
+  steps:["Look at the differences: 1, 2, 3, 4, 5 — increasing by 1 each time.","The next difference should be 6.","16 + 6 = 22.","Final answer: 22"]},
+ {prompt:"'Every swan I have ever seen is white. Therefore, all swans are white.' What reasoning flaw does this show?", choices:["Hasty generalization","Circular reasoning","False dichotomy","Ad hominem"], correct:0,
+  steps:["The conclusion generalizes to ALL swans everywhere, for all time.","The evidence only covers a limited personal sample.","Jumping from limited observation to a universal claim is a hasty generalization.","Final answer: hasty generalization."]}
+],
+20:[
+ {prompt:"'If the vault is unlocked, the alarm is silent. If the alarm is silent, the guard is asleep.' The guard is NOT asleep. What follows about the vault?", choices:["The vault is unlocked","The vault is locked","The alarm is silent","Cannot be determined"], correct:1,
+  steps:["Guard not asleep → by modus tollens, the alarm is not silent.","Alarm not silent → by modus tollens again, the vault is not unlocked.","Chaining both steps pins down the vault's state.","Final answer: the vault is locked."]},
+ {prompt:"Find the next number: 3, 6, 11, 18, 27, ?", choices:["36","37","38","39"], correct:2,
+  steps:["Differences: 3, 5, 7, 9 — each jumps by 2.","The next difference should be 11.","27 + 11 = 38.","Final answer: 38"]},
+ {prompt:"Four coworkers W, X, Y, Z each prefer a different drink: tea, coffee, juice, water. W doesn't like tea or coffee. X likes coffee. Y doesn't like water. Z likes juice. What does W drink?", choices:["Tea","Coffee","Juice","Water"], correct:3,
+  steps:["X has coffee and Z has juice, so those are taken.","W is ruled out from tea and coffee by the clue, and juice is already Z's — leaving only water for W.","That forces Y into the one remaining drink, tea (consistent with Y disliking water).","Final answer: water."]}
+]
+};
+
+function getLogicQuestions(day){
+  return (LOGIC_BANK[day] || []).map(q => ({
+    type:'logic', topic:'Reasoning',
+    prompt: q.prompt,
+    correct: q.choices[q.correct],
+    distractors: q.choices.filter((_,i)=>i!==q.correct),
+    choicesOrdered: q.choices,
+    correctIndex: q.correct,
+    steps: q.steps
+  }));
+}
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+let PROGRESS = {}; // { "1": {score:8,total:8,done:true,ts:...}, ... }
+async function loadProgress(){
+  try{
+    const res = await window.storage.get('progress');
+    PROGRESS = res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){ PROGRESS = {}; }
+}
+async function saveProgress(){
+  try{ await window.storage.set('progress', JSON.stringify(PROGRESS)); }
+  catch(e){ console.warn('save failed', e); }
+}
+
+/* ============================================================
+   RENDERING
+   ============================================================ */
+const TIER_NAMES = {1:'Power rule',2:'u-substitution',3:'By parts',4:'Trig & partial fractions',5:'Definite integrals'};
+const dayGrid = document.getElementById('dayGrid');
+const quizPanel = document.getElementById('quizPanel');
+
+function formatMath(str){
+  return str
+    .replace(/\^(-?\d+)/g, '<sup>$1</sup>')
+    .replace(/\u200b/g,'');
+}
+
+function renderPerfChart(){
+  const el = document.getElementById('perfChart');
+  if(!el || !window.renderTrendChart) return;
+  const days = Object.keys(PROGRESS).map(Number).filter(d => PROGRESS[d] && PROGRESS[d].done).sort((a,b)=>a-b);
+  const points = days.map(d => ({ label: 'D'+d, value: Math.round(100 * PROGRESS[d].score / PROGRESS[d].total) }));
+  window.renderTrendChart(el, points, { max:100, emptyText:'Complete a couple of days to see your accuracy trend.' });
+}
+
+const TIER_COLORS = {1:'#C9932B',2:'#A79846',3:'#849D61',4:'#62A27B',5:'#3FA796'};
+function renderDashboard(){
+  dayGrid.innerHTML = '';
+  let doneCount=0, totalScore=0, totalPossible=0, streak=0;
+  const R = 14, CIRC = 2*Math.PI*R;
+  for(let day=1; day<=20; day++){
+    const p = PROGRESS[day];
+    const card = document.createElement('div');
+    card.className = 'day-card' + (p && p.done ? ' complete' : (p ? ' progress' : ''));
+    card.style.animationDelay = (day*0.02)+'s';
+    const tier = tierForDay(day);
+    const tc = TIER_COLORS[tier];
+    card.style.setProperty('--tc', tc);
+    const frac = p && p.done ? p.score/8 : 0;
+    const offset = CIRC * (1-frac);
+    const label = p && p.done ? p.score : '–';
+    card.innerHTML = `
+      <div class="day-card-top">
+        <div>
+          <div class="dn">Day ${day}</div>
+          <div class="tier">${TIER_NAMES[tier]}</div>
+        </div>
+        <svg class="ring" viewBox="0 0 34 34">
+          <circle class="track" cx="17" cy="17" r="${R}"></circle>
+          <circle class="fill" cx="17" cy="17" r="${R}" stroke-dasharray="${CIRC}" stroke-dashoffset="${p&&p.done?offset:CIRC}"></circle>
+          <text x="17" y="20.5">${label}</text>
+        </svg>
+      </div>
+      <div class="score-line"><span class="status-dot"></span>${p && p.done ? p.score+'/8 correct' : (p ? 'in progress' : 'not started')}</div>
+    `;
+    card.addEventListener('click', ()=> openDay(day));
+    dayGrid.appendChild(card);
+    if(p && p.done){ doneCount++; totalScore += p.score; totalPossible += p.total; }
+  }
+  for(let day=1; day<=20; day++){
+    if(PROGRESS[day] && PROGRESS[day].done) streak++;
+    else break;
+  }
+  document.getElementById('statDone').textContent = `${doneCount}/20`;
+  document.getElementById('statAcc').textContent = totalPossible ? Math.round(100*totalScore/totalPossible)+'%' : '—';
+  document.getElementById('statStreak').textContent = streak;
+
+  const pct = doneCount/20;
+  document.getElementById('sigPath').setAttribute('stroke-dasharray','400');
+  document.getElementById('sigPath').setAttribute('stroke-dashoffset', String(400*(1-pct)));
+
+  renderPerfChart();
+}
+
+
+let currentDay = null, currentQuestions = [], currentIndex = 0, currentScore = 0, answered = false;
+
+function openDay(day){
+  currentDay = day;
+  currentQuestions = [...genIntegrationQuestions(day), ...getLogicQuestions(day)];
+  currentIndex = 0; currentScore = 0;
+  quizPanel.classList.add('show');
+  renderQuizShell();
+  renderQuestion();
+  quizPanel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderQuizShell(){
+  const tc = TIER_COLORS[tierForDay(currentDay)];
+  quizPanel.style.setProperty('--tc', tc);
+  quizPanel.innerHTML = `
+    <div class="quiz-head">
+      <div>
+        <h2>Day ${currentDay}</h2>
+        <div class="sub">${TIER_NAMES[tierForDay(currentDay)]} · 5 integration + 3 logic</div>
+      </div>
+      <button class="close-btn" id="closeBtn">Back to dashboard ✕</button>
+    </div>
+    <div class="progress-track" id="progressTrack"></div>
+    <div id="qArea"></div>
+  `;
+  document.getElementById('closeBtn').addEventListener('click', ()=>{
+    quizPanel.classList.remove('show');
+    quizPanel.innerHTML = '';
+  });
+  const track = document.getElementById('progressTrack');
+  for(let i=0;i<8;i++){
+    const seg = document.createElement('div');
+    seg.className = 'progress-seg' + (i===0 ? ' current':'');
+    seg.innerHTML = '<i></i>';
+    track.appendChild(seg);
+  }
+}
+
+function updateProgressTrack(idx, correct){
+  const segs = document.querySelectorAll('.progress-seg');
+  segs.forEach((s,i)=>{
+    s.classList.remove('current');
+    if(i===idx) s.classList.add(correct ? 'correct':'wrong');
+    if(i===idx+1) s.classList.add('current');
+  });
+}
+
+function renderQuestion(){
+  answered = false;
+  const q = currentQuestions[currentIndex];
+  const qArea = document.getElementById('qArea');
+
+  let choices;
+  if(q.type==='logic'){
+    choices = q.choicesOrdered;
+  } else {
+    choices = shuffle([q.correct, ...q.distractors], currentDay*97+currentIndex*13);
+  }
+
+  qArea.innerHTML = `
+    <div class="q-body">
+      <span class="q-tag ${q.type}">${q.type==='integration' ? '∫ '+q.topic : '◆ Logic'}</span>
+      <div class="q-prompt">${formatMath(q.prompt)}</div>
+      <div class="choices" id="choicesWrap"></div>
+      <div class="feedback" id="feedback"><span class="icon" id="fbIcon"></span><span id="fbText"></span></div>
+      <button class="steps-btn" id="stepsBtn">Show worked example ▾</button>
+      <div class="steps" id="stepsBox"></div>
+    </div>
+    <div class="q-footer">
+      <button class="next-btn" id="nextBtn">${currentIndex===7 ? 'Finish day →' : 'Next question →'}</button>
+    </div>
+  `;
+
+  const wrap = document.getElementById('choicesWrap');
+  const letters = ['A','B','C','D'];
+  choices.forEach((choice, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.dataset.raw = choice;
+    btn.innerHTML = `<span class="k">${letters[i]}</span><span>${formatMath(choice)}</span>`;
+    btn.addEventListener('click', ()=> selectAnswer(choice, q, wrap, btn));
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('stepsBtn').addEventListener('click', ()=>{
+    document.getElementById('stepsBox').classList.toggle('show');
+  });
+
+  const stepsBox = document.getElementById('stepsBox');
+  stepsBox.innerHTML = `<ol>${q.steps.map(s=>`<li>${formatMath(s)}</li>`).join('')}</ol>`;
+
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    if(!answered) return;
+    if(currentIndex < 7){ currentIndex++; renderQuestion(); }
+    else finishDay();
+  });
+}
+
+function shuffle(arr, seed){
+  const rng = mulberry32(seed);
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(rng()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function selectAnswer(choice, q, wrap, clickedBtn){
+  if(answered) return;
+  answered = true;
+  const isCorrect = choice === q.correct;
+  if(isCorrect) currentScore++;
+
+  [...wrap.children].forEach(btn=>{
+    btn.classList.add('locked');
+    if(btn.dataset.raw === q.correct) btn.classList.add('correct','reveal');
+    if(btn === clickedBtn && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.classList.add('show', isCorrect ? 'good':'bad');
+  document.getElementById('fbIcon').textContent = isCorrect ? '✓' : '✕';
+  document.getElementById('fbText').textContent = isCorrect ? 'Correct — nice work.' : `Not quite. Correct answer: ${q.correct}`;
+
+  document.getElementById('stepsBtn').classList.add('show');
+  if(!isCorrect) document.getElementById('stepsBox').classList.add('show');
+
+  document.getElementById('nextBtn').classList.add('ready');
+  updateProgressTrack(currentIndex, isCorrect);
+}
+
+async function finishDay(){
+  PROGRESS[currentDay] = { score: currentScore, total: 8, done: true, ts: Date.now() };
+  await saveProgress();
+  renderDashboard();
+
+  const qArea = document.getElementById('qArea');
+  const pct = currentScore/8;
+  const msg = pct===1 ? "Perfect score — every step landed." :
+              pct>=0.75 ? "Strong day. Review the worked examples you missed." :
+              pct>=0.5 ? "Solid start — revisit the steps above to lock it in." :
+              "Tough one. Re-open this day any time to try fresh questions.";
+  qArea.innerHTML = `
+    <div class="summary">
+      <div class="ring-big"><svg viewBox="0 0 120 120" width="120" height="120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#EDE6D2" stroke-width="10"/>
+        <circle cx="60" cy="60" r="52" fill="none" stroke="${pct===1?'#3FA796':'#C9932B'}" stroke-width="10"
+          stroke-linecap="round" stroke-dasharray="${2*Math.PI*52}" stroke-dashoffset="${2*Math.PI*52*(1-pct)}"
+          transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1s ease"/>
+        <text x="60" y="68" text-anchor="middle" font-family="JetBrains Mono" font-size="26" font-weight="700" fill="#1B2430">${currentScore}/8</text>
+      </svg></div>
+      <h3>Day ${currentDay} complete</h3>
+      <p>${msg}</p>
+      <div class="actions">
+        <button class="btn-primary" id="retryBtn">Try Day ${currentDay} again</button>
+        <button class="btn-ghost" id="nextDayBtn">${currentDay<20 ? 'Go to Day '+(currentDay+1) : 'Back to dashboard'}</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('retryBtn').addEventListener('click', ()=> openDay(currentDay));
+  document.getElementById('nextDayBtn').addEventListener('click', ()=>{
+    if(currentDay<20) openDay(currentDay+1);
+    else { quizPanel.classList.remove('show'); quizPanel.innerHTML=''; }
+  });
+  if(pct===1) burstConfetti();
+}
+
+function burstConfetti(){
+  const colors = ['#C9932B','#3FA796','#6C7BF5','#E4B95C'];
+  const host = document.getElementById('confetti');
+  for(let i=0;i<60;i++){
+    const p = document.createElement('div');
+    p.className='confetti-piece';
+    const size = 5+Math.random()*6;
+    p.style.width = size+'px';
+    p.style.height = (size*0.4)+'px';
+    p.style.left = (Math.random()*100)+'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.opacity = '0.9';
+    const duration = 1.6 + Math.random()*1.2;
+    const rot = Math.random()*360;
+    p.animate([
+      { transform:`translateY(0) rotate(0deg)`, opacity:1 },
+      { transform:`translateY(100vh) rotate(${rot}deg)`, opacity:0 }
+    ], { duration: duration*1000, easing:'cubic-bezier(.2,.6,.4,1)' });
+    host.appendChild(p);
+    setTimeout(()=> p.remove(), duration*1000+100);
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+(async function init(){
+  await loadProgress();
+  renderDashboard();
+  setTimeout(()=> document.getElementById('entrance').classList.add('hide'), 500);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+</head>
+<body class="hub-body">
+  <div class="auth-shell">
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="auth-sub">Log in to pick up your progress across the Matrix Tracker, Reasoning Lab, and 30-Day Prep Track.</p>
+      <div class="auth-error" id="authError"></div>
+      <form id="loginForm">
+        <div class="auth-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" required autocomplete="email">
+        </div>
+        <div class="auth-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" required autocomplete="current-password">
+        </div>
+        <button class="auth-submit" type="submit" id="submitBtn">Log in</button>
+      </form>
+      <div class="auth-switch">No account yet? <a href="/register.html">Create one</a></div>
+    </div>
+  </div>
+
+<script>
+  const form = document.getElementById('loginForm');
+  const errBox = document.getElementById('authError');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errBox.classList.remove('show');
+    submitBtn.disabled = true; submitBtn.textContent = 'Logging in…';
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value
+        })
+      });
+      let data;
+      try { data = await res.json(); }
+      catch (e) { throw new Error('The server sent back something unexpected (not JSON). Make sure the backend is actually running.'); }
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+      localStorage.setItem('rh_token', data.token);
+      const params = new URLSearchParams(location.search);
+      location.href = params.get('next') || '/index.html';
+    } catch (err) {
+      errBox.textContent = err.message;
+      errBox.classList.add('show');
+      submitBtn.disabled = false; submitBtn.textContent = 'Log in';
+    }
+  });
+</script>
+</body>
+</html>

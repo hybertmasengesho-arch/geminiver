@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reasoning Hub</title>
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">One account · three tracks</div>
+  <h1 class="hub-h1">Reasoning Hub</h1>
+  <p class="hub-sub">The Matrix Accuracy Tracker, the Reasoning Lab, and the 30-Day Prep Track — one login, one progress history, saved to your own database.</p>
+
+  <div class="app-card-grid" id="appCards">
+    <a class="app-card" href="/matrix.html" style="--app-accent:#2F6F4F;">
+      <div class="app-eyebrow mono">LINEAR ALGEBRA</div>
+      <h3>20-Day Matrix Accuracy</h3>
+      <p>One matrix topic a day — order, multiplication, determinants, inverses, eigenvalues.</p>
+      <div class="app-progress-bar"><i id="matrixBar"></i></div>
+      <div class="app-progress-label mono" id="matrixLabel">Loading…</div>
+    </a>
+    <a class="app-card" href="/reasoning.html" style="--app-accent:#3FA796;">
+      <div class="app-eyebrow mono">CALCULUS + LOGIC</div>
+      <h3>The Reasoning Lab</h3>
+      <p>20 days, 8 questions each — integration drills plus logic and deduction puzzles.</p>
+      <div class="app-progress-bar"><i id="reasoningBar"></i></div>
+      <div class="app-progress-label mono" id="reasoningLabel">Loading…</div>
+    </a>
+    <a class="app-card" href="/prep30.html" style="--app-accent:#C08A2E;">
+      <div class="app-eyebrow mono">EE YEAR 2 BRIDGE</div>
+      <h3>30-Day Prep Track</h3>
+      <p>Electromagnetics, instrumentation, machines, control systems, and comms.</p>
+      <div class="app-progress-bar"><i id="prep30Bar"></i></div>
+      <div class="app-progress-label mono" id="prep30Label">Loading…</div>
+    </a>
+  </div>
+
+  <div class="trend-card" style="margin-top:24px;">
+    <div class="trend-title">COMBINED ACTIVITY TREND · ITEMS COMPLETED OVER TIME, ACROSS ALL THREE TRACKS</div>
+    <div id="combinedChart"></div>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/trend-chart.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+async function apiGet(app, key){
+  const q = new URLSearchParams({ app, key, shared: false });
+  const res = await fetch('/api/kv?' + q.toString(), { headers: { Authorization: 'Bearer ' + getToken() } });
+  if(!res.ok) return null;
+  const data = await res.json();
+  return data.value ? JSON.parse(data.value) : null;
+}
+
+async function loadMatrix(){
+  const events = [];
+  let done = 0, accSum = 0;
+  for(let day=1; day<=20; day++){
+    const v = await apiGet('matrix', 'day-progress:' + day);
+    if(v && v.completed){
+      done++;
+      accSum += (v.accuracy || 0);
+      if(v.timestamp) events.push({ t: v.timestamp, app:'matrix' });
+    }
+  }
+  document.getElementById('matrixBar').style.width = (done/20*100) + '%';
+  document.getElementById('matrixLabel').textContent = done + '/20 days · avg ' + (done ? Math.round(accSum/done) : 0) + '%';
+  return { done, total:20, events };
+}
+
+async function loadReasoning(){
+  const v = await apiGet('reasoning', 'progress');
+  const events = [];
+  let done = 0;
+  if(v){
+    Object.keys(v).forEach(day => {
+      const d = v[day];
+      if(d && d.done){ done++; if(d.ts) events.push({ t: new Date(d.ts).toISOString(), app:'reasoning' }); }
+    });
+  }
+  document.getElementById('reasoningBar').style.width = (done/20*100) + '%';
+  document.getElementById('reasoningLabel').textContent = done + '/20 days';
+  return { done, total:20, events };
+}
+
+async function loadPrep30(){
+  const v = await apiGet('prep30', 'prep30-progress');
+  const events = [];
+  let done = 0;
+  if(v && Array.isArray(v.completed)){
+    done = v.completed.length;
+    if(v.completedAt){
+      Object.keys(v.completedAt).forEach(day => events.push({ t: v.completedAt[day], app:'prep30' }));
+    }
+  }
+  document.getElementById('prep30Bar').style.width = (done/30*100) + '%';
+  document.getElementById('prep30Label').textContent = done + '/30 days';
+  return { done, total:30, events };
+}
+
+function renderCombinedChart(allEvents, totalItems){
+  const sorted = allEvents.filter(e => e.t).sort((a,b) => new Date(a.t) - new Date(b.t));
+  if(sorted.length < 2){
+    document.getElementById('combinedChart').innerHTML =
+      '<div class="trend-empty">Complete a few days across any tracker to see your combined trend here.</div>';
+    return;
+  }
+  // Sample down to at most 14 points so the chart stays readable.
+  const step = Math.max(1, Math.ceil(sorted.length / 14));
+  const points = [];
+  for(let i=0; i<sorted.length; i+=step){
+    points.push({ label: 'D' + (points.length+1), value: (i+1) });
+  }
+  if(points[points.length-1].value !== sorted.length){
+    points.push({ label: 'D' + (points.length+1), value: sorted.length });
+  }
+  window.renderTrendChart(document.getElementById('combinedChart'), points, { max: totalItems });
+}
+
+(async function init(){
+  const user = await window.HubNav.init('home', true);
+  if(!user) return;
+  const [matrix, reasoning, prep30] = await Promise.all([loadMatrix(), loadReasoning(), loadPrep30()]);
+  const totalItems = matrix.total + reasoning.total + prep30.total;
+  renderCombinedChart([...matrix.events, ...reasoning.events, ...prep30.events], totalItems);
+})();
+</script>
+</body>
+</html>
