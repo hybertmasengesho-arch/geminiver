@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Courses — Reasoning Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Three tracks · one login</div>
+  <h1 class="hub-h1">Courses</h1>
+  <p class="hub-sub">Pick a track to continue where you left off.</p>
+
+  <div class="courses-row" id="coursesRow">
+    <a class="app-card" href="/matrix.html" style="--app-accent:#2F6F4F;">
+      <div class="app-eyebrow mono">LINEAR ALGEBRA</div>
+      <h3>30-Day Matrix Accuracy</h3>
+      <p>One matrix topic a day — order, multiplication, determinants, inverses, eigenvalues, up through 4x4/5x5.</p>
+      <div class="app-progress-bar"><i id="matrixBar"></i></div>
+      <div class="app-progress-label mono" id="matrixLabel">Loading…</div>
+    </a>
+    <a class="app-card" href="/reasoning.html" style="--app-accent:#3FA796;">
+      <div class="app-eyebrow mono">CALCULUS + LOGIC</div>
+      <h3>The Reasoning Lab</h3>
+      <p>20 days, 8 questions each — integration drills plus logic and deduction puzzles.</p>
+      <div class="app-progress-bar"><i id="reasoningBar"></i></div>
+      <div class="app-progress-label mono" id="reasoningLabel">Loading…</div>
+    </a>
+    <a class="app-card" href="/prep30.html" style="--app-accent:#C08A2E;">
+      <div class="app-eyebrow mono">EE YEAR 2 BRIDGE</div>
+      <h3>30-Day Prep Track</h3>
+      <p>Electromagnetics, instrumentation, machines, control systems, and comms.</p>
+      <div class="app-progress-bar"><i id="prep30Bar"></i></div>
+      <div class="app-progress-label mono" id="prep30Label">Loading…</div>
+    </a>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+async function apiGet(app, key){
+  const q = new URLSearchParams({ app, key, shared: false });
+  const res = await fetch('/api/kv?' + q.toString(), { headers: { Authorization: 'Bearer ' + getToken() } });
+  if(!res.ok) return null;
+  const data = await res.json();
+  return data.value ? JSON.parse(data.value) : null;
+}
+
+async function loadMatrix(){
+  let done = 0, accSum = 0;
+  for(let day=1; day<=30; day++){
+    const v = await apiGet('matrix', 'day-progress:' + day);
+    if(v && v.completed){ done++; accSum += (v.accuracy || 0); }
+  }
+  document.getElementById('matrixBar').style.width = (done/30*100) + '%';
+  document.getElementById('matrixLabel').textContent = done + '/30 days · avg ' + (done ? Math.round(accSum/done) : 0) + '%';
+}
+
+async function loadReasoning(){
+  const v = await apiGet('reasoning', 'progress');
+  let done = 0;
+  if(v){ Object.keys(v).forEach(day => { if(v[day] && v[day].done) done++; }); }
+  document.getElementById('reasoningBar').style.width = (done/20*100) + '%';
+  document.getElementById('reasoningLabel').textContent = done + '/20 days';
+}
+
+async function loadPrep30(){
+  const v = await apiGet('prep30', 'prep30-progress');
+  let done = 0;
+  if(v && Array.isArray(v.completed)) done = v.completed.length;
+  document.getElementById('prep30Bar').style.width = (done/30*100) + '%';
+  document.getElementById('prep30Label').textContent = done + '/30 days';
+}
+
+// Small yellow "#N" badge in the top-right corner of every course card —
+// your current overall rank (same number the admin's Ranking tab shows,
+// and whatever an admin last shared with you as a message).
+async function loadRankBadge(){
+  try{
+    const res = await fetch('/api/profile/my-rank', { headers: { Authorization: 'Bearer ' + getToken() } });
+    if(!res.ok) return;
+    const data = await res.json();
+    if(!data.rank) return;
+    document.querySelectorAll('#coursesRow .app-card').forEach(card => {
+      const badge = document.createElement('span');
+      badge.className = 'course-rank-badge';
+      badge.title = 'Your overall rank: #' + data.rank + ' of ' + data.total;
+      badge.textContent = '#' + data.rank;
+      card.appendChild(badge);
+    });
+  }catch(e){ /* the badge is a nice-to-have — a failed fetch just means no badge shows */ }
+}
+
+(async function init(){
+  const user = await window.HubNav.init('courses', true);
+  if(!user) return;
+  loadMatrix();
+  loadReasoning();
+  loadPrep30();
+  loadRankBadge();
+})();
+</script>
+</body>
+</html>

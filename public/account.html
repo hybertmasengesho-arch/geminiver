@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — Reasoning Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .account-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; padding:24px; margin-top:22px; max-width:480px; }
+  .account-card .auth-field{ margin-bottom:16px; }
+  .account-card .auth-field small{ display:block; color:var(--muted); font-size:11.5px; margin-top:4px; }
+  .account-save-msg{ font-size:13px; margin-top:12px; display:none; }
+  .account-save-msg.ok{ color:var(--green); display:block; }
+  .account-save-msg.err{ color:var(--red); display:block; }
+  .account-email-row{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--grid); }
+
+  .share-card{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; padding:24px; margin-top:20px; max-width:480px; }
+  .share-card h3{ margin:0 0 4px; font-family:'Newsreader',serif; font-weight:600; font-size:19px; display:flex; align-items:center; gap:8px; }
+  .share-qr-row{ display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start; margin-top:16px; }
+  .share-qr-box{ width:150px; height:150px; border:1.5px solid var(--grid); border-radius:10px; display:flex; align-items:center; justify-content:center; background:#fff; flex:none; }
+  .share-code-text{ font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700; letter-spacing:.06em; margin-bottom:12px; color:var(--ink); }
+  .share-btn{
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer;
+    background:var(--panel); border:1.5px solid var(--line); border-radius:7px; padding:7px 12px; color:var(--ink);
+  }
+  .share-btn.danger{ border-color:var(--red); color:var(--red); }
+  .share-btn.primary{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .share-section{ margin-top:20px; padding-top:16px; border-top:1px solid var(--grid); }
+  .share-section-label{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .viewer-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 0; border-bottom:1px solid var(--grid); font-size:13px; }
+  .viewer-row:last-child{ border-bottom:none; }
+  .redeem-acc-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .redeem-acc-row input{
+    flex:1; min-width:120px; padding:8px 10px; border:1.5px solid var(--grid); border-radius:8px;
+    background:var(--panel); color:var(--ink); font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.06em;
+  }
+  .redeem-acc-msg{ font-size:12.5px; margin-top:8px; }
+  .redeem-acc-msg.ok{ color:var(--green); }
+  .redeem-acc-msg.err{ color:var(--red); }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Your account</div>
+  <h1 class="hub-h1">Account Center</h1>
+  <p class="hub-sub">This is what other users see if they click your name on a file you've posted publicly. Leave anything blank to keep it private.</p>
+  <a href="/teams.html" style="display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;background:var(--panel);">
+    👥 My Team
+  </a>
+
+  <div class="account-card">
+    <div class="account-email-row" id="emailRow"></div>
+    <form id="profileForm">
+      <div class="auth-field">
+        <label for="name">Display name</label>
+        <input type="text" id="name" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label for="phone">Phone number</label>
+        <input type="tel" id="phone" autocomplete="tel" placeholder="+1 555 123 4567">
+        <small>Shown on your public profile if filled in — anyone who clicks your name on a public file will see it.</small>
+      </div>
+      <div class="auth-field">
+        <label for="instagram">Instagram</label>
+        <input type="text" id="instagram" placeholder="@yourhandle or full profile URL">
+      </div>
+      <div class="auth-field">
+        <label for="tiktok">TikTok</label>
+        <input type="text" id="tiktok" placeholder="@yourhandle or full profile URL">
+      </div>
+      <button class="auth-submit" type="submit" id="saveBtn">Save changes</button>
+      <div class="account-save-msg" id="saveMsg"></div>
+    </form>
+  </div>
+
+  <div class="share-card" id="shareCard">
+    <h3>🔗 Share my documents</h3>
+    <p class="hub-sub" style="margin:0;">Generate a QR code that lets one other account see everything in your files — including ones you upload later. Anyone can scan it; revoke it any time.</p>
+
+    <div class="share-qr-row">
+      <div class="share-qr-box" id="shareQrBox"></div>
+      <div style="flex:1;min-width:180px;">
+        <div class="share-section-label">SHARE CODE</div>
+        <div class="share-code-text" id="shareCodeText">—</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="share-btn primary" id="genCodeBtn" type="button">🔄 New code</button>
+          <button class="share-btn danger" id="revokeCodeBtn" type="button" style="display:none;">✕ Turn off</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="share-section">
+      <div class="share-section-label">WHO CAN SEE YOUR DOCUMENTS</div>
+      <div id="viewersList"><span class="hub-sub" style="margin:0;">Loading…</span></div>
+    </div>
+
+    <div class="share-section">
+      <div class="share-section-label">HAVE SOMEONE ELSE'S CODE?</div>
+      <div class="redeem-acc-row">
+        <input type="text" id="redeemAccInput" placeholder="ABCD1234" maxlength="8" autocomplete="off">
+        <button class="share-btn" id="redeemAccBtn" type="button">Unlock</button>
+        <button class="share-btn" id="scanAccBtn" type="button">📷 Scan QR</button>
+      </div>
+      <div class="redeem-acc-msg" id="redeemAccMsg"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/toast.js"></script>
+<script src="/js/qr-scan.js"></script>
+<script src="/js/overlay.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(){ return { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
+
+async function loadProfile(){
+  const res = await fetch('/api/profile/me', { headers: authHeaders() });
+  const data = await res.json();
+  if(!res.ok || !data.profile) return;
+  const p = data.profile;
+  document.getElementById('emailRow').textContent = p.email;
+  document.getElementById('name').value = p.name || '';
+  document.getElementById('phone').value = p.phone || '';
+  document.getElementById('instagram').value = p.instagram_url || '';
+  document.getElementById('tiktok').value = p.tiktok_url || '';
+}
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const saveBtn = document.getElementById('saveBtn');
+  const msg = document.getElementById('saveMsg');
+  msg.className = 'account-save-msg';
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+  try {
+    const res = await fetch('/api/profile/me', {
+      method: 'PUT', headers: authHeaders(),
+      body: JSON.stringify({
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        instagram: document.getElementById('instagram').value,
+        tiktok: document.getElementById('tiktok').value
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not save');
+    // Reflect any normalization the server did (e.g. "@handle" -> full URL).
+    if(data.profile){
+      document.getElementById('instagram').value = data.profile.instagram_url || '';
+      document.getElementById('tiktok').value = data.profile.tiktok_url || '';
+    }
+    msg.textContent = 'Saved.'; msg.classList.add('ok');
+  } catch(err) {
+    msg.textContent = err.message; msg.classList.add('err');
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'Save changes';
+  }
+});
+
+(async function init(){
+  const user = await window.HubNav.init('account', true);
+  if(!user) return;
+  loadProfile();
+  loadShareCode();
+  loadViewers();
+})();
+
+/* ---------------- share my documents (account-wide QR) ---------------- */
+
+function renderShareQr(code){
+  const box = document.getElementById('shareQrBox');
+  document.getElementById('shareCodeText').textContent = code;
+  document.getElementById('revokeCodeBtn').style.display = 'inline-block';
+  box.innerHTML = '';
+  if(window.QRCode){
+    const link = location.origin + '/redeem.html?code=' + code + '&type=account';
+    new QRCode(box, { text: link, width: 140, height: 140 });
+  }
+}
+
+function clearShareQr(){
+  document.getElementById('shareQrBox').innerHTML = '';
+  document.getElementById('shareCodeText').textContent = '—';
+  document.getElementById('revokeCodeBtn').style.display = 'none';
+}
+
+async function loadShareCode(){
+  try{
+    const res = await fetch('/api/account-share/code', { headers: authHeaders() });
+    const data = await res.json();
+    if(data.code) renderShareQr(data.code); else clearShareQr();
+  }catch(e){ /* leave the placeholder — not critical to block the rest of the page on */ }
+}
+
+document.getElementById('genCodeBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('genCodeBtn');
+  btn.disabled = true;
+  try{
+    const data = await window.HubOverlay.during(
+      'Cortex Authentication',
+      'Generating a secure access key…',
+      fetch('/api/account-share/code', { method: 'POST', headers: authHeaders() }).then(async r => {
+        const d = await r.json();
+        if(!r.ok) throw new Error(d.error || 'Could not create a code');
+        return d;
+      }),
+      900
+    );
+    renderShareQr(data.code);
+  }catch(e){ showToast(e.message, 'error'); }
+  finally{ btn.disabled = false; }
+});
+
+document.getElementById('revokeCodeBtn').addEventListener('click', async () => {
+  if(!confirm('Turn off this code? Anyone who already scanned it keeps access until you revoke them below.')) return;
+  const btn = document.getElementById('revokeCodeBtn');
+  btn.disabled = true;
+  try{
+    await fetch('/api/account-share/code', { method: 'DELETE', headers: authHeaders() });
+    clearShareQr();
+  }catch(e){ showToast('Could not turn off the code.', 'error'); }
+  finally{ btn.disabled = false; }
+});
+
+async function loadViewers(){
+  const list = document.getElementById('viewersList');
+  try{
+    const res = await fetch('/api/account-share/viewers', { headers: authHeaders() });
+    const data = await res.json();
+    if(!data.viewers || !data.viewers.length){
+      list.innerHTML = '<span class="hub-sub" style="margin:0;">Nobody yet — share your code above to give someone access.</span>';
+      return;
+    }
+    list.innerHTML = data.viewers.map(v => `
+      <div class="viewer-row">
+        <span>${(v.name || v.email || 'Someone').replace(/</g,'&lt;')}</span>
+        <button class="share-btn danger" data-viewer="${v.viewerId}" style="padding:4px 10px;">Revoke</button>
+      </div>
+    `).join('');
+    list.querySelectorAll('button[data-viewer]').forEach(b => {
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try{
+          await fetch('/api/account-share/viewers/' + b.getAttribute('data-viewer'), { method: 'DELETE', headers: authHeaders() });
+          loadViewers();
+        }catch(e){ b.disabled = false; }
+      });
+    });
+  }catch(e){
+    list.innerHTML = '<span class="hub-sub" style="margin:0;">Could not load this list.</span>';
+  }
+}
+
+async function redeemAccountCode(code){
+  const msg = document.getElementById('redeemAccMsg');
+  msg.className = 'redeem-acc-msg';
+  msg.textContent = '';
+  if(!code){ msg.textContent = 'Enter a code first.'; msg.classList.add('err'); return; }
+  try{
+    const res = await fetch('/api/account-share/redeem', {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not redeem that code.');
+    msg.textContent = 'You can now see everything ' + (data.ownerName || 'that account') + ' has shared — check My Files.';
+    msg.classList.add('ok');
+    document.getElementById('redeemAccInput').value = '';
+  }catch(e){
+    msg.textContent = e.message;
+    msg.classList.add('err');
+  }
+}
+
+document.getElementById('redeemAccBtn').addEventListener('click', () => redeemAccountCode(document.getElementById('redeemAccInput').value.trim()));
+document.getElementById('redeemAccInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') redeemAccountCode(e.target.value.trim()); });
+document.getElementById('scanAccBtn').addEventListener('click', () => {
+  window.HubOverlay.show('Cortex Authentication', 'Initializing camera link…');
+  setTimeout(() => {
+    window.HubOverlay.hide();
+    window.QRScan.open({
+      onResult: (code) => { document.getElementById('redeemAccInput').value = code; redeemAccountCode(code); },
+      onError: (e) => { const msg = document.getElementById('redeemAccMsg'); msg.textContent = e.message; msg.className = 'redeem-acc-msg err'; }
+    });
+  }, 750);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Reasoning Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .role-pill.suspended{ background:rgba(178,58,46,0.12); color:var(--red); font-weight:700; }
+  .role-pill.facilitator{ background:var(--blue-soft); color:var(--blue); font-weight:700; }
+  .admin-actions{ display:flex; gap:6px; flex-wrap:wrap; }
+  .admin-actions button{ white-space:nowrap; }
+  .admin-actions button.danger:hover{ border-color:var(--red); color:var(--red); }
+  .admin-actions button.warn:hover{ border-color:var(--amber); color:var(--amber); }
+  .admin-section-title{ font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:36px 0 4px; }
+  .admin-section-sub{ font-size:13px; color:var(--muted); margin:0 0 16px; }
+  .file-owner{ font-size:12px; color:var(--muted); }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Admin only</div>
+  <h1 class="hub-h1">Users &amp; Access</h1>
+  <p class="hub-sub">Everyone who has registered, with a rough count of saved records per tracker. Promote/demote, pause, message, reset a password, or remove an account below.</p>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="users">Users</button>
+    <button class="admin-tab" data-tab="ranking">Ranking</button>
+    <button class="admin-tab" data-tab="screenshare">Screen share</button>
+  </div>
+
+  <div class="admin-panel active" id="panelUsers">
+    <p class="hub-sub" style="margin:6px 0 14px;">Tick one or more rows below — actions for the selection appear here. Nothing is shown until something's selected.</p>
+    <button id="downloadUsersBtn" type="button" style="font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:7px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;margin-bottom:10px;">⬇ Download user list (CSV)</button>
+    <button id="printReportBtn" type="button" style="font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:7px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;margin-bottom:10px;margin-left:8px;">🖨 Print marks &amp; progress</button>
+    <div class="bulk-bar" id="bulkBar">
+      <span><span class="bulk-count" id="bulkCount">0</span> selected</span>
+      <select id="bulkRoleSelect" style="font-family:'Inter',sans-serif;font-size:12px;padding:6px 8px;border:1.5px solid var(--grid);border-radius:6px;">
+        <option value="user">user</option>
+        <option value="facilitator">facilitator</option>
+        <option value="admin">admin</option>
+      </select>
+      <button data-bulk="role">Set role</button>
+      <button data-bulk="pause" class="warn">Pause</button>
+      <button data-bulk="unpause">Unpause</button>
+      <button data-bulk="message">Message</button>
+      <span style="display:flex;align-items:center;gap:6px;">
+        <input type="number" min="0" id="bulkMaxFiles" placeholder="limit">
+        <button data-bulk="max-files">Set file limit</button>
+      </span>
+      <button data-bulk="password" id="bulkPasswordBtn">Set password</button>
+      <button data-bulk="clear-docs" class="warn">Clear progress</button>
+      <button data-bulk="delete" class="danger">Delete</button>
+      <button data-bulk="clear" style="margin-left:auto;">Clear selection</button>
+    </div>
+
+    <div class="hub-card" style="margin-top:10px; overflow-x:auto;">
+      <table class="admin-table" id="usersTable">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAllUsers"></th>
+            <th>Email</th><th>Name</th><th>Role</th><th>Status</th><th>Joined</th>
+            <th>Matrix</th><th>Reasoning</th><th>Prep30</th><th>File limit</th>
+          </tr>
+        </thead>
+        <tbody id="usersBody"><tr><td colspan="10" class="mono" style="color:var(--muted);padding:20px;">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="admin-panel" id="panelScreenshare">
+    <p class="hub-sub" style="margin:14px 0;">People currently sharing their screen with support (started from the Study Helper widget). Joining opens their screen in a video panel below — nothing is recorded or stored on the server.</p>
+    <div class="hub-card" style="overflow-x:auto;">
+      <table class="admin-table" id="screenshareTable">
+        <thead><tr><th>User</th><th>Code</th><th>Status</th><th>Started</th><th></th></tr></thead>
+        <tbody id="screenshareBody"><tr><td colspan="5" class="mono" style="color:var(--muted);padding:20px;">No active screen shares.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="hub-card" id="screenshareViewerCard" style="display:none;margin-top:16px;padding:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span class="mono" id="screenshareViewerLabel" style="font-size:12.5px;color:var(--muted);"></span>
+        <button id="screenshareLeaveBtn" class="danger">Leave</button>
+      </div>
+      <video id="screenshareVideo" autoplay playsinline style="width:100%;background:#000;border-radius:8px;"></video>
+    </div>
+  </div>
+
+  <div class="admin-panel" id="panelRanking">
+    <p class="hub-sub" style="margin:14px 0;">Everyone, ranked by total days/questions completed across all three trackers.</p>
+    <button id="shareRanksBtn" type="button" style="font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:7px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;margin-bottom:10px;">📣 Share ranks with everyone</button>
+    <p class="hub-sub" style="margin:0 0 14px;font-size:12px;">Sends every user a message with their own current position — it also shows as a yellow badge on their Courses page.</p>
+    <div class="hub-card" style="overflow-x:auto;">
+      <table class="admin-table" id="rankingTable">
+        <thead>
+          <tr><th>#</th><th>Email</th><th>Name</th><th>Matrix</th><th>Reasoning</th><th>Prep30</th><th>Total</th></tr>
+        </thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="admin-section-title">All uploaded files</div>
+  <p class="admin-section-sub">Every document any user has uploaded, across My Files and Public Files.</p>
+  <div class="hub-card" style="overflow-x:auto;">
+    <table class="admin-table" id="filesTable">
+      <thead>
+        <tr><th>File</th><th>Owner</th><th>Visibility</th><th>Size</th><th>Uploaded</th><th></th></tr>
+      </thead>
+      <tbody id="filesBody"><tr><td colspan="6" class="mono" style="color:var(--muted);padding:20px;">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/toast.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(json){ const h = { Authorization: 'Bearer ' + getToken() }; if(json) h['Content-Type'] = 'application/json'; return h; }
+function fmtBytes(n){ if(!n) return '0 B'; const u=['B','KB','MB','GB']; let i=0; while(n>=1024 && i<u.length-1){ n/=1024; i++; } return n.toFixed(i?1:0)+' '+u[i]; }
+
+/* ---------------- CSV export ---------------- */
+function csvEscape(v){
+  const s = String(v == null ? '' : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function downloadUsersCsv(){
+  const users = window.__rhUsers || [];
+  if(!users.length){ return; }
+  const headers = ['id','email','name','role','suspended','max_files','created_at','matrix_days','reasoning_days','prep30_days'];
+  const rows = users.map(u => [
+    u.id, u.email, u.name || '', u.role, u.suspended ? 'true' : 'false', u.max_files,
+    u.created_at || '', u.activity.matrix || 0, u.activity.reasoning || 0, u.activity.prep30 || 0
+  ]);
+  const csv = [headers, ...rows].map(row => row.map(csvEscape).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'reasoning-hub-users-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+document.getElementById('downloadUsersBtn').addEventListener('click', downloadUsersCsv);
+
+/* ---------------- print report (progress + course marks) ---------------- */
+async function buildPrintReport(){
+  const users = window.__rhUsers || [];
+  const usersById = {};
+  users.forEach(u => { usersById[u.id] = u; });
+
+  // Pull every course (book) and its gradebook so the printed report shows
+  // marks alongside the existing per-tracker day counts, not just one or the other.
+  let courseSections = '';
+  try{
+    const booksRes = await fetch('/api/content/books', { headers: authHeaders() });
+    const booksData = await booksRes.json();
+    const books = booksData.books || [];
+    for(const book of books){
+      const marksRes = await fetch('/api/content/books/' + book.id + '/marks', { headers: authHeaders() });
+      if(!marksRes.ok) continue;
+      const marksData = await marksRes.json();
+      const marks = marksData.marks || [];
+      if(!marks.length) continue;
+      courseSections += `
+        <h2>${escapeHtmlPrint(book.title)} <span class="pass-mark">(pass mark ${book.passing_score}%)</span></h2>
+        <table>
+          <thead><tr><th>#</th><th>Learner</th><th>Score</th><th>%</th><th>Status</th></tr></thead>
+          <tbody>${marks.map(m => `
+            <tr>
+              <td>${m.rank}</td><td>${escapeHtmlPrint(m.name || m.email)}</td>
+              <td>${m.correct}/${m.total}</td><td>${m.percent}%</td>
+              <td class="${m.percent >= book.passing_score ? 'pass' : 'fail'}">${m.percent >= book.passing_score ? 'Pass' : 'Fail'}</td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      `;
+    }
+  }catch(e){ /* marks are a bonus section — a failed fetch shouldn't block the progress table below */ }
+
+  const progressRows = users.map(u => `
+    <tr>
+      <td>${escapeHtmlPrint(u.name || '—')}</td><td>${escapeHtmlPrint(u.email)}</td>
+      <td>${u.activity.matrix || 0}/30</td><td>${u.activity.reasoning || 0}/20</td><td>${u.activity.prep30 || 0}/30</td>
+    </tr>
+  `).join('');
+
+  return `
+    <html><head><title>Reasoning Hub — Marks &amp; Progress Report</title>
+    <style>
+      body{ font-family:Arial,Helvetica,sans-serif; color:#1E2A4A; padding:24px; }
+      h1{ font-size:20px; margin-bottom:2px; } .meta{ color:#8A8880; font-size:12px; margin-bottom:24px; }
+      h2{ font-size:15px; margin:28px 0 8px; } .pass-mark{ font-weight:normal; font-size:12px; color:#8A8880; }
+      table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:6px; }
+      th,td{ text-align:left; padding:6px 8px; border-bottom:1px solid #ddd; }
+      th{ background:#f4f4f2; }
+      td.pass{ color:#2F6F4F; font-weight:600; } td.fail{ color:#B23A2E; font-weight:600; }
+      @media print{ button{ display:none; } }
+    </style></head><body>
+      <h1>Reasoning Hub — Marks &amp; Progress Report</h1>
+      <div class="meta">Generated ${new Date().toLocaleString()}</div>
+      <h2>Tracker progress (days completed)</h2>
+      <table><thead><tr><th>Name</th><th>Email</th><th>Matrix</th><th>Reasoning Lab</th><th>30-Day Prep</th></tr></thead>
+        <tbody>${progressRows}</tbody></table>
+      ${courseSections}
+    </body></html>
+  `;
+}
+function escapeHtmlPrint(s){
+  const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML;
+}
+document.getElementById('printReportBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('printReportBtn');
+  btn.disabled = true; btn.textContent = 'Building report…';
+  try{
+    const html = await buildPrintReport();
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => win.print();
+  }finally{
+    btn.disabled = false; btn.textContent = '🖨 Print marks & progress';
+  }
+});
+
+/* ---------------- users table ---------------- */
+
+async function loadUsers(){
+  const res = await fetch('/api/admin/users', { headers: authHeaders() });
+  const body = document.getElementById('usersBody');
+  if(res.status === 403){
+    body.innerHTML = '<tr><td colspan="11" style="padding:20px;color:var(--red);">Admin access required.</td></tr>';
+    return;
+  }
+  const data = await res.json();
+  if(!data.users || !data.users.length){
+    body.innerHTML = '<tr><td colspan="11" class="mono" style="color:var(--muted);padding:20px;">No users yet.</td></tr>';
+    return;
+  }
+  window.__rhUsers = data.users;
+  body.innerHTML = data.users.map(u => `
+    <tr data-id="${u.id}" data-email="${u.email}" data-role="${u.role}">
+      <td><input type="checkbox" class="row-select"></td>
+      <td>${u.email}</td>
+      <td>${u.name || '—'}</td>
+      <td><span class="role-pill ${u.role}">${u.role}</span></td>
+      <td>${u.suspended ? '<span class="role-pill suspended">paused</span>' : '<span class="mono" style="color:var(--muted);">active</span>'}</td>
+      <td class="mono">${(u.created_at||'').slice(0,10)}</td>
+      <td class="mono">${u.activity.matrix || 0}</td>
+      <td class="mono">${u.activity.reasoning || 0}</td>
+      <td class="mono">${u.activity.prep30 || 0}</td>
+      <td class="mono">${u.max_files}</td>
+    </tr>
+  `).join('');
+  document.getElementById('selectAllUsers').checked = false;
+  updateBulkBar();
+  renderRanking();
+}
+
+/* ---------------- bulk selection (the only place row actions live) ---------------- */
+
+function getSelectedRows(){
+  return Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.closest('tr'));
+}
+function updateBulkBar(){
+  const rows = getSelectedRows();
+  document.getElementById('bulkCount').textContent = rows.length;
+  document.getElementById('bulkBar').classList.toggle('show', rows.length > 0);
+  // Some actions (password reset, exact role) only make sense for exactly
+  // one selected person at a time — disable them instead of hiding, so the
+  // bar's shape stays predictable.
+  const singleOnly = document.getElementById('bulkPasswordBtn');
+  singleOnly.disabled = rows.length !== 1;
+  singleOnly.title = rows.length === 1 ? '' : 'Select exactly one user to reset a password';
+  if(rows.length === 1){
+    document.getElementById('bulkRoleSelect').value = rows[0].getAttribute('data-role');
+  }
+}
+
+document.getElementById('selectAllUsers').addEventListener('change', (e) => {
+  document.querySelectorAll('.row-select').forEach(cb => { cb.checked = e.target.checked; });
+  updateBulkBar();
+});
+document.getElementById('usersBody').addEventListener('change', (e) => {
+  if(e.target.classList.contains('row-select')) updateBulkBar();
+});
+
+document.getElementById('bulkBar').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-bulk]');
+  if(!btn) return;
+  const action = btn.getAttribute('data-bulk');
+
+  if(action === 'clear'){
+    document.querySelectorAll('.row-select').forEach(cb => { cb.checked = false; });
+    document.getElementById('selectAllUsers').checked = false;
+    updateBulkBar();
+    return;
+  }
+
+  const rows = getSelectedRows();
+  if(!rows.length) return;
+  const ids = rows.map(r => r.getAttribute('data-id'));
+  const emails = rows.map(r => r.getAttribute('data-email'));
+
+  if(action === 'pause' || action === 'unpause'){
+    const suspended = action === 'pause';
+    if(!confirm((suspended ? 'Pause' : 'Unpause') + ' ' + ids.length + ' user(s)?')) return;
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id + '/suspend', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ suspended })
+    })));
+    btn.disabled = false;
+    loadUsers();
+
+  } else if(action === 'delete'){
+    if(!confirm('Permanently delete ' + ids.length + ' user(s) — ' + emails.join(', ') + '? This cannot be undone.')) return;
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id, { method: 'DELETE', headers: authHeaders() })));
+    btn.disabled = false;
+    loadUsers();
+
+  } else if(action === 'message'){
+    const body = prompt('Message to send to all ' + ids.length + ' selected user(s):');
+    if(!body || !body.trim()) return;
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id + '/message', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ body: body.trim() })
+    })));
+    btn.disabled = false;
+    showToast('Message sent to ' + ids.length + ' user(s).', 'success');
+
+  } else if(action === 'max-files'){
+    const maxFiles = parseInt(document.getElementById('bulkMaxFiles').value, 10);
+    if(!Number.isInteger(maxFiles) || maxFiles < 0){ showToast('Enter a whole number, 0 or greater, in the limit box first.', 'error'); return; }
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id + '/max-files', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ maxFiles })
+    })));
+    btn.disabled = false;
+    loadUsers();
+
+  } else if(action === 'role'){
+    const role = document.getElementById('bulkRoleSelect').value;
+    if(!confirm('Set role to "' + role + '" for ' + ids.length + ' user(s)?')) return;
+    btn.disabled = true;
+    const results = await Promise.all(ids.map(id => fetch('/api/admin/users/' + id + '/role', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ role })
+    })));
+    btn.disabled = false;
+    const failed = results.filter(r => !r.ok).length;
+    if(failed) showToast(failed + ' of ' + ids.length + ' role change(s) failed (you likely can\'t demote your own account).', 'error');
+    loadUsers();
+
+  } else if(action === 'clear-docs'){
+    if(!confirm("Clear ALL saved tracker progress for " + ids.length + " user(s) — " + emails.join(', ') + "? This can't be undone.")) return;
+    btn.disabled = true;
+    await Promise.all(ids.map(id => fetch('/api/admin/users/' + id + '/documents', { method: 'DELETE', headers: authHeaders() })));
+    btn.disabled = false;
+    loadUsers();
+
+  } else if(action === 'password'){
+    if(ids.length !== 1) return;
+    const pw = prompt('New password for ' + emails[0] + ' (at least 6 characters):');
+    if(!pw) return;
+    if(pw.length < 6){ showToast('Password must be at least 6 characters', 'error'); return; }
+    btn.disabled = true;
+    const res = await fetch('/api/admin/users/' + ids[0] + '/password', {
+      method: 'POST', headers: authHeaders(true), body: JSON.stringify({ newPassword: pw })
+    });
+    const data = await res.json();
+    btn.disabled = false;
+    if(!res.ok){ showToast(data.error || 'Could not change password', 'error'); return; }
+    showToast('Password updated for ' + emails[0] + '.', 'success');
+  }
+});
+
+/* ---------------- ranking ---------------- */
+
+function renderRanking(){
+  const users = window.__rhUsers || [];
+  const ranked = users
+    .map(u => ({ ...u, total: (u.activity.matrix || 0) + (u.activity.reasoning || 0) + (u.activity.prep30 || 0) }))
+    .sort((a, b) => b.total - a.total);
+  const body = document.getElementById('rankingBody');
+  if(!ranked.length){
+    body.innerHTML = '<tr><td colspan="7" class="mono" style="color:var(--muted);padding:20px;">No users yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = ranked.map((u, i) => `
+    <tr>
+      <td><span class="rank-pill ${i < 3 ? 'top' : ''}">${i + 1}</span></td>
+      <td>${u.email}</td>
+      <td>${u.name || '—'}</td>
+      <td class="mono">${u.activity.matrix || 0}</td>
+      <td class="mono">${u.activity.reasoning || 0}</td>
+      <td class="mono">${u.activity.prep30 || 0}</td>
+      <td class="mono" style="font-weight:700;">${u.total}</td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('shareRanksBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('shareRanksBtn');
+  if(!confirm('Send every user a message with their current rank?')) return;
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try{
+    const res = await fetch('/api/admin/ranks/share', { method: 'POST', headers: authHeaders() });
+    const data = await res.json();
+    if(!res.ok){ showToast(data.error || 'Could not share ranks', 'error'); return; }
+    showToast('Rank shared with ' + data.count + ' user(s).', 'success');
+  }catch(e){
+    showToast('Could not share ranks.', 'error');
+  }finally{
+    btn.disabled = false; btn.textContent = '📣 Share ranks with everyone';
+  }
+});
+
+/* ---------------- tabs ---------------- */
+
+const PANEL_BY_TAB = { users: 'panelUsers', ranking: 'panelRanking', screenshare: 'panelScreenshare' };
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(PANEL_BY_TAB[tab.getAttribute('data-tab')]).classList.add('active');
+    if(tab.getAttribute('data-tab') === 'screenshare') loadScreenshares();
+  });
+});
+
+/* ---------------- screen share ---------------- */
+
+let screenshareViewer = null;
+let screenshareTimer = null;
+
+async function waitForScreenShare(){
+  for(let i = 0; i < 20 && !window.ScreenShare; i++) await new Promise(r => setTimeout(r, 150));
+  return !!window.ScreenShare;
+}
+
+async function loadScreenshares(){
+  const body = document.getElementById('screenshareBody');
+  if(!(await waitForScreenShare())){
+    body.innerHTML = '<tr><td colspan="5" style="padding:20px;color:var(--red);">Screen-share module failed to load — refresh the page.</td></tr>';
+    return;
+  }
+  try{
+    const sessions = await window.ScreenShare.listWaiting();
+    if(!sessions.length){
+      body.innerHTML = '<tr><td colspan="5" class="mono" style="color:var(--muted);padding:20px;">No active screen shares.</td></tr>';
+      return;
+    }
+    body.innerHTML = sessions.map(s => `
+      <tr data-code="${s.code}">
+        <td>${s.host_email || 'unknown'}${s.host_name ? ' (' + s.host_name + ')' : ''}</td>
+        <td class="mono">${s.code}</td>
+        <td><span class="role-pill ${s.status === 'connected' ? 'admin' : 'user'}">${s.status}</span></td>
+        <td class="mono">${(s.created_at||'').slice(11,16)}</td>
+        <td><button data-action="join-share">${s.status === 'connected' ? 'Watch' : 'Join'}</button></td>
+      </tr>
+    `).join('');
+  }catch(e){
+    body.innerHTML = '<tr><td colspan="5" style="padding:20px;color:var(--red);">Could not load screen shares.</td></tr>';
+  }
+}
+
+document.getElementById('screenshareBody').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-action="join-share"]');
+  if(!btn) return;
+  const code = btn.closest('tr').getAttribute('data-code');
+  const label = btn.closest('tr').children[0].textContent;
+  btn.disabled = true;
+  try{
+    if(screenshareViewer) screenshareViewer.stop();
+    const video = document.getElementById('screenshareVideo');
+    document.getElementById('screenshareViewerLabel').textContent = 'Watching: ' + label + ' (' + code + ')';
+    document.getElementById('screenshareViewerCard').style.display = 'block';
+    screenshareViewer = await window.ScreenShare.joinSession(code, video, (state) => {
+      if(state === 'ended' || state === 'failed'){
+        document.getElementById('screenshareViewerCard').style.display = 'none';
+      }
+    });
+  }catch(err){
+    showToast(err.message || 'Could not join that screen share.', 'error');
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('screenshareLeaveBtn').addEventListener('click', () => {
+  if(screenshareViewer) screenshareViewer.stop();
+  screenshareViewer = null;
+  document.getElementById('screenshareViewerCard').style.display = 'none';
+});
+
+/* ---------------- all files table ---------------- */
+
+async function loadFiles(){
+  const res = await fetch('/api/admin/files', { headers: authHeaders() });
+  const body = document.getElementById('filesBody');
+  const data = await res.json();
+  if(!data.files || !data.files.length){
+    body.innerHTML = '<tr><td colspan="6" class="mono" style="color:var(--muted);padding:20px;">No files uploaded yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = data.files.map(f => `
+    <tr data-id="${f.id}">
+      <td>${f.original_name}</td>
+      <td class="file-owner">${f.owner_email || 'unknown'}${f.owner_name ? ' ('+f.owner_name+')' : ''}</td>
+      <td><span class="role-pill ${f.is_public ? 'admin' : 'user'}">${f.is_public ? 'public' : 'private'}</span> ${f.is_public && f.access_mode === 'restricted' ? '<span class="protected-tag">protected</span>' : ''}</td>
+      <td class="mono">${fmtBytes(f.size_bytes)}</td>
+      <td class="mono">${(f.created_at||'').slice(0,10)}</td>
+      <td><button data-action="delete-file" class="danger">Delete</button></td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('filesBody').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-action="delete-file"]');
+  if(!btn) return;
+  const row = btn.closest('tr');
+  const id = row.getAttribute('data-id');
+  const name = row.querySelector('td').textContent;
+  if(!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+  const res = await fetch('/api/admin/files/' + id, { method: 'DELETE', headers: authHeaders() });
+  const data = await res.json();
+  if(!res.ok){ showToast(data.error || 'Could not delete file', 'error'); return; }
+  loadFiles();
+});
+
+(async function init(){
+  const user = await window.HubNav.init('admin', true);
+  if(!user) return;
+  if(user.role !== 'admin'){
+    document.querySelector('.hub-wrap').innerHTML = '<p class="mono" style="padding:40px 0;color:var(--red);">Admin access required.</p>';
+    return;
+  }
+  loadUsers();
+  loadFiles();
+})();
+</script>
+</body>
+</html>

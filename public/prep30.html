@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>30-DAY PREP TRACK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  :root{
+    --cream:#f8f1e4;
+    --cream-deep:#f1e6d4;
+    --card:#fffaf1;
+    --card-2:#fdf5e8;
+    --cocoa:#3d2a1f;
+    --cocoa-soft:#5c4230;
+    --milk:#8a5a3c;
+    --milk-soft:#a97a53;
+    --caramel:#c9974f;
+    --caramel-deep:#a97530;
+    --sage:#7c9463;
+    --sage-deep:#5b7047;
+    --text:#4a372a;
+    --text-dim:#8a7562;
+    --muted:#b8a690;
+    --line:#e6d7bf;
+    --line-strong:#d9c5a3;
+    --danger:#b2593f;
+    --shadow: 0 2px 4px rgba(93,64,38,0.04), 0 12px 28px rgba(93,64,38,0.07);
+  }
+  html[data-theme="dark"]{
+    --cream:#171310;
+    --cream-deep:#1d1712;
+    --card:#241c16;
+    --card-2:#2b2119;
+    --cocoa:#f0e6da;
+    --cocoa-soft:#d7c6b3;
+    --milk:#c9a077;
+    --milk-soft:#b78a5e;
+    --caramel:#e0b06a;
+    --caramel-deep:#c9974f;
+    --sage:#96ac7d;
+    --sage-deep:#7c9463;
+    --text:#ece2d4;
+    --text-dim:#b6a58e;
+    --muted:#8a7a64;
+    --line:#3a2f24;
+    --line-strong:#4a3c2c;
+    --danger:#e0846c;
+    --shadow: 0 2px 4px rgba(0,0,0,0.25), 0 12px 28px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 15% -10%, rgba(201,151,79,0.10), transparent 45%),
+      radial-gradient(ellipse at 95% 10%, rgba(124,148,99,0.06), transparent 40%),
+      var(--cream);
+    color:var(--text);
+    font-family:'Work Sans',sans-serif;
+    min-height:100vh;
+  }
+  #siteNav .hub-nav-links a.active{ background:#f4e4c9; }
+  ::selection{background:var(--caramel);color:#fffaf1;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Fraunces',serif;}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px 64px;}
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:24px;
+    padding-bottom:24px;
+    border-bottom:1.5px solid var(--line-strong);
+    margin-bottom:26px;
+    flex-wrap:wrap;
+  }
+  .brand-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.22em;
+    color:var(--sage-deep);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-style:normal;
+    font-size:clamp(28px,4.2vw,44px);
+    letter-spacing:-0.01em;
+    margin:0 0 8px 0;
+    color:var(--cocoa);
+  }
+  h1 em{font-style:italic;color:var(--milk);font-weight:500;}
+  .subtitle{color:var(--text-dim);font-size:14.5px;max-width:560px;line-height:1.6;}
+
+  .gauge-block{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .gauge-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;}
+  .gauge-readout{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--milk);letter-spacing:.02em;margin-top:-2px;}
+  .gauge-readout .n{color:var(--caramel-deep);}
+
+  .perf-section{ margin-bottom:26px; }
+  .perf-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px; box-shadow:var(--shadow);
+  }
+
+  .grid{display:grid;grid-template-columns:290px 1fr;gap:22px;align-items:start;}
+  @media (max-width:860px){.grid{grid-template-columns:1fr;}}
+
+  .rail{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px 12px 18px;
+    position:relative;
+    max-height:76vh;
+    overflow-y:auto;
+    box-shadow:var(--shadow);
+  }
+  .rail::-webkit-scrollbar{width:6px;}
+  .rail::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:4px;}
+  .phase-group{margin-bottom:4px;}
+  .phase-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding:12px 8px 6px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .phase-title small{color:var(--sage-deep);}
+  .node{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 8px;
+    border-radius:8px;
+    cursor:pointer;
+    position:relative;
+    margin-left:2px;
+    transition:background .15s ease;
+  }
+  .node:hover{background:var(--cream-deep);}
+  .node.active{background:#f4e4c9;}
+  .dot{
+    width:9px;height:9px;border-radius:50%;
+    background:#e6d7bf;
+    flex:none;
+  }
+  .dot.done{background:var(--sage);box-shadow:0 0 0 3px rgba(124,148,99,0.16);}
+  .dot.current{background:var(--caramel);box-shadow:0 0 0 3px rgba(201,151,79,0.22);}
+  .node-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);width:20px;flex:none;}
+  .node.active .node-num, .node.done .node-num{color:var(--cocoa);}
+  .node-title{font-size:12.5px;color:var(--text-dim);line-height:1.28;}
+  .node.active .node-title{color:var(--cocoa);font-weight:500;}
+
+  .card{
+    background:linear-gradient(180deg, var(--card), var(--card-2));
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:30px 30px 26px;
+    position:relative;
+    min-height:76vh;
+    box-shadow:var(--shadow);
+  }
+  .card-top{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+    padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:20px;flex-wrap:wrap;
+  }
+  .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    padding:4px 9px;border:1px solid var(--line-strong);border-radius:20px;color:var(--sage-deep);background:#f1f2e9;
+  }
+  .tag.subject{color:#8a5623;border-color:#e6c793;background:#faedd2;}
+  .day-title{font-family:'Fraunces',serif;font-size:clamp(21px,2.6vw,28px);font-weight:600;color:var(--cocoa);line-height:1.32;}
+
+  .switch-block{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex:none;}
+  .switch-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;}
+  .switch{
+    width:64px;height:30px;border-radius:16px;background:#efe3cd;border:1px solid var(--line-strong);
+    position:relative;cursor:pointer;transition:background .2s ease, border-color .2s ease;
+  }
+  .switch.on{background:#e3ecda;border-color:var(--sage);}
+  .switch .knob{
+    position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;
+    background:var(--card);border:1px solid var(--line-strong);
+    transition:left .2s ease, background .2s ease, box-shadow .2s ease;
+    box-shadow:0 1px 2px rgba(93,64,38,0.15);
+  }
+  .switch.on .knob{left:38px;background:var(--sage);border-color:var(--sage-deep);}
+
+  .section{margin-bottom:24px;}
+  .section-head{
+    display:flex;align-items:center;gap:10px;margin-bottom:13px;
+  }
+  .section-head .idx{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--milk-soft);}
+  .section-head h3{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--text-dim);margin:0;font-weight:600;
+  }
+  .section-head::after{content:'';flex:1;height:1px;background:var(--line);}
+
+  .recoverybox{
+    padding:17px 19px;border:1px solid #e6c793;border-radius:10px;
+    background:linear-gradient(135deg, #fbf0da, #f9ead0);
+  }
+  .recoverybox p{
+    margin:0;font-size:14.5px;line-height:1.75;color:var(--text);
+  }
+  .recoverybox .label{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--caramel-deep);margin-bottom:9px;display:block;font-weight:600;
+  }
+
+  .concepts{list-style:none;margin:0;padding:0;display:grid;gap:10px;}
+  .concepts li{
+    position:relative;padding-left:20px;font-size:14.5px;line-height:1.6;color:var(--text);
+  }
+  .concepts li::before{
+    content:'';position:absolute;left:0;top:8px;width:7px;height:7px;background:var(--caramel);
+    border-radius:2px;transform:rotate(45deg);
+  }
+
+  .qbank{list-style:none;margin:0;padding:0;display:grid;gap:10px;}
+  .qbank li{
+    display:flex;gap:12px;align-items:flex-start;padding:13px 15px;background:var(--card-2);
+    border:1px solid var(--line);border-radius:8px;font-size:14px;line-height:1.6;color:var(--text);
+    cursor:pointer;transition:background .15s ease, border-color .15s ease;
+  }
+  .qbank li:hover{border-color:var(--milk-soft);}
+  .qbank li.solved{background:#f2f6ec;border-color:#cfdcbc;}
+  .qbank li.solved .qtext{color:var(--text-dim);text-decoration:line-through;text-decoration-color:var(--sage);text-decoration-thickness:1.5px;}
+  .qbank .qn{font-family:'JetBrains Mono',monospace;color:var(--caramel-deep);flex:none;font-size:12.5px;padding-top:2px;font-weight:600;width:26px;}
+  .qbank li.solved .qn{color:var(--sage-deep);}
+  .qchk{
+    flex:none;width:19px;height:19px;border-radius:5px;border:1.5px solid var(--line-strong);
+    background:var(--card);margin-top:1px;position:relative;transition:all .15s ease;
+  }
+  .qbank li.solved .qchk{background:var(--sage);border-color:var(--sage-deep);}
+  .qbank li.solved .qchk::after{
+    content:'';position:absolute;left:5px;top:1px;width:5px;height:9px;
+    border:solid #fffaf1;border-width:0 2px 2px 0;transform:rotate(45deg);
+  }
+  .qtext{flex:1;}
+  .solved-badge{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--sage-deep);
+    background:#eef1e4;border:1px solid #d3ddc2;border-radius:20px;padding:3px 10px;
+  }
+
+  .notesarea{
+    width:100%;min-height:96px;resize:vertical;
+    border:1px solid var(--line);border-radius:8px;background:var(--card-2);
+    padding:12px 14px;font-family:'Work Sans',sans-serif;font-size:14px;color:var(--text);
+    line-height:1.6;outline:none;transition:border-color .15s ease;
+  }
+  .notesarea:focus{border-color:var(--milk-soft);}
+  .notesarea::placeholder{color:var(--muted);}
+  .notes-save{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.08em;margin-top:6px;display:block;min-height:14px;}
+
+  .confidence-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .confidence-label{font-size:13.5px;color:var(--text-dim);}
+  .conf-dots{display:flex;gap:6px;}
+  .conf-dot{
+    width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line-strong);background:var(--card);
+    cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);
+    display:flex;align-items:center;justify-content:center;transition:all .15s ease;
+  }
+  .conf-dot:hover{border-color:var(--caramel);}
+  .conf-dot.active{background:var(--caramel);border-color:var(--caramel-deep);color:#fffaf1;}
+  .conf-dot.active.low{background:#c9704f;border-color:#a85a3c;}
+  .conf-dot.active.mid{background:var(--caramel);border-color:var(--caramel-deep);}
+  .conf-dot.active.high{background:var(--sage);border-color:var(--sage-deep);}
+
+  .footer-nav{
+    display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:18px;border-top:1px solid var(--line);
+  }
+  .nbtn{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--text-dim);background:var(--card);border:1px solid var(--line-strong);border-radius:20px;
+    padding:9px 16px;cursor:pointer;transition:all .15s ease;
+  }
+  .nbtn:hover:not(:disabled){border-color:var(--milk-soft);color:var(--milk);background:#faf1e2;}
+  .nbtn:disabled{opacity:.35;cursor:not-allowed;}
+  .progress-text{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+  .progress-text b{color:var(--milk);}
+
+  .reset-link{
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;
+    text-transform:uppercase;background:none;border:none;cursor:pointer;text-decoration:underline;
+    text-underline-offset:3px;
+  }
+  .reset-link:hover{color:var(--danger);}
+
+  @media (prefers-reduced-motion: reduce){
+    .switch, .switch .knob, .node, .nbtn{transition:none;}
+  }
+  :focus-visible{outline:2px solid var(--milk);outline-offset:2px;}
+</style>
+</head>
+<body>
+<div id="siteNav"></div>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand-eyebrow">YEAR 2 READINESS PROGRAM</div>
+      <h1>30-Day <em>Prep</em> Track</h1>
+      <div class="subtitle">Bridging Mathematics I&nbsp;&amp;&nbsp;II, Circuit Analysis, Physics I&nbsp;&amp;&nbsp;II and Analogue Electronics I&nbsp;&amp;&nbsp;II into Electromagnetics I&nbsp;&amp;&nbsp;II, Measurement &amp; Instrumentation, Electric Machines, Control Systems and Analogue Communication Systems. Every day opens with a plain-language explanation before the questions. Saved to your account.</div>
+    </div>
+    <div class="gauge-block">
+      <div class="gauge-label">Course Completion</div>
+      <svg id="gauge" width="150" height="90" viewBox="0 0 150 90">
+        <path d="M 15 82 A 60 60 0 0 1 135 82" fill="none" stroke="#ecdfc4" stroke-width="10" stroke-linecap="round"/>
+        <path id="gaugeFill" d="M 15 82 A 60 60 0 0 1 135 82" fill="none" stroke="url(#gaugeGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="188.4" stroke-dashoffset="188.4"/>
+        <defs>
+          <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#7c9463"/>
+            <stop offset="100%" stop-color="#c9974f"/>
+          </linearGradient>
+        </defs>
+        <line id="needle" x1="75" y1="82" x2="75" y2="30" stroke="#5c4230" stroke-width="2" stroke-linecap="round" style="transform-origin:75px 82px;"/>
+        <circle cx="75" cy="82" r="4" fill="#5c4230"/>
+      </svg>
+      <div class="gauge-readout"><span class="n" id="gaugePct">0</span>% &mdash; <span id="gaugeCount">0</span>/30 days</div>
+    </div>
+  </header>
+
+  <div class="perf-section">
+    <div class="trend-title" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:.04em;">COMPLETION TREND · DAYS FINISHED OVER TIME</div>
+    <div class="perf-card"><div id="perfChart"></div></div>
+  </div>
+
+  <div class="grid">
+    <nav class="rail" id="rail" aria-label="30 day timeline"></nav>
+
+    <main class="card" id="card">
+      <div id="cardContent"></div>
+    </main>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;">
+    <button class="reset-link" id="resetBtn">Reset all progress</button>
+  </div>
+
+</div>
+
+<script>window.APP_NAME = 'prep30';</script>
+<script src="/js/nav.js"></script>
+<script src="/js/storage-shim.js"></script>
+<script src="/js/trend-chart.js"></script>
+<script>(function(){ window.HubNav.init('prep30', true); })();</script>
+
+<script>
+const PLAN = [
+{phase:"BRIDGE",subject:"Mathematics Refresher",title:"Vector Calculus &amp; Coordinate Systems",
+ concepts:["Gradient, divergence, and curl operators and their physical meaning","Cartesian, cylindrical, and spherical coordinate transformations","Del-operator identities (∇·∇×A = 0, ∇×∇V = 0)","The Divergence Theorem: flux through a closed surface = divergence summed over the enclosed volume","Stokes' Theorem: circulation around a closed loop = curl summed over the surface it bounds"],
+ questions:["Find the gradient of φ = x²y + yz³ at the point (1, 2, −1).","Compute the divergence and curl of A = x²i + xyj + xzk.","Convert the point (3, 4, 5) from Cartesian to cylindrical and spherical coordinates.","Evaluate the surface integral of F = z k over the top face of a cube of side 2.","Show that the field E = (2xy)i + (x²)j is conservative and find its scalar potential.","State, in your own words, the physical meaning of divergence and curl for an electric or magnetic field."],
+ tip:"Start with the picture, not the formula. The gradient of a scalar field points in the direction where it increases fastest — think of a hill: ∇φ points straight uphill, and its size tells you how steep the climb is. Divergence, ∇·A, asks whether a point is a 'source' (field spreading outward, positive) or a 'sink' (field flowing inward, negative) — imagine tiny arrows around a point: if more leave than enter, divergence is positive. Curl, ∇×A, measures how much a field 'swirls' — drop an imaginary paddlewheel into it; if the wheel spins, curl is nonzero, and its axis of spin is the curl's direction. The Divergence Theorem ties this together: the total flux leaving a closed surface equals all the little sources inside it added up — ∮∮A·dS = ∭(∇·A)dV — which is exactly why Gauss's Law works: instead of a hard surface integral, you get an easier volume integral. Stokes' Theorem is the loop version of the same idea, and it's the backbone of Ampere's and Faraday's Laws. Don't memorize these as symbols today — sketch a small cube, imagine arrows crossing its faces, and convince yourself why 'total outflow equals internal sources' makes sense. That picture is what carries you through the rest of the month."},
+
+{phase:"BRIDGE",subject:"Differential Equations & Laplace",title:"Laplace Transforms and Transfer Functions",
+ concepts:["Laplace transform pairs and properties (linearity, shifting, differentiation)","Inverse Laplace transforms via partial fractions","Solving linear ODEs with initial conditions using Laplace","From an ODE to a transfer function G(s) = Y(s)/X(s)"],
+ questions:["Find L{ t·e⁻²ᵗ sin(3t) }.","Solve y″ + 3y′ + 2y = 0, y(0)=1, y′(0)=0 using Laplace transforms.","Find the inverse Laplace transform of (s+3)/(s²+4s+13).","A system obeys 2y″ + 5y′ + 3y = x(t). Derive its transfer function.","State the initial-value and final-value theorems, and use one to find y(∞) for Y(s) = 5/[s(s+3)].","Find the transfer function of a system whose impulse response is h(t) = 3e⁻²ᵗ."],
+ tip:"Think of the Laplace transform as a translator. It turns a differential equation in time (hard — full of derivatives) into an algebraic equation in 's' (easy — just multiplication and addition). Instead of solving y″+3y′+2y=0 directly, you transform it into an equation for Y(s), solve for Y(s) with plain algebra, then translate back to y(t) using a table of pairs — exactly like translating a sentence, solving the puzzle in the new language, then translating the answer back. The variable 's' isn't a frequency you can measure with an instrument; treat it as a bookkeeping tool that tracks how fast a signal grows or decays (its real part) and how fast it oscillates (its imaginary part). Build your own table of the 8–10 pairs you'll actually use — step, exponential, sine, ramp, and their derivatives — before you touch Control Systems, because every transfer-function question downstream assumes you can move between s-domain and time-domain fluently."},
+
+{phase:"ELECTROMAGNETICS I & II",subject:"Electromagnetics I",title:"Electrostatics: Coulomb's Law &amp; Gauss's Law",
+ concepts:["Coulomb's law and superposition for discrete and continuous charge","Electric field from line, surface, and volume charge distributions","Gauss's Law in integral form and choosing symmetric Gaussian surfaces","Electric flux density D and the relation D = εE"],
+ questions:["Find E at a point on the axis of a uniformly charged ring.","Use Gauss's law to find E inside and outside a uniformly charged sphere.","An infinite line charge has ρL = 20 nC/m; find E at 5 cm from the line.","Derive the field between two infinite parallel charged sheets.","Two point charges +Q and −Q are separated by d; find E at a point on the perpendicular bisector.","Explain the difference between E and D, and when each is more convenient to use."],
+ tip:"Coulomb's law is Newton's gravity law wearing a different costume — same inverse-square shape, same idea that you add up (as vectors) the contribution from every charge, just with charge instead of mass and a different constant out front. Gauss's Law is a shortcut around that adding-up process: instead of summing every tiny charge's contribution, it says the total electric flux leaving any closed surface equals the enclosed charge divided by ε₀ — a direct consequence of yesterday's Divergence Theorem applied to E. The catch is you only get to use this shortcut when the geometry is symmetric enough that E is the same size everywhere on your chosen surface. That's why every Gauss's Law problem starts the same way: pick a surface that matches the symmetry — a sphere around a point or spherical charge, a cylinder around a line or wire, a thin 'pillbox' straddling a flat sheet. Spot the symmetry first; the algebra afterward is almost always short."},
+
+{phase:"ELECTROMAGNETICS I & II",subject:"Electromagnetics I",title:"Electric Potential, Energy &amp; Capacitance",
+ concepts:["Relationship between E and V (V = −∫E·dl, E = −∇V)","Energy stored in a charge distribution and in a capacitor","Capacitance of parallel-plate, coaxial, and spherical capacitors","Dielectrics, polarization, and boundary conditions on D and E"],
+ questions:["Find the potential difference between two points near a point charge Q.","Derive the capacitance of a parallel-plate capacitor with a two-layer dielectric.","Find the energy stored in a spherical capacitor with inner radius a, outer radius b.","E₁ meets a dielectric interface at 30° to the normal; find E₂ and its angle in medium 2.","A charged capacitor stays connected to its battery while a dielectric slab is inserted; explain what happens to Q, V, and stored energy.","Derive the boundary condition relating the normal components of D across a charge-free interface."],
+ tip:"Potential V is just 'stored electrical height.' Moving a positive charge from low V to high V takes work, exactly like lifting a mass against gravity — and E always points from high V to low V ('downhill'), which is the whole meaning behind E = −∇V: the field points in the direction potential drops fastest. Capacitance, C = Q/V, is asking one simple question: for a given amount of charge you push onto two conductors, how much voltage builds up between them? A bigger plate area or a smaller gap needs less voltage to hold the same charge, so C goes up — that intuition is the seed of every capacitance formula you'll derive this week, including the ones with layered dielectrics."},
+
+{phase:"ELECTROMAGNETICS I & II",subject:"Electromagnetics I",title:"Conductors, Current &amp; Boundary Conditions",
+ concepts:["Conduction current density J = σE and the continuity equation","Boundary conditions for E, D, and conductors","Poisson's and Laplace's equations; intro to the method of images","Resistance from integration of current density"],
+ questions:["Find the resistance of a coaxial cable segment given σ and its dimensions.","State and apply the boundary conditions for D and E at a dielectric–conductor interface.","Use the method of images to find the field of a point charge above a grounded plane.","Verify that V = A ln(r) + B satisfies Laplace's equation in cylindrical coordinates.","Explain physically why the tangential component of E must be continuous across any interface.","A cylindrical resistor has a slightly non-uniform cross-section; set up the integral for its resistance."],
+ tip:"Boundary conditions are just matching rules at an interface. The tangential part of E must match on both sides — if it didn't, you could go around a tiny loop crossing the boundary and gain energy for free, which nature doesn't allow — while the normal part of D is allowed to jump, by exactly the amount of free surface charge sitting there. The Method of Images is a shortcut for problems involving a grounded conductor: since a grounded surface is always at V=0, you can often swap the real conductor for one imaginary 'image' charge placed so that it recreates the same V=0 surface on its own. Once that's true, forget the conductor ever existed — just use plain Coulomb's law with the real charge and its image."},
+
+{phase:"ELECTROMAGNETICS I & II",subject:"Electromagnetics II",title:"Magnetostatics: Biot–Savart &amp; Ampere's Law",
+ concepts:["Biot–Savart law for finite and infinite current elements","Ampere's Circuital Law and choosing a useful Amperian loop","Magnetic field of solenoids, toroids, and current sheets","Force on a moving charge and on a current-carrying conductor"],
+ questions:["Find B at the center of a circular loop of radius a carrying current I.","Use Ampere's law to find B inside and outside a long straight current-carrying conductor.","Find B inside a long solenoid with n turns/m carrying current I.","Two parallel wires carry opposite currents; find the force per unit length between them.","Sketch the B-field pattern around a long straight wire and a solenoid, comparing their uniformity.","Apply the right-hand rule to find the direction of B for a given current direction."],
+ tip:"Biot–Savart does for magnetism exactly what Coulomb's law does for electricity: it builds up B by adding contributions from every tiny piece of current, one small element at a time. Ampere's Law is magnetism's version of Gauss's Law — a shortcut that only works when you can find a closed loop (an 'Amperian loop') along which B stays constant in size, letting you swap a hard integral for simple algebra: ∮B·dl = μ₀Ienc. It's built on Stokes' Theorem from Day 1, the same way Gauss's Law was built on the Divergence Theorem. Your compass for direction is the right-hand rule: point your thumb along the current, and your curled fingers show which way B circles it."},
+
+{phase:"ELECTROMAGNETICS I & II",subject:"Electromagnetics II",title:"Magnetic Materials, Inductance &amp; Magnetic Circuits",
+ concepts:["Magnetization, permeability, and B–H curves of magnetic materials","Boundary conditions on B and H","Self and mutual inductance; energy stored in magnetic fields","Magnetic circuits and the reluctance analogy with electric circuits"],
+ questions:["Find the self-inductance per unit length of a coaxial cable.","A toroidal core has a small air gap; find the flux using the magnetic-circuit analogy.","Two coils have mutual inductance M; find the EMF induced in coil 2 given i₁(t).","Compute the energy stored in an inductor L carrying current I.","Explain why laminating a transformer core reduces eddy-current losses.","A coil of N turns links flux Φ produced by its own current I; write the expression for its self-inductance."],
+ tip:"Inductance measures how much flux a coil creates per amp of current — its own current for self-inductance, a neighboring coil's current for mutual inductance. More turns, more enclosed area, or a higher-permeability core all push it up, because all three make it easier to build flux for the same current. The easiest way to survive magnetic circuit problems is a direct analogy you already know: MMF (NI) plays the role of voltage, flux Φ plays the role of current, and reluctance opposes flux the way resistance opposes current — series reluctances add, parallel ones combine like parallel resistors, and you can solve the whole circuit with Ohm's-law thinking, just with new symbols."},
+
+{phase:"ELECTROMAGNETICS I & II",subject:"Electromagnetics II",title:"Faraday's Law &amp; Maxwell's Equations",
+ concepts:["Faraday's law of induction, Lenz's law, transformer vs motional EMF","Displacement current and Maxwell's correction to Ampere's law","Maxwell's equations in integral and point (differential) form","Physical interpretation of each Maxwell equation"],
+ questions:["A loop of area A rotates in a uniform field B at angular speed ω; find the induced EMF.","Find the displacement current density in a charging capacitor given dE/dt.","Write Maxwell's four equations in point form and state what each means physically.","Outline how Maxwell's equations predict wave propagation in free space.","Explain Lenz's law as a statement of energy conservation, using a specific example.","Compare conduction current and displacement current — where does each exist, and how are they related in Maxwell's equations?"],
+ tip:"Faraday's Law says a changing magnetic flux through a loop induces an EMF — and the minus sign (Lenz's Law) simply means the induced current always opposes the change that caused it, which is nature protecting energy conservation, not an arbitrary rule. Maxwell added 'displacement current' to Ampere's Law to fix a genuine contradiction: without it, a charging capacitor would seem to break Ampere's Law in the gap between its plates, where no real current flows. Treat displacement current as the missing piece that lets a changing E-field act just like a real current for the purpose of generating B — and that missing piece is exactly what makes electromagnetic waves possible: a changing E creates B, a changing B creates E, and the pattern propagates."},
+
+{phase:"ELECTROMAGNETICS I & II",subject:"Electromagnetics I & II",title:"EM Waves &amp; Consolidation",
+ concepts:["Wave equation derived from Maxwell's equations; propagation velocity","Plane waves in free space and lossy media; intrinsic impedance","Poynting vector and power flow","Full self-test across electrostatics, magnetostatics, and waves"],
+ questions:["Derive the wave equation for E from Maxwell's equations in free space.","Find the intrinsic impedance and wave velocity in a lossless dielectric with εr = 4.","E = 10 cos(ωt − βz) aₓ V/m; find the corresponding H field and Poynting vector.","Pick 5 problems at random from Days 3–8 and redo them without notes.","Explain what determines the direction of E, H, and the direction of propagation in a plane EM wave.","Summarize, in one sentence each, what all four of Maxwell's equations tell you."],
+ tip:"Once you accept the four Maxwell equations from yesterday, EM waves fall out almost automatically: a changing E creates a changing B, which creates a changing E, and the two fields keep regenerating each other, letting the disturbance travel through space at the speed of light — with nothing physical actually moving. In a plane wave, E, H, and the direction of travel are always mutually perpendicular, just like the x, y, z axes, and the Poynting vector S = E×H simply tells you which way energy is flowing and how fast. This is your consolidation day — before moving to a new subject, time yourself redoing five problems from this week without notes, so you can see exactly where the gaps still are."},
+
+{phase:"MEASUREMENT & INSTRUMENTATION",subject:"Measurement & Instrumentation",title:"Measurement Fundamentals &amp; Error Analysis",
+ concepts:["Accuracy, precision, resolution, and sensitivity of instruments","Types of error: gross, systematic, random","Statistical treatment: mean, standard deviation, probable error","Limiting errors and combination of errors in derived measurements"],
+ questions:["Five readings of a voltage give 10.1, 10.3, 9.9, 10.2, 10.0 V; find mean and standard deviation.","A resistor is rated 100 Ω ± 5%; find the limiting error in a current calculation using it.","Distinguish systematic from random error with one instrumentation example each.","R₁ ± ΔR₁ and R₂ ± ΔR₂ are in series; derive the limiting error of the total resistance.","Explain accuracy vs precision using a target/shooting analogy applied to instrument readings.","A DMM has a stated accuracy of ±(0.5% of reading + 2 digits); find the possible error range for a 12.34 V reading."],
+ tip:"Every real measurement has three separate personality traits worth telling apart: accuracy (how close to the true value), precision (how repeatable the readings are), and resolution (the smallest change the instrument can even detect). A scale can be very precise — always reading 50.01 kg — while being inaccurate, if your true weight is actually 45 kg; precision alone never guarantees correctness. Random errors are unavoidable noise that you fight with statistics — take repeated readings and use their mean and standard deviation. Systematic errors are a consistent bias in one direction (a badly zeroed meter, a bent needle) that repeating the measurement will never fix — the only cure is calibration against a known reference."},
+
+{phase:"MEASUREMENT & INSTRUMENTATION",subject:"Measurement & Instrumentation",title:"Analog Instruments: PMMC, Moving Iron &amp; Range Extension",
+ concepts:["PMMC instrument construction and torque equation","Moving-iron and electrodynamometer instrument principles","Extending an ammeter's range with a shunt; a voltmeter's with a multiplier","Instrument loading error of voltmeters and ammeters"],
+ questions:["Design a shunt to extend a 1 mA, 100 Ω PMMC meter to read 0–1 A.","Design a multiplier to extend the same meter to read 0–100 V.","Explain why PMMC instruments can't measure AC directly without rectification.","Calculate the loading error of a voltmeter (given Ω/V sensitivity) across a high-resistance circuit.","Explain why an ammeter should have very low internal resistance and a voltmeter very high internal resistance.","Sketch an Ayrton shunt and explain its advantage over a simple shunt."],
+ tip:"A PMMC meter's pointer deflects in proportion to the average current through its coil, which is why it can only read DC directly — an AC signal averages to zero and the pointer just sits still. A shunt is a low-value resistor placed in parallel with the meter to divert most of the current around it, letting the meter read currents far beyond its own limit; a multiplier is a high-value resistor placed in series to drop most of the voltage, letting the same meter read voltages far beyond its own limit. Both are exactly the current-divider and voltage-divider problems you already solved in Year 1 circuit analysis — instrumentation is just applying that same idea with a purpose."},
+
+{phase:"MEASUREMENT & INSTRUMENTATION",subject:"Measurement & Instrumentation",title:"AC &amp; DC Bridges",
+ concepts:["Wheatstone bridge balance condition and sensitivity","Kelvin bridge for low-resistance measurement","AC bridges: Maxwell, Hay, and Schering balance conditions","Common sources of error in bridge measurements"],
+ questions:["Derive the balance condition for a Wheatstone bridge.","Explain why a standard Wheatstone bridge is unsuitable for measuring a 0.01 Ω resistor.","Derive the balance equations for a Maxwell inductance bridge measuring a lossy inductor.","Write the balance conditions of a Schering bridge used to find capacitance and loss angle.","Explain what a Wien bridge measures and where it's commonly used.","Discuss how stray capacitance and lead resistance introduce errors in bridge measurements at high frequency."],
+ tip:"A bridge is 'balanced' when zero current flows through its galvanometer branch, and that happens precisely when the ratio of impedances on one side equals the ratio on the other — for a plain Wheatstone bridge that's just R1/R2 = R3/Rx, nothing more exotic. AC bridges follow exactly the same balance idea, but because impedances are complex numbers (they have both magnitude and phase), one balance condition splits into two separate equations: one from matching magnitudes, one from matching angles. That's the entire trick behind Maxwell, Hay, and Schering bridges — always find both equations before you start solving for the unknown component."},
+
+{phase:"MEASUREMENT & INSTRUMENTATION",subject:"Measurement & Instrumentation",title:"Transducers &amp; Sensors",
+ concepts:["Resistive transducers: strain gauges, potentiometers, gauge factor","Capacitive and inductive transducers (LVDT) for displacement","Thermocouples, RTDs, and thermistors for temperature","Selection criteria: sensitivity, linearity, range, response time"],
+ questions:["A strain gauge (gauge factor 2.0) sees 500 microstrain; find the fractional resistance change.","Explain the LVDT's working principle and why its output is phase-sensitive.","Compare thermocouples, RTDs, and thermistors on sensitivity and linearity.","Sketch a bridge configuration for temperature compensation of a strain gauge.","Explain the piezoelectric effect and its use in a pressure or vibration transducer.","Compare active and passive transducers, giving one example of each."],
+ tip:"A transducer's whole job is converting one physical quantity into an electrical one you can measure — a strain gauge stretches, so its resistance changes; a thermocouple heats up, so it generates a tiny voltage on its own. Learn each sensor by asking 'what physical effect is actually being exploited here?' rather than memorizing a formula cold: strain gauges rely on resistance changing with length and cross-section as a wire stretches, thermocouples rely on the Seebeck effect (two different metals joined together generate a voltage when their junction is heated), and an LVDT relies on mutual inductance changing as a magnetic core physically slides between two coils."},
+
+{phase:"MEASUREMENT & INSTRUMENTATION",subject:"Measurement & Instrumentation",title:"Signal Conditioning, Oscilloscopes &amp; Review",
+ concepts:["Signal conditioning: amplification, filtering, isolation","Oscilloscope operation and common measurement techniques","Data acquisition: sampling, ADC resolution, quantization error","Full Measurement & Instrumentation self-test"],
+ questions:["An 8-bit ADC spans 0–5 V; find the quantization step size and worst-case error.","Explain how Lissajous patterns give phase difference and frequency ratio on a scope.","Propose and justify a filter to reject 50 Hz mains noise in a conditioning circuit.","Redo one bridge, one transducer, and one error-analysis problem from memory.","Compare successive-approximation and flash ADC architectures in speed and complexity.","Explain how a digital storage oscilloscope differs from an analog CRO in capturing and displaying a signal."],
+ tip:"Quantization error is just rounding error: an ADC can only represent a continuous voltage using a finite number of discrete steps, so whatever the true value actually is, it gets rounded to the nearest available step, and that rounding is the error — smaller steps (more bits) mean less rounding, at the cost of more data. An oscilloscope is really a very fast, very precise voltmeter with memory — it samples voltage many times a second and plots it against time, which is exactly why timebase (the horizontal knob, controlling seconds per division) and volts-per-division (the vertical knob) are the two settings that matter most when reading any waveform off the screen."},
+
+{phase:"ELECTRIC MACHINES",subject:"Electric Machines",title:"Energy Conversion Principles &amp; Magnetic Circuits Recap",
+ concepts:["Electromechanical energy conversion and force/torque from energy methods","Magnetic circuit recap: MMF, reluctance, fringing, leakage flux","Losses common to all machines: copper, iron (hysteresis + eddy), mechanical","Per-unit system basics for machines"],
+ questions:["Derive the force on a magnetic system using the energy method for a fixed current source.","A magnetic circuit has two air gaps in series with a ferromagnetic core; find total reluctance.","Explain how hysteresis loss and eddy-current loss each depend on frequency.","Convert a machine's rated V, I, kVA to per-unit quantities given a chosen base.","Explain what co-energy means and when it's more convenient to use than stored magnetic energy.","Derive the relation for synchronous speed, Ns = 120f/P, from first principles."],
+ tip:"Every machine you meet from today onward is the same core idea wearing a different costume: electromechanical energy conversion. Force or torque appears because the system 'wants' to move toward a configuration that stores less magnetic energy (at constant flux) or more co-energy (at constant current) — that's just energy conservation, dressed up in magnetic language. Keep leaning on the magnetic-circuit-as-resistive-circuit analogy from earlier this month: reluctance in series adds, reluctance in parallel combines like parallel resistors, and MMF (NI) drives flux around the loop exactly the way EMF drives current — that single picture underlies transformers, DC machines, induction motors, and synchronous machines alike."},
+
+{phase:"ELECTRIC MACHINES",subject:"Electric Machines",title:"Transformers",
+ concepts:["Ideal vs practical transformer; equivalent circuit referred to primary/secondary","Open-circuit and short-circuit tests to find equivalent-circuit parameters","Voltage regulation and efficiency; condition for maximum efficiency","Autotransformers and three-phase transformer connections"],
+ questions:["From OC and SC test data, determine the transformer's equivalent-circuit parameters.","Calculate voltage regulation at 0.8 pf lagging given the equivalent circuit.","Find the load at which the transformer operates at maximum efficiency.","Compare a two-winding transformer with an autotransformer of the same rating.","Explain why transformer core loss is treated as constant while copper loss varies with load.","Describe the purpose of a Scott connection for three-phase to two-phase conversion."],
+ tip:"A transformer works purely on Faraday's Law: an AC current in the primary creates a changing flux in the shared core, and that changing flux induces a voltage in the secondary winding — with no direct electrical connection between the two sides at all. The open-circuit test (secondary left open) isolates the core-loss and magnetizing branch of the equivalent circuit, because with the secondary open almost no current flows in the windings themselves, so whatever power is drawn must be going into the core. The short-circuit test (secondary shorted) isolates the winding-resistance and leakage-reactance branch instead, because at rated current the applied voltage is small and almost none of it reaches the core — nearly all of it is dropped across the windings."},
+
+{phase:"ELECTRIC MACHINES",subject:"Electric Machines",title:"DC Machines",
+ concepts:["Construction, EMF equation (E = PΦNZ/60A), and torque equation","Armature reaction and commutation","DC generator characteristics: shunt, series, compound","DC motor characteristics; speed control by armature/field; starting"],
+ questions:["Calculate the generated EMF of a DC generator given P, Φ, N, Z, and A.","Explain, using the EMF and torque equations, why a shunt motor's speed droops under load.","Compare armature-voltage vs field-flux speed control, including achievable speed range.","Explain why a DC motor needs a starter and what sets the starting-resistance steps.","Explain the difference between lap and wave winding in a DC armature.","A DC series motor is unsuitable for no-load operation; explain why using its torque–speed relation."],
+ tip:"A DC machine is actually an AC machine wearing a clever disguise — it generates alternating EMF internally as the armature spins through the field, but the commutator (a mechanical rotating switch) flips the connections at exactly the right moment so the output at the brushes looks like DC. The EMF equation (E is proportional to flux Φ and speed N) and the torque equation (T is proportional to flux Φ and armature current Ia) are two sides of one coin: raise the flux or speed, EMF rises; raise the flux or armature current, torque rises. Nearly every DC-machine exam question is built entirely from algebra around these two relationships, so get comfortable writing them from memory before anything else."},
+
+{phase:"ELECTRIC MACHINES",subject:"Electric Machines",title:"Induction Motors",
+ concepts:["Rotating magnetic field; squirrel-cage vs wound-rotor construction","Slip, rotor frequency, and the per-phase equivalent circuit","Torque–slip characteristic and breakdown (maximum) torque","Starting methods: DOL, star-delta, autotransformer, rotor resistance"],
+ questions:["A 4-pole, 50 Hz induction motor runs at 1440 rpm; find slip and rotor frequency.","Draw and label the per-phase equivalent circuit of an induction motor.","Derive the condition for maximum torque in terms of rotor resistance and reactance.","Compare star-delta and DOL starting in terms of starting current and torque.","Explain what happens to rotor frequency and rotor EMF as the motor accelerates toward synchronous speed.","Describe the double-cage rotor design and why it improves starting torque."],
+ tip:"An induction motor never quite catches up to the rotating magnetic field it's chasing — and that small lag, called slip, is exactly why the motor works at all. It's the relative motion between the rotor and the rotating field that induces the rotor currents which, in turn, produce torque; without any slip there'd be no relative motion, no induced EMF, and no torque, so a small amount of slip is always necessary at any real load. As the rotor speeds up toward synchronous speed, the relative motion shrinks, so rotor frequency and rotor EMF both shrink with it — that single relationship explains most of this topic's behavior."},
+
+{phase:"ELECTRIC MACHINES",subject:"Electric Machines",title:"Synchronous Machines",
+ concepts:["Construction, EMF equation, and synchronous speed","Synchronous reactance and the cylindrical-rotor equivalent circuit","Voltage regulation by the synchronous-impedance method","Synchronization conditions and the power–angle relationship (brief)"],
+ questions:["Find the synchronous speed of an 8-pole alternator on a 50 Hz system.","Calculate generated EMF given terminal voltage, current, and synchronous impedance.","Find voltage regulation at a given load and pf using the synchronous-impedance method.","State the conditions required to synchronize an alternator with an infinite bus.","Compare salient-pole and cylindrical-rotor construction and where each is typically used.","Describe what 'hunting' is in a synchronous machine and one method used to damp it."],
+ tip:"Unlike an induction motor, a synchronous machine always turns at exactly synchronous speed — its rotor is a magnet (permanent or electromagnet) locked in step with the rotating stator field, like two dancers moving in perfect time rather than one chasing the other. Synchronous reactance is simply the machine's own internal opposition to current flow, caused by its magnetic field reacting against the current the stator is producing. Treat the whole machine as an internal voltage source in series with this reactance, and most 'hard' synchronous-machine problems collapse into ordinary phasor circuit analysis — draw the phasor diagram first, and the algebra follows easily."},
+
+{phase:"ELECTRIC MACHINES",subject:"Electric Machines",title:"Starting, Speed Control &amp; Review",
+ concepts:["Comparative summary of starting/speed control across DC, induction, synchronous","Braking methods overview: regenerative, plugging, dynamic","Machine-selection criteria for typical industrial applications","Full Electric Machines self-test"],
+ questions:["Tabulate starting methods and typical starting-current multiples for DC shunt, induction, and synchronous motors.","Explain regenerative braking in a DC motor and where the excess energy goes.","For a conveyor needing constant torque at variable speed, justify a machine choice.","Redo one transformer, one DC machine, and one induction-motor problem from memory.","Explain plugging as a braking method and why it dissipates more energy than dynamic braking.","Discuss the criteria (torque, speed range, cost) for choosing between an induction motor and a DC motor."],
+ tip:"Braking a machine is just running the energy-conversion process backward. In regenerative braking, the motor turns into a generator and pumps energy back into the supply, so the braking energy isn't wasted. In plugging, you reverse the supply connections so the machine actively fights its own motion — effective, but it burns a lot of energy as heat in the process. In dynamic braking, you disconnect the supply entirely and dump the machine's remaining kinetic energy into a resistor instead. Build one comparison table across all four machine types you've studied this week (transformer, DC, induction, synchronous) — side-by-side recall beats isolated recall whenever an exam mixes machines together."},
+
+{phase:"CONTROL SYSTEMS",subject:"Control Systems",title:"System Modeling: Transfer Functions &amp; Block Diagrams",
+ concepts:["Deriving transfer functions from differential equations and physical systems","Block-diagram reduction rules: series, parallel, feedback","Signal flow graphs and Mason's Gain Formula","Open-loop vs closed-loop systems"],
+ questions:["Derive the transfer function of a series RLC circuit with output across the capacitor.","Reduce a given multi-loop block diagram to a single transfer function.","Use Mason's Gain Formula on a signal flow graph with two forward paths and one loop.","Explain the advantage of closed-loop over open-loop control, with an example each.","Explain the difference between a summing point and a pickoff point in a block diagram.","Convert a simple one-feedback-loop block diagram into its equivalent signal flow graph."],
+ tip:"A transfer function is just a shorthand: it's the Laplace-domain ratio of output to input for a system starting from rest, and it packages an entire differential equation into one algebraic expression — this is exactly why you built a Laplace toolkit back on Day 2. Block diagrams are a visual way of chaining transfer functions together: blocks in series multiply, blocks in parallel add, and a feedback loop divides by (1 + loop gain) — G/(1+GH) is arguably the single most important formula in this whole course, since almost every later topic (time response, steady-state error, stability) is really about studying this one expression from a different angle."},
+
+{phase:"CONTROL SYSTEMS",subject:"Control Systems",title:"Time-Domain Response",
+ concepts:["Standard test signals: impulse, step, ramp, parabolic","First-order system response: time constant, rise/settling time","Second-order system response: damping ratio ζ, natural frequency ωn, underdamped/critically damped/overdamped cases","Time-domain specifications: peak time, overshoot, settling time, rise time"],
+ questions:["A first-order system has τ = 2 s; find the time to reach 95% of final value for a step input.","For ζ = 0.5, ωn = 4 rad/s, find peak overshoot and peak time.","Derive the relationship between percentage overshoot and damping ratio ζ.","Given time-domain specs Mp and ts, find the required ζ and ωn.","Explain what 'dominant poles' means for a higher-order system and why it allows a second-order approximation.","Sketch the unit step response shapes for underdamped, critically damped, and overdamped systems on one axis."],
+ tip:"Every second-order system's behavior is fully described by just two numbers: ζ (damping ratio — how much it oscillates before settling) and ωn (natural frequency — how fast it would oscillate if there were no damping at all). ζ<1 is underdamped — it overshoots and rings before settling; ζ=1 is critically damped — the fastest possible settling with no overshoot; ζ>1 is overdamped — slow, but no overshoot at all. Picture a car's suspension: soft springs with almost no damper (small ζ) bounce repeatedly after a bump, while an over-stiff damper (large ζ) barely bounces but takes a long time to fully settle. Memorize the overshoot–ζ and ωn–timing formulas once, then practice using them in both directions."},
+
+{phase:"CONTROL SYSTEMS",subject:"Control Systems",title:"Steady-State Error &amp; System Type",
+ concepts:["Static error constants: Kp, Kv, Ka","System type (0, 1, 2) and its relation to steady-state error for step/ramp/parabolic inputs","Effect of adding poles/zeros at the origin on steady-state accuracy","Steady-state error for systems with disturbance inputs (brief)"],
+ questions:["Find the steady-state error of a type-0 system to a unit step input, given its open-loop gain.","Determine the system type and steady-state error to a unit ramp for a given G(s).","Explain why increasing system type improves accuracy but can worsen stability.","Compute Kp, Kv, and Ka for a given open-loop transfer function.","Explain why a pure integrator in the forward path (type-1 system) gives zero steady-state error to a step.","Discuss how steady-state error relates to the accuracy needed in a position-control system."],
+ tip:"Steady-state error asks a simple question: after every transient dies away, how far off is the output from the input, forever? A system with an integrator in its forward path (type-1) can track a constant input exactly, because an integrator keeps accumulating any small remaining error until it's driven to zero — like a savings account that keeps growing until it hits the target and then stays there. But that same system still lags a constantly increasing (ramp) input by a fixed, nonzero amount, because integrating catches up to a constant target but can never fully catch up to something that keeps moving further away. Build the 3×3 table (system type 0/1/2 against step/ramp/parabolic input) once, and you'll never need to re-derive it."},
+
+{phase:"CONTROL SYSTEMS",subject:"Control Systems",title:"Stability: Routh–Hurwitz Criterion",
+ concepts:["Definition of BIBO stability in terms of pole locations","Constructing the Routh array from the characteristic equation","Interpreting sign changes, special cases (zero in first column, row of zeros)","Determining range of a parameter (e.g., gain K) for stability"],
+ questions:["Construct the Routh array for s⁴+2s³+3s²+4s+5 = 0 and determine stability.","Find the range of K for stability of a unity-feedback system with G(s) = K/[s(s+2)(s+4)].","Handle the special case where the first element of a Routh row is zero.","Handle the special case of an entire row of zeros and explain its significance.","Explain, in words, why the Routh–Hurwitz test tells you about stability without solving for the roots.","A characteristic equation has a missing or negative coefficient; state what this alone tells you about stability."],
+ tip:"The Routh–Hurwitz test lets you check stability without ever solving for the roots of the characteristic equation — which matters a lot, because finding exact roots by hand for anything beyond second order is genuinely painful. Build your intuition with the quick check first: if any coefficient of the characteristic equation is negative, zero, or missing entirely, the system is automatically unstable — no array needed. The full Routh array exists only to catch the subtler unstable cases where every coefficient looks perfectly fine on its own but the combination still isn't stable — that's where the two special cases (a zero in the first column, or a whole row of zeros) tend to show up, so practice those specifically rather than only the clean textbook examples."},
+
+{phase:"CONTROL SYSTEMS",subject:"Control Systems",title:"Root Locus Technique",
+ concepts:["Root locus rules: number of branches, asymptotes, breakaway points, angle of departure/arrival","Effect of adding poles and zeros on the root locus shape","Reading stability and dominant pole information from the locus","Relating root locus to time-domain performance (ζ line, ωn circle)"],
+ questions:["Sketch the root locus for G(s)H(s)=K/[s(s+2)(s+4)] using the standard rules.","Find the breakaway point on the real axis for a given open-loop transfer function.","Determine the range of gain K for which the closed-loop system remains stable, using the locus.","Explain how adding a zero to the open-loop transfer function changes the shape of the root locus.","Explain the angle condition and magnitude condition used to test whether a point lies on the root locus.","Describe how the root locus changes as you add a pole close to the origin (a 'slow' pole)."],
+ tip:"Root locus answers one practical question: as I turn up the gain K, where do my closed-loop poles actually move? It matters because pole position directly sets both stability and speed of response — poles in the left half-plane are stable, on the imaginary axis are right on the edge, and in the right half are unstable, full stop. Sketching the locus by hand using the standard rules (asymptotes, breakaway points, departure angles) builds a feel for how a design choice changes real system behavior in a way that just staring at a computer-generated plot never quite teaches — treat today as a drawing skill, not only an algebra exercise."},
+
+{phase:"CONTROL SYSTEMS",subject:"Control Systems",title:"Frequency Response: Bode Plots &amp; Review",
+ concepts:["Bode magnitude and phase plots for standard factors (poles, zeros, integrators)","Gain margin and phase margin, and their relation to relative stability","Reading bandwidth and resonant peak from frequency response","Full Control Systems self-test"],
+ questions:["Sketch the Bode magnitude plot for G(s)=100/[s(s+10)] identifying corner frequencies and slopes.","Find the gain margin and phase margin of a given open-loop transfer function from its Bode plot.","Explain the relationship between phase margin and damping ratio (approximate relation).","Mixed review: one block diagram reduction, one Routh-Hurwitz, and one Bode plot problem from memory.","Explain the difference between gain crossover frequency and phase crossover frequency.","Discuss why a system with low phase margin tends to have a more oscillatory step response."],
+ tip:"A Bode plot simply splits a system's frequency response into two easier pieces: magnitude (how much a signal is amplified or attenuated at each frequency) and phase (how much it's delayed) — both plotted against a log frequency axis, which is exactly why straight-line 'asymptotic' approximations work so well and save you from plotting every point by hand. Gain margin and phase margin answer 'how much extra gain, or extra phase lag, can this system tolerate before it tips over into instability?' — bigger margins mean a safer, more forgiving design, and you can read both straight off the plot without extra calculation once you know where to look."},
+
+{phase:"ANALOGUE COMMUNICATION",subject:"Analogue Communication Systems",title:"Signals, Spectra &amp; Amplitude Modulation Basics",
+ concepts:["Fourier series/transform recap, spectrum of periodic and non-periodic signals","Need for modulation, baseband vs passband transmission","DSB-FC (conventional AM): modulation index, waveform, power distribution","AM spectrum and bandwidth"],
+ questions:["Find the Fourier transform of a rectangular pulse and sketch its spectrum.","An AM signal has carrier amplitude 10V and message amplitude 6V; find the modulation index.","Calculate the total power and sideband power of an AM signal with given modulation index and carrier power.","Explain why over-modulation (m>1) causes distortion in AM.","Explain the difference between energy signals and power signals, with one example of each.","Sketch the AM waveform envelope for m<1, m=1, and m>1 and describe what changes."],
+ tip:"Modulation is fundamentally about relocating a message's spectrum up to a higher frequency band by multiplying it with a carrier wave — without this, you couldn't fit many radio stations into the airwaves at once, and antennas for low (baseband) frequencies would need to be impractically large. In plain AM, the message rides directly on the carrier's amplitude, so the envelope of the transmitted wave literally traces out the shape of the message — which is exactly why something as simple as an envelope detector can recover it at the receiver, with no need to know the carrier's exact phase."},
+
+{phase:"ANALOGUE COMMUNICATION",subject:"Analogue Communication Systems",title:"AM Variants &amp; Demodulation",
+ concepts:["DSB-SC: generation (balanced modulator), spectrum, coherent detection","SSB: generation methods (filter, phase-shift), advantages over DSB","VSB: motivation and typical application (e.g., TV video)","AM demodulation: envelope detector and synchronous detector, distortion conditions"],
+ questions:["Explain why an envelope detector cannot be used to demodulate DSB-SC signals.","Compare the bandwidth requirements of DSB-FC, DSB-SC, and SSB for the same message bandwidth.","Describe the phase-shift method of generating an SSB signal.","Derive the condition on the RC time constant of an envelope detector to avoid diagonal clipping.","Explain why SSB is more bandwidth- and power-efficient than DSB-FC, and what this costs in receiver complexity.","Describe the role of a balanced modulator in suppressing the carrier for DSB-SC generation."],
+ tip:"DSB-SC removes the carrier from a plain AM signal — you save transmitted power because the carrier itself carries zero information, so why waste power sending it? But you also lose the simple envelope shape, which is why DSB-SC needs a synchronous (coherent) detector: it multiplies the incoming signal by a locally generated copy of the carrier, and only that exact match recovers the message cleanly. SSB goes one step further and removes an entire sideband too, since both sidebands of a real AM signal carry identical information — that halves the transmission bandwidth, but now matching the carrier's phase exactly at the receiver becomes much trickier, which is the real-world tradeoff every 'more efficient' scheme in this topic makes."},
+
+{phase:"ANALOGUE COMMUNICATION",subject:"Analogue Communication Systems",title:"Angle Modulation: FM &amp; PM",
+ concepts:["Instantaneous frequency/phase, FM and PM relationship","Narrowband vs wideband FM, modulation index β","Carson's rule for FM bandwidth estimation","FM generation (VCO, indirect/Armstrong method) and demodulation (discriminator, PLL); noise performance comparison: FM vs AM (brief)"],
+ questions:["An FM signal has frequency deviation 75kHz and message bandwidth 15kHz; find the modulation index and bandwidth using Carson's rule.","Explain the difference between narrowband and wideband FM in terms of β and spectrum.","Describe the Armstrong (indirect) method of generating wideband FM from narrowband FM.","Explain qualitatively why FM has better noise immunity than AM.","Explain the difference between FM and PM in terms of how the carrier's phase depends on the message.","Describe pre-emphasis/de-emphasis in FM broadcasting and why it's needed."],
+ tip:"FM and PM both hide the message inside the carrier's phase rather than its amplitude, and that's the whole reason FM 'sounds cleaner': most noise picked up along the way adds unwanted amplitude fluctuations, which a phase-based signal is far less sensitive to. Carson's rule works because both a bigger message amplitude and a higher message frequency widen the range that the instantaneous frequency swings through, and the transmitted bandwidth simply needs to be wide enough to contain essentially all of that swing plus the message bandwidth itself — that's the entire logic behind BW ≈ 2(Δf + fm), so it's worth being able to rebuild it from this reasoning rather than only recalling the formula."},
+
+{phase:"FINAL REVIEW",subject:"Final Review",title:"Cross-Subject Mock Exam &amp; Wrap-Up",
+ concepts:["Full mixed review across Electromagnetics, Measurement, Machines, Control, Communication","Identify and revisit personal weak topics from the past 29 days","Formula-sheet consolidation across all five subjects","Exam-day strategy: time allocation, question selection, presentation"],
+ questions:["Solve one unseen-style problem from each of the five subjects, timed at 12 minutes each.","From memory, write the core formula for: Gauss's law, bridge balance, transformer EMF, Routh array setup, Carson's rule.","Identify your two weakest days from this plan and redo their problem sets.","Draft a one-page master formula sheet combining the five subjects' most-tested equations.","For each subject, write one exam mistake you tend to make and the fix you'll apply.","Time yourself solving one full past-paper-style question per subject, back to back, simulating exam conditions."],
+ tip:"You don't need new theory today — you need retrieval practice. The act of pulling a formula or method out of memory, rather than just re-reading your notes one more time, is what actually cements it before an exam; re-reading feels productive but teaches your brain almost nothing new. Treat each of the five 'core formula' items above as a mini self-test: cover the answer, write it out from memory, then check — and whichever one you get wrong is your clearest signal for exactly where to spend the next hour. You've now covered the full bridge from Year 1 into Year 2 — this is the day to surface the weak spots while there's still time left to fix them."}
+];
+
+const STORAGE_KEY = "prep30-progress";
+let state = { completed: [], current: 1, qProgress: {}, notes: {}, confidence: {}, completedAt: {} };
+let selectedDay = 1;
+let notesSaveTimer = null;
+
+function getSolved(day){
+  return Array.isArray(state.qProgress[day]) ? state.qProgress[day] : [];
+}
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state.completed = Array.isArray(parsed.completed) ? parsed.completed : [];
+      state.current = parsed.current || 1;
+      state.qProgress = parsed.qProgress && typeof parsed.qProgress === 'object' ? parsed.qProgress : {};
+      state.notes = parsed.notes && typeof parsed.notes === 'object' ? parsed.notes : {};
+      state.confidence = parsed.confidence && typeof parsed.confidence === 'object' ? parsed.confidence : {};
+      state.completedAt = parsed.completedAt && typeof parsed.completedAt === 'object' ? parsed.completedAt : {};
+    }
+  }catch(e){ /* no stored state yet */ }
+  selectedDay = state.current || 1;
+}
+
+async function saveState(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+  }catch(e){ console.error("Storage error:", e); }
+}
+
+function phaseGroups(){
+  const groups = [];
+  let last = null;
+  PLAN.forEach((d,i)=>{
+    const dayNum = i+1;
+    if(d.phase !== last){
+      groups.push({phase:d.phase, days:[]});
+      last = d.phase;
+    }
+    groups[groups.length-1].days.push(dayNum);
+  });
+  return groups;
+}
+
+function renderPerfChart(){
+  const el = document.getElementById('perfChart');
+  if(!el || !window.renderTrendChart) return;
+  const days = Object.keys(state.completedAt).map(Number).sort((a,b)=> new Date(state.completedAt[a]) - new Date(state.completedAt[b]));
+  const points = days.map((d,i) => ({ label: 'D'+d, value: i+1 }));
+  window.renderTrendChart(el, points, { max: Math.max(30, points.length), emptyText: 'Mark a couple of days complete to see your pace here.' });
+}
+
+function renderRail(){
+  const rail = document.getElementById('rail');
+  rail.innerHTML = '';
+  phaseGroups().forEach(g=>{
+    const doneInGroup = g.days.filter(n=>state.completed.includes(n)).length;
+    const wrap = document.createElement('div');
+    wrap.className = 'phase-group';
+    const title = document.createElement('div');
+    title.className = 'phase-title';
+    title.innerHTML = `<span>${g.phase}</span><small>${doneInGroup}/${g.days.length}</small>`;
+    wrap.appendChild(title);
+    g.days.forEach(n=>{
+      const d = PLAN[n-1];
+      const node = document.createElement('div');
+      node.className = 'node' + (n===selectedDay ? ' active' : '');
+      node.setAttribute('role','button');
+      node.setAttribute('tabindex','0');
+      node.onclick = ()=>{ selectedDay = n; state.current = n; renderRail(); renderCard(); saveState(); };
+      node.onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); node.onclick(); } };
+      const dotClass = state.completed.includes(n) ? 'done' : (n===selectedDay ? 'current' : '');
+      node.innerHTML = `
+        <span class="dot ${dotClass}"></span>
+        <span class="node-num mono">${String(n).padStart(2,'0')}</span>
+        <span class="node-title">${d.title.replace(/&amp;/g,'&')}</span>
+      `;
+      wrap.appendChild(node);
+    });
+    rail.appendChild(wrap);
+  });
+}
+
+function renderCard(){
+  const d = PLAN[selectedDay-1];
+  const isDone = state.completed.includes(selectedDay);
+  const solved = getSolved(selectedDay);
+  const solvedCount = solved.filter(Boolean).length;
+  const totalQ = d.questions.length;
+  const conf = state.confidence[selectedDay] || 0;
+  const noteVal = state.notes[selectedDay] || '';
+  const content = document.getElementById('cardContent');
+  content.innerHTML = `
+    <div class="card-top">
+      <div>
+        <div class="tag-row">
+          <span class="tag mono">DAY ${String(selectedDay).padStart(2,'0')} / 30</span>
+          <span class="tag mono">${d.phase}</span>
+          <span class="tag subject mono">${d.subject}</span>
+        </div>
+        <div class="day-title">${d.title}</div>
+      </div>
+      <div class="switch-block">
+        <span class="switch-label">${isDone ? 'Completed' : 'Mark complete'}</span>
+        <div class="switch ${isDone?'on':''}" id="completeSwitch" role="switch" aria-checked="${isDone}" tabindex="0">
+          <div class="knob"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="idx mono">01</span><h3>Learn This First</h3></div>
+      <div class="recoverybox"><span class="label">Concept Recovery</span><p>${d.tip}</p></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="idx mono">02</span><h3>Key Concepts</h3></div>
+      <ul class="concepts">${d.concepts.map(c=>`<li>${c}</li>`).join('')}</ul>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="idx mono">03</span><h3>Practice &mdash; Solve These</h3><span class="solved-badge mono" style="${solvedCount===totalQ?'background:#e3ecda;border-color:#b9cda2;color:#4a5f38;':''}">${solvedCount}/${totalQ} solved</span></div>
+      <ul class="qbank" id="qbankList">${d.questions.map((q,i)=>`
+        <li class="${solved[i] ? 'solved' : ''}" data-qi="${i}" role="checkbox" aria-checked="${!!solved[i]}" tabindex="0">
+          <span class="qchk"></span>
+          <span class="qn">Q${i+1}</span>
+          <span class="qtext">${q}</span>
+        </li>`).join('')}</ul>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><span class="idx mono">04</span><h3>Your Working &amp; Answers</h3></div>
+      <textarea class="notesarea" id="notesArea" placeholder="Work the problems on paper first, then jot your answers, formulas, or mistakes here — this is saved automatically to your account.">${noteVal}</textarea>
+      <span class="notes-save" id="notesSaveMsg"></span>
+    </div>
+
+    <div class="section" style="margin-bottom:6px;">
+      <div class="section-head"><span class="idx mono">05</span><h3>Self-Check</h3></div>
+      <div class="confidence-row">
+        <span class="confidence-label">How confident do you feel about today's material?</span>
+        <div class="conf-dots" id="confDots">
+          ${[1,2,3,4,5].map(n=>{
+            const tier = n<=2 ? 'low' : (n<=3 ? 'mid' : 'high');
+            return `<button type="button" class="conf-dot ${n<=conf?('active '+tier):''}" data-n="${n}" aria-label="${n} out of 5">${n}</button>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-nav">
+      <button class="nbtn" id="prevBtn" ${selectedDay<=1?'disabled':''}>&larr; Prev Day</button>
+      <span class="progress-text">DAY <b>${selectedDay}</b> OF 30</span>
+      <button class="nbtn" id="nextBtn" ${selectedDay>=30?'disabled':''}>Next Day &rarr;</button>
+    </div>
+  `;
+
+  document.getElementById('completeSwitch').onclick = toggleComplete;
+  document.getElementById('completeSwitch').onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleComplete(); } };
+  document.getElementById('prevBtn').onclick = ()=>{ if(selectedDay>1){ selectedDay--; state.current=selectedDay; renderRail(); renderCard(); saveState(); } };
+  document.getElementById('nextBtn').onclick = ()=>{ if(selectedDay<30){ selectedDay++; state.current=selectedDay; renderRail(); renderCard(); saveState(); } };
+
+  document.querySelectorAll('#qbankList li').forEach(li=>{
+    const toggle = ()=>{ toggleQuestion(parseInt(li.getAttribute('data-qi'),10)); };
+    li.onclick = toggle;
+    li.onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } };
+  });
+
+  const notesArea = document.getElementById('notesArea');
+  notesArea.oninput = ()=>{
+    state.notes[selectedDay] = notesArea.value;
+    const msg = document.getElementById('notesSaveMsg');
+    msg.textContent = 'Saving…';
+    clearTimeout(notesSaveTimer);
+    notesSaveTimer = setTimeout(async ()=>{
+      await saveState();
+      const m = document.getElementById('notesSaveMsg');
+      if(m) m.textContent = 'Saved';
+    }, 600);
+  };
+
+  document.querySelectorAll('.conf-dot').forEach(btn=>{
+    btn.onclick = ()=>{
+      const n = parseInt(btn.getAttribute('data-n'),10);
+      state.confidence[selectedDay] = (state.confidence[selectedDay] === n) ? 0 : n;
+      saveState();
+      renderCard();
+    };
+  });
+
+  const activeNode = document.querySelector('.node.active');
+  if(activeNode) activeNode.scrollIntoView({block:'nearest'});
+}
+
+function toggleQuestion(i){
+  const d = PLAN[selectedDay-1];
+  const arr = getSolved(selectedDay).slice();
+  while(arr.length < d.questions.length) arr.push(false);
+  arr[i] = !arr[i];
+  state.qProgress[selectedDay] = arr;
+  renderCard();
+  renderRail();
+  saveState();
+}
+
+function toggleComplete(){
+  const idx = state.completed.indexOf(selectedDay);
+  if(idx>=0){
+    state.completed.splice(idx,1);
+    delete state.completedAt[selectedDay];
+  } else {
+    state.completed.push(selectedDay);
+    state.completedAt[selectedDay] = new Date().toISOString();
+  }
+  renderRail();
+  renderCard();
+  renderGauge();
+  renderPerfChart();
+  saveState();
+}
+
+function renderGauge(){
+  const pct = Math.round((state.completed.length/30)*100);
+  document.getElementById('gaugePct').textContent = pct;
+  document.getElementById('gaugeCount').textContent = state.completed.length;
+  const circumference = 188.4;
+  const offset = circumference - (circumference * pct/100);
+  document.getElementById('gaugeFill').style.strokeDashoffset = offset;
+  const angle = -90 + (pct/100)*180;
+  document.getElementById('needle').style.transform = `rotate(${angle}deg)`;
+}
+
+document.getElementById('resetBtn').onclick = async ()=>{
+  if(confirm('Reset all 30 days of progress, notes, and answers? This cannot be undone.')){
+    state = { completed: [], current: 1, qProgress: {}, notes: {}, confidence: {}, completedAt: {} };
+    selectedDay = 1;
+    renderRail(); renderCard(); renderGauge(); renderPerfChart();
+    await saveState();
+  }
+};
+
+(async function init(){
+  await loadState();
+  selectedDay = state.current || 1;
+  renderRail();
+  renderCard();
+  renderGauge();
+  renderPerfChart();
+})();
+</script>
+</body>
+</html>

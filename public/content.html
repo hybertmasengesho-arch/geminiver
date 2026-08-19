@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content — Reasoning Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .content-layout{ display:grid; grid-template-columns:260px 1fr; gap:20px; margin-top:20px; align-items:start; }
+  @media (max-width:820px){ .content-layout{ grid-template-columns:1fr; } }
+  .book-item{
+    display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:8px;
+    cursor:pointer; font-size:13.5px; margin-bottom:4px; border:1.5px solid transparent;
+  }
+  .book-item:hover{ background:var(--hover-bg); }
+  .book-item.active{ background:var(--active-bg); border-color:var(--blue); font-weight:600; }
+  .book-item button{ background:none; border:none; color:var(--red); cursor:pointer; font-size:12px; opacity:.7; }
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+  .field input, .field textarea, .field select{
+    width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink); background:var(--paper);
+  }
+  .field textarea{ min-height:60px; resize:vertical; }
+  .btn{
+    background:var(--ink); color:#fff; border:none; border-radius:8px; padding:9px 18px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13px; cursor:pointer;
+  }
+  .btn.secondary{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+  .btn.danger{ background:transparent; color:var(--red); border:1.5px solid var(--red); }
+  .opt-row{ display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+  .opt-row input[type="text"]{ flex:1; }
+  .opt-row input[type="radio"]{ flex:none; width:18px; height:18px; }
+  .opt-row button{ background:none; border:none; color:var(--red); cursor:pointer; font-size:14px; flex:none; }
+  .q-item{ border:1.5px solid var(--grid); border-radius:10px; padding:12px 14px; margin-bottom:10px; }
+  .q-item-text{ font-size:13.5px; color:var(--ink); font-weight:600; margin-bottom:4px; }
+  .q-item-meta{ font-size:11.5px; color:var(--muted); }
+  .q-item-actions{ margin-top:8px; display:flex; gap:8px; }
+  .q-item-actions button{ font-size:12px; padding:5px 12px; }
+  .swatch{ display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:middle; margin-left:6px; border:1px solid var(--line); }
+  .empty-state{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding:20px 0; text-align:center; }
+  .msg{ font-size:13px; margin-top:8px; display:none; }
+  .msg.ok{ color:var(--green); display:block; }
+  .msg.err{ color:var(--red); display:block; }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Facilitator tools</div>
+  <h1 class="hub-h1">Content</h1>
+  <p class="hub-sub">Create courses (books) and their practice questions — set a theme color and pass mark for each course, mark the correct answer, and view learner marks.</p>
+
+  <div id="notAllowed" style="display:none;" class="hub-card">You need facilitator or admin access to see this page.</div>
+
+  <div id="contentApp" style="display:none;">
+    <div class="content-layout">
+      <div>
+        <div class="hub-card">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">Books</div>
+          <div id="bookList"><div class="empty-state">Loading…</div></div>
+          <div class="field" style="margin-top:14px;">
+            <label>New book title</label>
+            <input type="text" id="newBookTitle" maxlength="200" placeholder="e.g. Circuits Fundamentals">
+          </div>
+          <div class="field">
+            <label>Type</label>
+            <div style="display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--ink);">
+              <label style="display:flex; align-items:center; gap:7px; cursor:pointer;"><input type="radio" name="newBookType" value="book"> Book — cover photo &amp; document, no exercises</label>
+              <label style="display:flex; align-items:center; gap:7px; cursor:pointer;"><input type="radio" name="newBookType" value="exercises"> Exercises — practice questions only</label>
+              <label style="display:flex; align-items:center; gap:7px; cursor:pointer;"><input type="radio" name="newBookType" value="exercises_and_book" checked> Exercises &amp; Book — both</label>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <div class="field" style="flex:none; width:70px;">
+              <label>Theme</label>
+              <input type="color" id="newBookTheme" value="#2F6F4F" style="height:38px; padding:2px;">
+            </div>
+            <div class="field" style="flex:1;">
+              <label>Pass mark %</label>
+              <input type="number" id="newBookPassing" min="0" max="100" value="60">
+            </div>
+          </div>
+          <button class="btn" id="createBookBtn" style="width:100%;">Create book</button>
+          <div class="msg" id="bookMsg"></div>
+        </div>
+        <div class="hub-card" style="margin-top:14px;">
+          <div style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">Access requests</div>
+          <div id="bookRequestList"><div class="empty-state">None pending.</div></div>
+        </div>
+      </div>
+
+      <div id="bookDetail">
+        <div class="hub-card empty-state">Select or create a book to manage its questions.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/toast.js"></script>
+<script src="/js/file-input-enhance.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+function esc(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let books = [];
+let activeBookId = null;
+let optRowSeq = 0;
+
+async function loadBooks(){
+  const res = await fetch('/api/content/books', { headers: authHeaders() });
+  const data = await res.json();
+  books = data.books || [];
+  renderBookList();
+}
+
+function renderBookList(){
+  const list = document.getElementById('bookList');
+  if(!books.length){ list.innerHTML = '<div class="empty-state">No books yet.</div>'; return; }
+  list.innerHTML = books.map(b => `
+    <div class="book-item ${String(b.id) === String(activeBookId) ? 'active' : ''}" data-id="${b.id}">
+      <span><span class="swatch" style="background:${esc(b.theme_color || '#2F6F4F')}; margin-left:0; margin-right:6px;"></span>${esc(b.title)}</span>
+      <button data-delete="${b.id}" title="Delete book">✕</button>
+    </div>
+  `).join('');
+  list.querySelectorAll('.book-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if(e.target.closest('button[data-delete]')) return;
+      activeBookId = el.dataset.id;
+      renderBookList();
+      renderBookDetail();
+    });
+  });
+  list.querySelectorAll('button[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if(!confirm('Delete this book and ALL its questions? This cannot be undone.')) return;
+      const res = await fetch('/api/content/books/' + btn.dataset.delete, { method: 'DELETE', headers: authHeaders() });
+      if(!res.ok){ const d = await res.json(); showToast(d.error || 'Could not delete this book.', 'error'); return; }
+      if(String(activeBookId) === btn.dataset.delete) activeBookId = null;
+      loadBooks();
+      document.getElementById('bookDetail').innerHTML = '<div class="hub-card empty-state">Select or create a book to manage its questions.</div>';
+    });
+  });
+}
+
+document.getElementById('createBookBtn').addEventListener('click', async () => {
+  const input = document.getElementById('newBookTitle');
+  const msg = document.getElementById('bookMsg');
+  const title = input.value.trim();
+  if(!title) return;
+  const res = await fetch('/api/content/books', {
+    method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({
+      title,
+      bookType: document.querySelector('input[name="newBookType"]:checked').value,
+      themeColor: document.getElementById('newBookTheme').value,
+      passingScore: Number(document.getElementById('newBookPassing').value) || 60
+    })
+  });
+  const data = await res.json();
+  if(!res.ok){ msg.textContent = data.error; msg.className = 'msg err'; return; }
+  msg.textContent = 'Created.'; msg.className = 'msg ok';
+  input.value = '';
+  activeBookId = data.book.id;
+  await loadBooks();
+  renderBookDetail();
+});
+
+function newOptionRow(id, text, isCorrect, groupName){
+  const row = document.createElement('div');
+  row.className = 'opt-row';
+  row.dataset.optId = id;
+  row.innerHTML = `
+    <input type="radio" name="${groupName}" ${isCorrect ? 'checked' : ''}>
+    <input type="text" placeholder="Option text" value="${esc(text || '')}">
+    <button type="button" title="Remove option">✕</button>
+  `;
+  row.querySelector('button').addEventListener('click', () => row.remove());
+  return row;
+}
+
+async function renderBookDetail(){
+  const book = books.find(b => String(b.id) === String(activeBookId));
+  const mount = document.getElementById('bookDetail');
+  if(!book){ mount.innerHTML = '<div class="hub-card empty-state">Select or create a book to manage its questions.</div>'; return; }
+
+  mount.innerHTML = `
+    <div class="hub-card" style="margin-bottom:16px;">
+      <div style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:19px; color:var(--ink); margin-bottom:10px;">${esc(book.title)}</div>
+      <div class="field"><label>Author</label><input type="text" id="bookAuthor" value="${esc(book.author || '')}"></div>
+      <div class="field"><label>Description</label><textarea id="bookDescription">${esc(book.description || '')}</textarea></div>
+      <div class="field">
+        <label>Type</label>
+        <select id="bookType">
+          <option value="book" ${book.book_type === 'book' ? 'selected' : ''}>Book — cover photo &amp; document, no exercises</option>
+          <option value="exercises" ${book.book_type === 'exercises' ? 'selected' : ''}>Exercises — practice questions only</option>
+          <option value="exercises_and_book" ${(!book.book_type || book.book_type === 'exercises_and_book') ? 'selected' : ''}>Exercises &amp; Book — both</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="field" style="flex:none; width:70px;"><label>Theme</label><input type="color" id="bookTheme" value="${esc(book.theme_color || '#2F6F4F')}" style="height:38px; padding:2px;"></div>
+        <div class="field" style="flex:1;"><label>Pass mark %</label><input type="number" id="bookPassing" min="0" max="100" value="${book.passing_score != null ? book.passing_score : 60}"></div>
+      </div>
+      <button class="btn secondary" id="saveBookBtn">Save book details</button>
+      <div class="msg" id="saveBookMsg"></div>
+    </div>
+
+    <div class="hub-card" id="coverDocCard" style="margin-bottom:16px; ${book.book_type === 'exercises' ? 'display:none;' : ''}">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:10px;">Cover photo &amp; document</div>
+      <div style="display:flex; gap:18px; flex-wrap:wrap;">
+        <div>
+          <div id="coverPreviewWrap" style="width:110px; height:150px; border-radius:8px; overflow:hidden; border:1.5px solid var(--line); background:var(--paper); display:flex; align-items:center; justify-content:center;">
+            <img id="coverPreviewImg" style="display:none; width:100%; height:100%; object-fit:cover;" alt="Book cover">
+            <span id="coverPreviewEmpty" class="mono" style="font-size:10.5px; color:var(--muted); text-align:center; padding:0 8px;">No cover yet</span>
+          </div>
+          <input type="file" id="coverFileInput" accept="image/*" style="margin-top:8px;">
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <button class="btn secondary" id="uploadCoverBtn" style="font-size:12px; padding:5px 10px;">Upload</button>
+            <button class="btn danger" id="removeCoverBtn" style="font-size:12px; padding:5px 10px;">Remove</button>
+          </div>
+          <div class="msg" id="coverMsg"></div>
+        </div>
+        <div style="flex:1; min-width:220px;">
+          <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">Book document</div>
+          <div id="docCurrent" class="mono" style="font-size:12.5px; color:var(--ink); margin-bottom:8px;">No document attached.</div>
+          <input type="file" id="docFileInput" accept=".pdf,.doc,.docx,.odt,.txt,.md,.csv,.rtf">
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <button class="btn secondary" id="uploadDocBtn" style="font-size:12px; padding:5px 10px;">Upload</button>
+            <button class="btn danger" id="removeDocBtn" style="font-size:12px; padding:5px 10px;">Remove</button>
+          </div>
+          <div class="msg" id="docMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="visBlockMount"></div>
+
+    <div class="hub-card" id="questionsSection" style="${book.book_type === 'book' ? 'display:none;' : ''}">
+      <div class="hub-card" style="margin-bottom:16px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:10px;">Exercise environment</div>
+        <p style="font-size:12.5px; color:var(--muted); margin-top:0;">What a learner sees behind the questions on the Exercises page.</p>
+        <div class="field">
+          <label>Environment</label>
+          <div style="display:flex; gap:14px; font-size:13px; color:var(--ink);">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="envMode" value="default" ${(!book.env_mode || book.env_mode === 'default') ? 'checked' : ''}> Default</label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="envMode" value="custom" ${book.env_mode === 'custom' ? 'checked' : ''}> Create mine</label>
+          </div>
+        </div>
+        <div id="envCustomFields" style="display:${book.env_mode === 'custom' ? 'flex' : 'none'}; gap:10px;">
+          <div class="field" style="flex:none; width:70px;"><label>Background</label><input type="color" id="envBgColor" value="${esc(book.env_bg_color || '#F6F5F1')}" style="height:38px; padding:2px;"></div>
+          <div class="field" style="flex:1;">
+            <label>Lines</label>
+            <select id="envLineStyle">
+              <option value="none" ${(!book.env_line_style || book.env_line_style === 'none') ? 'selected' : ''}>None</option>
+              <option value="grid" ${book.env_line_style === 'grid' ? 'selected' : ''}>Grid</option>
+              <option value="ruled" ${book.env_line_style === 'ruled' ? 'selected' : ''}>Ruled (horizontal)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn secondary" id="saveEnvBtn">Save environment</button>
+        <div class="msg" id="envMsg"></div>
+      </div>
+
+      <div class="hub-card" style="margin-bottom:16px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);">Marks</span>
+          <button class="btn secondary" id="viewMarksBtn" style="padding:5px 12px; font-size:12px;">View marks</button>
+        </div>
+        <div id="marksMount" style="display:none;"></div>
+      </div>
+
+      <div class="hub-card" style="margin-bottom:16px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:10px;">Add a question</div>
+        <div class="field">
+          <label>Type</label>
+          <div style="display:flex; gap:14px; font-size:13px; color:var(--ink);">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="qType" value="mcq" checked> Multiple choice</label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="radio" name="qType" value="short_answer"> Short answer</label>
+          </div>
+        </div>
+        <div class="field"><label>Question text</label><textarea id="qText" placeholder="What is..."></textarea></div>
+        <div class="field" id="qOptionsField">
+          <label>Options — select the radio next to the correct one</label>
+          <div id="optRows"></div>
+          <button type="button" class="btn secondary" id="addOptBtn" style="margin-top:4px;">+ Add option</button>
+        </div>
+        <div class="field" id="qShortAnswerField" style="display:none;">
+          <label>Correct answer (note) — what the learner must type to be marked correct</label>
+          <input type="text" id="qCorrectAnswerText" placeholder="e.g. mitochondria">
+        </div>
+        <div class="field"><label>Explanation (shown after checking)</label><textarea id="qExplanation" placeholder="Why the correct answer is correct…"></textarea></div>
+        <div class="field"><label>Reference URL (optional)</label><input type="text" id="qReference" placeholder="https://…"></div>
+        <div class="field" style="max-width:140px;"><label>Highlight color</label><input type="color" id="qColor" value="#2F6F4F" style="height:38px; padding:2px;"></div>
+        <button class="btn" id="addQuestionBtn">Add question</button>
+        <div class="msg" id="qMsg"></div>
+      </div>
+
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">Questions in this book</div>
+      <div id="qList"><div class="empty-state">Loading…</div></div>
+    </div>
+  `;
+  if (window.rhEnhanceFileInputs) window.rhEnhanceFileInputs();
+
+  document.querySelectorAll('input[name="envMode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('envCustomFields').style.display = document.querySelector('input[name="envMode"]:checked').value === 'custom' ? 'flex' : 'none';
+    });
+  });
+  const saveEnvBtn = document.getElementById('saveEnvBtn');
+  if (saveEnvBtn) saveEnvBtn.addEventListener('click', async () => {
+    const envMsg = document.getElementById('envMsg');
+    const mode = document.querySelector('input[name="envMode"]:checked').value;
+    const payload = { envMode: mode };
+    if (mode === 'custom') {
+      payload.envBgColor = document.getElementById('envBgColor').value;
+      payload.envLineStyle = document.getElementById('envLineStyle').value;
+    }
+    const res = await fetch('/api/content/books/' + book.id, {
+      method: 'PATCH', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    envMsg.textContent = res.ok ? 'Environment saved.' : (data.error || 'Could not save environment.');
+    envMsg.className = 'msg ' + (res.ok ? 'ok' : 'err');
+    if (res.ok) await loadBooks();
+  });
+
+  document.getElementById('viewMarksBtn').addEventListener('click', async () => {
+    const marksMount = document.getElementById('marksMount');
+    const btn = document.getElementById('viewMarksBtn');
+    if(marksMount.style.display !== 'none'){ marksMount.style.display = 'none'; return; }
+    btn.disabled = true; btn.textContent = 'Loading…';
+    try{
+      const res = await fetch('/api/content/books/' + book.id + '/marks', { headers: authHeaders() });
+      const data = await res.json();
+      if(!res.ok){ marksMount.innerHTML = '<div class="empty-state">' + esc(data.error || 'Could not load marks.') + '</div>'; }
+      else if(!data.marks.length){ marksMount.innerHTML = '<div class="empty-state">No one has attempted this book yet.</div>'; }
+      else {
+        marksMount.innerHTML = `
+          <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead><tr style="text-align:left; border-bottom:1.5px solid var(--grid);">
+              <th style="padding:6px 4px;">#</th><th style="padding:6px 4px;">Learner</th>
+              <th style="padding:6px 4px;">Score</th><th style="padding:6px 4px;">%</th><th style="padding:6px 4px;">Status</th>
+            </tr></thead>
+            <tbody>${data.marks.map(m => `
+              <tr style="border-bottom:1px solid var(--grid);">
+                <td style="padding:6px 4px;">${m.rank}</td>
+                <td style="padding:6px 4px;">${esc(m.name || m.email)}</td>
+                <td style="padding:6px 4px;">${m.correct}/${m.total}</td>
+                <td style="padding:6px 4px;">${m.percent}%</td>
+                <td style="padding:6px 4px; color:${m.percent >= data.book.passingScore ? 'var(--green)' : 'var(--red)'};">${m.percent >= data.book.passingScore ? 'Pass' : 'Fail'}</td>
+              </tr>
+            `).join('')}</tbody>
+          </table>
+        `;
+      }
+      marksMount.style.display = 'block';
+    }catch(e){
+      marksMount.innerHTML = '<div class="empty-state">Could not load marks.</div>';
+      marksMount.style.display = 'block';
+    }finally{
+      btn.disabled = false; btn.textContent = 'View marks';
+    }
+  });
+
+  setupCoverAndDocument(book);
+  document.getElementById('visBlockMount').appendChild(renderVisibilityBlock(book));
+
+  const optRows = document.getElementById('optRows');
+  optRowSeq = 0;
+  optRows.appendChild(newOptionRow('opt' + (++optRowSeq), '', true, 'newQCorrect'));
+  optRows.appendChild(newOptionRow('opt' + (++optRowSeq), '', false, 'newQCorrect'));
+  document.getElementById('addOptBtn').addEventListener('click', () => {
+    optRows.appendChild(newOptionRow('opt' + (++optRowSeq), '', false, 'newQCorrect'));
+  });
+  document.querySelectorAll('input[name="qType"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isShort = document.querySelector('input[name="qType"]:checked').value === 'short_answer';
+      document.getElementById('qOptionsField').style.display = isShort ? 'none' : '';
+      document.getElementById('qShortAnswerField').style.display = isShort ? '' : 'none';
+    });
+  });
+
+  document.getElementById('saveBookBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('saveBookMsg');
+    const res = await fetch('/api/content/books/' + book.id, {
+      method: 'PATCH', headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        author: document.getElementById('bookAuthor').value,
+        description: document.getElementById('bookDescription').value,
+        bookType: document.getElementById('bookType').value,
+        themeColor: document.getElementById('bookTheme').value,
+        passingScore: Number(document.getElementById('bookPassing').value) || 0
+      })
+    });
+    const data = await res.json();
+    msg.textContent = res.ok ? 'Saved.' : (data.error || 'Could not save');
+    msg.className = 'msg ' + (res.ok ? 'ok' : 'err');
+    await loadBooks();
+    if (res.ok) renderBookDetail(); // re-render so cover/questions sections show/hide per the (possibly changed) type
+  });
+
+  document.getElementById('addQuestionBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('qMsg');
+    const qType = document.querySelector('input[name="qType"]:checked').value;
+    const payload = {
+      bookId: book.id,
+      questionText: document.getElementById('qText').value,
+      questionType: qType,
+      explanation: document.getElementById('qExplanation').value,
+      reference: document.getElementById('qReference').value,
+      color: document.getElementById('qColor').value
+    };
+    if(qType === 'short_answer'){
+      const answer = document.getElementById('qCorrectAnswerText').value.trim();
+      if(!answer){ msg.textContent = 'Enter the correct answer.'; msg.className = 'msg err'; return; }
+      payload.correctAnswerText = answer;
+    } else {
+      const rows = Array.from(optRows.querySelectorAll('.opt-row'));
+      const options = rows.map(r => ({ id: r.dataset.optId, text: r.querySelector('input[type="text"]').value.trim() })).filter(o => o.text);
+      const correctRow = rows.find(r => r.querySelector('input[type="radio"]').checked);
+      if(!options.length || options.length < 2){ msg.textContent = 'Add at least 2 options.'; msg.className = 'msg err'; return; }
+      if(!correctRow || !correctRow.querySelector('input[type="text"]').value.trim()){ msg.textContent = 'Mark which option is correct.'; msg.className = 'msg err'; return; }
+      payload.options = options;
+      payload.correctOptionId = correctRow.dataset.optId;
+    }
+
+    const res = await fetch('/api/content/questions', {
+      method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(!res.ok){ msg.textContent = data.error; msg.className = 'msg err'; return; }
+    msg.textContent = 'Question added.'; msg.className = 'msg ok';
+    document.getElementById('qText').value = '';
+    document.getElementById('qExplanation').value = '';
+    document.getElementById('qReference').value = '';
+    const answerField = document.getElementById('qCorrectAnswerText');
+    if(answerField) answerField.value = '';
+    loadQuestions(book.id);
+  });
+
+  loadQuestions(book.id);
+}
+
+// Cover/document routes redirect to a signed Storage URL and require the
+// Authorization header, which a plain <img src="..."> or <a href="..."> can
+// never send — fetch with the header instead and turn the result into a
+// blob URL, same pattern used for file downloads elsewhere in the app.
+async function fetchAuthedBlob(url){
+  const res = await fetch(url, { headers: authHeaders() });
+  if(!res.ok){
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Could not load file.');
+  }
+  return res.blob();
+}
+
+function setupCoverAndDocument(book){
+  const coverImg = document.getElementById('coverPreviewImg');
+  const coverEmpty = document.getElementById('coverPreviewEmpty');
+  const coverMsg = document.getElementById('coverMsg');
+  const docCurrent = document.getElementById('docCurrent');
+  const docMsg = document.getElementById('docMsg');
+
+  coverImg.style.display = 'none';
+  coverEmpty.style.display = 'block';
+  if(book.cover_storage_path){
+    fetchAuthedBlob('/api/content/books/' + book.id + '/cover').then(blob => {
+      coverImg.src = URL.createObjectURL(blob);
+      coverImg.style.display = 'block';
+      coverEmpty.style.display = 'none';
+    }).catch(() => {});
+  }
+
+  if(book.document_original_name){
+    docCurrent.innerHTML = '📄 ' + esc(book.document_original_name) +
+      ' <a href="#" id="viewDocLink" style="margin-left:8px;">View</a>';
+    document.getElementById('viewDocLink').addEventListener('click', async (e) => {
+      e.preventDefault();
+      try{
+        const blob = await fetchAuthedBlob('/api/content/books/' + book.id + '/document');
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank', 'noopener');
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }catch(err){ showToast(err.message || 'Could not open document.', 'error'); }
+    });
+  } else {
+    docCurrent.textContent = 'No document attached.';
+  }
+
+  document.getElementById('uploadCoverBtn').addEventListener('click', async () => {
+    const input = document.getElementById('coverFileInput');
+    if(!input.files.length){ coverMsg.textContent = 'Choose an image first.'; coverMsg.className = 'msg err'; return; }
+    const fd = new FormData();
+    fd.append('cover', input.files[0]);
+    const res = await fetch('/api/content/books/' + book.id + '/cover', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + getToken() }, body: fd
+    });
+    const data = await res.json();
+    coverMsg.textContent = res.ok ? 'Cover updated.' : (data.error || 'Could not upload cover');
+    coverMsg.className = 'msg ' + (res.ok ? 'ok' : 'err');
+    if(res.ok){ await loadBooks(); renderBookDetail(); }
+  });
+
+  document.getElementById('removeCoverBtn').addEventListener('click', async () => {
+    if(!book.cover_storage_path) return;
+    if(!confirm('Remove this cover image?')) return;
+    const res = await fetch('/api/content/books/' + book.id + '/cover', { method: 'DELETE', headers: authHeaders() });
+    const data = await res.json();
+    if(!res.ok){ showToast(data.error || 'Could not remove cover', 'error'); return; }
+    await loadBooks(); renderBookDetail();
+  });
+
+  document.getElementById('uploadDocBtn').addEventListener('click', async () => {
+    const input = document.getElementById('docFileInput');
+    if(!input.files.length){ docMsg.textContent = 'Choose a file first.'; docMsg.className = 'msg err'; return; }
+    const fd = new FormData();
+    fd.append('document', input.files[0]);
+    const res = await fetch('/api/content/books/' + book.id + '/document', {
+      method: 'POST', headers: { Authorization: 'Bearer ' + getToken() }, body: fd
+    });
+    const data = await res.json();
+    docMsg.textContent = res.ok ? 'Document uploaded.' : (data.error || 'Could not upload document');
+    docMsg.className = 'msg ' + (res.ok ? 'ok' : 'err');
+    if(res.ok){ await loadBooks(); renderBookDetail(); }
+  });
+
+  document.getElementById('removeDocBtn').addEventListener('click', async () => {
+    if(!book.document_storage_path) return;
+    if(!confirm('Remove the attached document?')) return;
+    const res = await fetch('/api/content/books/' + book.id + '/document', { method: 'DELETE', headers: authHeaders() });
+    const data = await res.json();
+    if(!res.ok){ showToast(data.error || 'Could not remove document', 'error'); return; }
+    await loadBooks(); renderBookDetail();
+  });
+}
+
+async function loadQuestions(bookId){
+  const list = document.getElementById('qList');
+  const res = await fetch('/api/content/books/' + bookId + '/questions', { headers: authHeaders() });
+  const data = await res.json();
+  const questions = data.questions || [];
+  if(!questions.length){ list.innerHTML = '<div class="hub-card empty-state">No questions yet — add one above.</div>'; return; }
+  list.innerHTML = questions.map(q => `
+    <div class="q-item" data-id="${q.id}">
+      <div class="q-item-text">${esc(q.question_text)}<span class="swatch" style="background:${esc(q.color)};"></span></div>
+      <div class="q-item-meta">${q.question_type === 'short_answer'
+        ? 'Short answer · correct: ' + esc(q.correct_answer_text || '')
+        : q.options.length + ' options · correct: ' + esc((q.options.find(o=>o.id===q.correct_option_id)||{}).text || q.correct_option_id)
+      }${q.reference ? ' · has reference' : ''}</div>
+      <div class="q-item-actions">
+        <button class="btn secondary" data-action="delete">Delete</button>
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.closest('.q-item').dataset.id;
+      if(!confirm('Delete this question?')) return;
+      await fetch('/api/content/questions/' + id, { method: 'DELETE', headers: authHeaders() });
+      loadQuestions(bookId);
+    });
+  });
+}
+
+let teams = [];
+async function loadTeams(){
+  const res = await fetch('/api/teams/mine', { headers: authHeaders() });
+  if(!res.ok) return;
+  const data = await res.json();
+  teams = (data.teams || []).filter(t => t.my_status === 'accepted');
+}
+
+async function loadBookRequests(){
+  const list = document.getElementById('bookRequestList');
+  const res = await fetch('/api/content/books/access-requests/incoming', { headers: authHeaders() });
+  if(!res.ok) return;
+  const data = await res.json();
+  const pending = (data.requests || []).filter(r => r.status === 'pending');
+  if(!pending.length){ list.innerHTML = '<div class="empty-state">None pending.</div>'; return; }
+  list.innerHTML = pending.map(r => `
+    <div style="padding:8px 0; border-bottom:1px solid var(--grid); font-size:12.5px;">
+      <div>${esc(r.requester_name || r.requester_email)} → <em>${esc(r.book_title)}</em></div>
+      <div style="margin-top:6px; display:flex; gap:8px;">
+        <button class="btn secondary" data-approve="${r.id}" style="padding:4px 10px; font-size:12px;">Approve</button>
+        <button class="btn danger" data-deny="${r.id}" style="padding:4px 10px; font-size:12px;">Deny</button>
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-approve]').forEach(b => b.addEventListener('click', () => decideBookRequest(b.dataset.approve, true)));
+  list.querySelectorAll('[data-deny]').forEach(b => b.addEventListener('click', () => decideBookRequest(b.dataset.deny, false)));
+}
+
+async function decideBookRequest(id, approve){
+  await fetch('/api/content/books/access-requests/' + id + '/decide', {
+    method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ approve })
+  });
+  loadBookRequests();
+}
+
+function teamOptions(selectedId){
+  return '<option value="">No team</option>' + teams.map(t => `<option value="${t.id}" ${String(t.id)===String(selectedId)?'selected':''}>${esc(t.name)}</option>`).join('');
+}
+
+function renderVisibilityBlock(book){
+  const wrap = document.createElement('div');
+  wrap.className = 'hub-card';
+  wrap.style.marginBottom = '16px';
+  const visValue = book.team_id ? 'team' : (!book.is_public ? 'private' : (book.access_mode === 'restricted' ? 'reader' : 'public'));
+  wrap.innerHTML = `
+    <div style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:10px;">Who can take this book</div>
+    <div class="field"><label>Visibility</label>
+      <select id="bookVis">
+        <option value="private" ${visValue==='private'?'selected':''}>Private (only facilitators/admins)</option>
+        <option value="reader" ${visValue==='reader'?'selected':''}>Reader (public listing, request required)</option>
+        <option value="public" ${visValue==='public'?'selected':''}>Public (anyone signed in)</option>
+        <option value="team" ${visValue==='team'?'selected':''}>Team only</option>
+      </select>
+    </div>
+    <div class="field" id="bookTeamField" style="display:${visValue==='team'?'block':'none'};"><label>Team</label><select id="bookTeam">${teamOptions(book.team_id)}</select></div>
+    <button class="btn secondary" id="saveVisBtn">Save visibility</button>
+    <div class="msg" id="visMsg"></div>
+  `;
+  wrap.querySelector('#bookVis').addEventListener('change', (e) => {
+    wrap.querySelector('#bookTeamField').style.display = e.target.value === 'team' ? 'block' : 'none';
+  });
+  wrap.querySelector('#saveVisBtn').addEventListener('click', async () => {
+    const vis = wrap.querySelector('#bookVis').value;
+    const msg = wrap.querySelector('#visMsg');
+    const payload = vis === 'team'
+      ? { isPublic: false, accessMode: 'open', teamId: wrap.querySelector('#bookTeam').value || null }
+      : { isPublic: vis !== 'private', accessMode: vis === 'reader' ? 'restricted' : 'open', teamId: null };
+    const res = await fetch('/api/content/books/' + book.id + '/visibility', {
+      method: 'PATCH', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    msg.textContent = res.ok ? 'Saved.' : (data.error || 'Could not save');
+    msg.className = 'msg ' + (res.ok ? 'ok' : 'err');
+    loadBooks();
+  });
+  return wrap;
+}
+
+(async function init(){
+  const user = await window.HubNav.init('content', true);
+  if(!user) return;
+  if(user.role !== 'admin' && user.role !== 'facilitator'){
+    document.getElementById('notAllowed').style.display = 'block';
+    return;
+  }
+  document.getElementById('contentApp').style.display = 'block';
+  await loadTeams();
+  loadBooks();
+  loadBookRequests();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Lets you deploy with "New +" -> "Blueprint" in the Render dashboard,
+# pointing at this repo, instead of configuring each field by hand.
+# Env vars marked sync: false are secrets — Render will prompt for them
+# during setup instead of reading a value from this file (never commit
+# real keys here).
+
+services:
+  - type: web
+    name: reasoning-hub
+    runtime: node
+    plan: free
+    region: oregon          # pick whichever region is closest to your users
+    branch: main            # change if you deploy from a different branch
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true   # Render will generate a random secret for you
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-flash-latest
+      - key: ADMIN_EMAILS
+        sync: false

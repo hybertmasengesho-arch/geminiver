@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  // Signed-in visitors don't need the pitch — send them straight to their
+  // dashboard before this page paints. Checked here (not in nav.js) so the
+  // redirect happens as early as possible, ahead of the CSS/JS animations.
+  (function(){
+    try{
+      if(localStorage.getItem('rh_token')){
+        location.replace('/dashboard.html');
+      }
+    }catch(e){ /* localStorage unavailable — just show the landing page */ }
+  })();
+  // Theme: an explicit rh_theme preference (same key the rest of the app
+  // uses) always wins. Otherwise, pick automatically from local time —
+  // light 6am–7pm, dark the rest of the day — so the page matches whether
+  // it's actually day or night for the visitor, no toggle required.
+  (function(){
+    try{
+      var saved = localStorage.getItem('rh_theme');
+      var theme = saved;
+      if(theme !== 'dark' && theme !== 'light'){
+        var hour = new Date().getHours();
+        theme = (hour >= 6 && hour < 19) ? 'light' : 'dark';
+      }
+      if(theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    }catch(e){ /* default (dark) styles apply if this fails */ }
+  })();
+</script>
+<title>Cortex — Authentication matters.</title>
+<meta name="description" content="Cortex tracks your Matrix Accuracy, Reasoning Lab, and 30-Day EE Prep progress under one real account — because authentication matters. Sign up free.">
+<link rel="canonical" href="https://REPLACE-WITH-YOUR-DOMAIN/">
+<meta property="og:title" content="Cortex — Authentication matters.">
+<meta property="og:description" content="One account. Three tracked study tracks. Your progress, your files, your history — actually yours.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://REPLACE-WITH-YOUR-DOMAIN/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#F6F7F5;
+    --panel:#FFFFFF;
+    --panel-2:#EEF2EF;
+    --line:#DCE2DD;
+    --phosphor:#0E9E68;
+    --phosphor-dim:#0B7C51;
+    --phosphor-bg:#0E9E68;
+    --phosphor-bg-text:#FFFFFF;
+    --signal:#D6491F;
+    --ink:#12161B;
+    --ink-dim:#5B6470;
+    --nav-bg:rgba(246,247,245,.78);
+    --scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --void:#07080B;
+    --panel:#0F131A;
+    --panel-2:#151B24;
+    --line:#232B38;
+    --phosphor:#4CFFB3;
+    --phosphor-dim:#2B9E77;
+    --phosphor-bg:#4CFFB3;
+    --phosphor-bg-text:#04120C;
+    --signal:#FF6B4A;
+    --ink:#EDEFF2;
+    --ink-dim:#8A93A6;
+    --nav-bg:rgba(7,8,11,.72);
+    --scheme:dark;
+  }
+  html{ color-scheme:var(--scheme); }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--void);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  /* ambient drifting grid — subtle, slow */
+  .grid-field{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:56px 56px;
+    opacity:.28;
+    animation:gridDrift 40s linear infinite;
+    mask-image:radial-gradient(ellipse 70% 60% at 50% 20%, black 30%, transparent 75%);
+  }
+  @keyframes gridDrift{
+    0%{ background-position:0 0, 0 0; }
+    100%{ background-position:56px 112px, 112px 56px; }
+  }
+
+  /* ---------------- nav ---------------- */
+  .nav{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px clamp(20px,5vw,64px);
+    background:var(--nav-bg);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    transition:background .3s ease;
+  }
+  .brand{
+    display:flex; align-items:center; gap:9px;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:19px;
+    color:var(--ink); text-decoration:none; letter-spacing:.01em;
+  }
+  .brand-mark{ width:9px; height:9px; border-radius:50%; background:var(--phosphor);
+    box-shadow:0 0 0 0 rgba(76,255,179,.5); animation:markPulse 2.4s ease-in-out infinite; }
+  @keyframes markPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(76,255,179,.45); }
+    50%{ box-shadow:0 0 0 7px rgba(76,255,179,0); }
+  }
+  .nav-actions{ display:flex; align-items:center; gap:10px; }
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px;
+    padding:9px 18px; border-radius:7px; text-decoration:none; cursor:pointer;
+    border:1px solid transparent; transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-ghost{ color:var(--ink); border-color:var(--line); background:transparent; }
+  .btn-ghost:hover{ border-color:var(--ink-dim); transform:translateY(-1px); }
+  .btn-solid{ color:var(--phosphor-bg-text); background:var(--phosphor-bg); }
+  .btn-solid:hover{ transform:translateY(-1px); box-shadow:0 0 24px rgba(76,255,179,.35); }
+  .btn-solid-lg{ padding:14px 26px; font-size:15px; border-radius:9px; }
+  .btn-ghost-lg{ padding:14px 26px; font-size:15px; border-radius:9px; }
+
+  /* pulsing ring on the primary CTA to draw the eye without being frantic */
+  .cta-pulse{ position:relative; }
+  .cta-pulse::after{
+    content:''; position:absolute; inset:-1px; border-radius:9px;
+    border:1px solid var(--phosphor); opacity:0;
+    animation:ctaRing 2.8s ease-out infinite;
+  }
+  @keyframes ctaRing{
+    0%{ transform:scale(1); opacity:.55; }
+    75%{ transform:scale(1.14); opacity:0; }
+    100%{ opacity:0; }
+  }
+
+  /* ---------------- hero ---------------- */
+  .hero{
+    position:relative; z-index:1;
+    max-width:1120px; margin:0 auto;
+    padding:clamp(56px,10vw,108px) clamp(20px,5vw,64px) 40px;
+    display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;
+  }
+  @media (max-width:860px){ .hero{ grid-template-columns:1fr; } }
+
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--phosphor); border:1px solid var(--phosphor-dim); background:rgba(76,255,179,.06);
+    padding:6px 12px; border-radius:100px; margin-bottom:22px;
+    opacity:0; animation:fadeUp .7s ease forwards; animation-delay:.05s;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--phosphor); animation:markPulse 2.4s ease-in-out infinite; }
+
+  h1.hero-title{
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:clamp(42px,6.2vw,72px); line-height:1.02; margin:0 0 18px;
+    letter-spacing:-.01em;
+    opacity:0; animation:fadeUp .8s ease forwards; animation-delay:.15s;
+  }
+  h1.hero-title .cursor{
+    display:inline-block; width:.5ch; background:var(--phosphor); margin-left:4px;
+    animation:blink 1s step-end infinite;
+  }
+  .hero-slogan{
+    font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:clamp(18px,2.4vw,23px);
+    color:var(--phosphor); margin:0 0 18px;
+    opacity:0; animation:fadeUp .8s ease forwards; animation-delay:.28s;
+  }
+  .hero-body{
+    font-size:16px; line-height:1.65; color:var(--ink-dim); max-width:46ch; margin:0 0 30px;
+    opacity:0; animation:fadeUp .8s ease forwards; animation-delay:.4s;
+  }
+  .hero-ctas{
+    display:flex; gap:14px; flex-wrap:wrap;
+    opacity:0; animation:fadeUp .8s ease forwards; animation-delay:.52s;
+  }
+  .hero-readout{
+    margin-top:28px; font-size:12.5px; color:var(--ink-dim);
+    display:flex; align-items:center; gap:10px;
+    opacity:0; animation:fadeUp .8s ease forwards; animation-delay:.64s;
+  }
+  .hero-readout .readout-text{ color:var(--phosphor-dim); min-width:15ch; display:inline-block; }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  /* ---------------- hero visual: neural signal → lock ---------------- */
+  .hero-visual{ position:relative; display:flex; align-items:center; justify-content:center; }
+  .hero-visual svg{ width:100%; max-width:420px; height:auto; overflow:visible; animation:heroFloat 6s ease-in-out infinite 3.5s; }
+  @keyframes heroFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+
+  .dendrite{
+    fill:none; stroke:var(--phosphor-dim); stroke-width:1.4; stroke-linecap:round;
+    stroke-dasharray:220; stroke-dashoffset:220;
+    animation:draw 1.6s ease forwards;
+  }
+  .dendrite.d1{ animation-delay:.2s; }
+  .dendrite.d2{ animation-delay:.35s; }
+  .dendrite.d3{ animation-delay:.5s; }
+  .dendrite.d4{ animation-delay:.65s; }
+  .dendrite.d5{ animation-delay:.8s; }
+  .dendrite.d6{ animation-delay:.95s; }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+
+  .node{ fill:var(--phosphor); opacity:0; animation:nodeIn .5s ease forwards, nodePulse 3s ease-in-out infinite; }
+  .node.n1{ animation-delay:1s, 1.6s; }
+  .node.n2{ animation-delay:1.15s, 1.9s; }
+  .node.n3{ animation-delay:1.3s, 2.2s; }
+  .node.n4{ animation-delay:1.45s, 2.5s; }
+  .node.n5{ animation-delay:1.6s, 2.8s; }
+  .node.n6{ animation-delay:1.75s, 3.1s; }
+  @keyframes nodeIn{ to{ opacity:1; } }
+  @keyframes nodePulse{
+    0%,100%{ r:2.6; opacity:.85; }
+    50%{ r:4; opacity:1; }
+  }
+
+  .signal-dot{
+    fill:var(--signal); r:3.2;
+    offset-path:path('M210,60 C150,90 120,150 130,200 C140,250 180,280 210,300');
+    animation:travel 3.4s linear infinite;
+    animation-delay:1.9s;
+    opacity:0;
+  }
+  @keyframes travel{
+    0%{ offset-distance:0%; opacity:0; }
+    4%{ opacity:1; }
+    96%{ opacity:1; }
+    100%{ offset-distance:100%; opacity:0; }
+  }
+
+  .lock-shackle{
+    fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round;
+    transform-origin:210px 205px;
+    opacity:0; animation:lockIn .5s ease forwards .3s;
+  }
+  .lock-body{ opacity:0; animation:lockIn .5s ease forwards .3s; fill:var(--panel-2); stroke:var(--line); stroke-width:1.5; }
+  @keyframes lockIn{ to{ opacity:1; } }
+  .lock-check{
+    fill:none; stroke:var(--phosphor); stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:26; stroke-dashoffset:26;
+    animation:draw .5s ease forwards 2.15s;
+  }
+  .lock-glow{ opacity:0; animation:glowIn 1s ease forwards 2.3s, glowPulse 2.6s ease-in-out infinite 3.3s; }
+  @keyframes glowIn{ to{ opacity:1; } }
+  @keyframes glowPulse{ 0%,100%{ opacity:.5; } 50%{ opacity:.9; } }
+
+  /* ---------------- why-it-matters ---------------- */
+  .section{ position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:70px clamp(20px,5vw,64px); }
+  .section-divider{ border:none; border-top:1px solid var(--line); max-width:1120px; margin:0 auto; }
+
+  .why{ display:grid; grid-template-columns:.85fr 1.15fr; gap:48px; align-items:start; }
+  @media (max-width:860px){ .why{ grid-template-columns:1fr; } }
+  .why-label{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-dim); }
+  .why h2{ font-family:'Space Grotesk',sans-serif; font-size:clamp(26px,3.4vw,34px); margin:10px 0 0; line-height:1.15; }
+  .why-copy p{ color:var(--ink-dim); line-height:1.75; font-size:15.5px; margin:0 0 16px; }
+  .why-copy strong{ color:var(--ink); font-weight:600; }
+
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ---------------- feature cards ---------------- */
+  .tracks-head{ text-align:left; margin-bottom:36px; }
+  .tracks-head .why-label{ margin-bottom:10px; display:block; }
+  .tracks-head h2{ font-family:'Space Grotesk',sans-serif; font-size:clamp(26px,3.4vw,34px); margin:0; }
+  .tracks-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  @media (max-width:860px){ .tracks-grid{ grid-template-columns:1fr; } }
+  .track-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:26px;
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .track-card:hover{ border-color:var(--phosphor-dim); transform:translateY(-3px); }
+  .track-tag{ font-size:11px; letter-spacing:.1em; color:var(--phosphor); margin-bottom:14px; display:block; }
+  .track-card h3{ font-family:'Space Grotesk',sans-serif; font-size:19px; margin:0 0 10px; }
+  .track-card p{ color:var(--ink-dim); font-size:14.5px; line-height:1.6; margin:0; }
+
+  /* ---------------- final cta band ---------------- */
+  .cta-band{
+    position:relative; z-index:1; max-width:1120px; margin:20px auto 0;
+    padding:56px clamp(20px,5vw,64px); text-align:center;
+    background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+    border:1px solid var(--line); border-radius:18px;
+    animation:ctaGlow 5s ease-in-out infinite;
+  }
+  @keyframes ctaGlow{ 0%,100%{ border-color:var(--line); } 50%{ border-color:var(--phosphor-dim); } }
+  .cta-band h2{ font-family:'Space Grotesk',sans-serif; font-size:clamp(24px,3.2vw,32px); margin:0 0 12px; }
+  .cta-band p{ color:var(--ink-dim); margin:0 0 26px; font-size:15px; }
+  .cta-band .hero-ctas{ justify-content:center; opacity:1; animation:none; }
+
+  footer{
+    position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:40px clamp(20px,5vw,64px) 60px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+    color:var(--ink-dim); font-size:13px;
+  }
+  footer a{ color:var(--ink-dim); }
+
+  @media (prefers-reduced-motion:reduce){
+    *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="grid-field" aria-hidden="true"></div>
+
+<nav class="nav">
+  <a class="brand" href="/">
+    <span class="brand-mark" aria-hidden="true"></span>
+    Cortex
+  </a>
+  <div class="nav-actions">
+    <button type="button" id="themeToggle" class="btn btn-ghost" aria-label="Toggle dark mode" title="Toggle theme">☾</button>
+    <a class="btn btn-ghost" href="/login.html">Log in</a>
+    <a class="btn btn-solid cta-pulse" href="/register.html">Sign up</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div>
+    <span class="eyebrow mono"><span class="dot" aria-hidden="true"></span> COGNITIVE ACCESS · VERIFIED</span>
+    <h1 class="hero-title">Cortex<span class="cursor" aria-hidden="true"></span></h1>
+    <p class="hero-slogan">Authentication matters.</p>
+    <p class="hero-body">Cortex tracks your Matrix Accuracy, Reasoning Lab, and 30-Day EE Prep progress — all three, under one real account. No guest mode. No local history that disappears the moment you clear your cache.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-solid btn-solid-lg cta-pulse" href="/register.html">Create your account</a>
+      <a class="btn btn-ghost btn-ghost-lg" href="/login.html">Log in</a>
+    </div>
+    <div class="hero-readout mono">
+      <span>STATUS:</span>
+      <span class="readout-text" id="readoutText">awaiting credentials…</span>
+    </div>
+  </div>
+
+  <div class="hero-visual" aria-hidden="true">
+    <svg viewBox="0 0 340 340" xmlns="http://www.w3.org/2000/svg">
+      <path class="dendrite d1" d="M210,205 C170,175 120,160 60,150" />
+      <path class="dendrite d2" d="M210,205 C185,150 190,90 165,40" />
+      <path class="dendrite d3" d="M210,205 C255,165 300,150 320,110" />
+      <path class="dendrite d4" d="M210,205 C245,235 285,240 315,265" />
+      <path class="dendrite d5" d="M210,205 C175,250 150,275 110,300" />
+      <path class="dendrite d6" d="M210,205 C160,215 110,210 55,230" />
+
+      <circle class="node n1" cx="60" cy="150" r="3" />
+      <circle class="node n2" cx="165" cy="40" r="3" />
+      <circle class="node n3" cx="320" cy="110" r="3" />
+      <circle class="node n4" cx="315" cy="265" r="3" />
+      <circle class="node n5" cx="110" cy="300" r="3" />
+      <circle class="node n6" cx="55" cy="230" r="3" />
+
+      <circle class="lock-glow" cx="210" cy="205" r="34" fill="url(#glowGrad)" />
+      <defs>
+        <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:var(--phosphor)" stop-opacity="0.35" />
+          <stop offset="100%" style="stop-color:var(--phosphor)" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+
+      <rect class="lock-body" x="186" y="200" width="48" height="38" rx="7" />
+      <path class="lock-shackle" d="M195,200 v-14 a15,15 0 0 1 30,0 v14" />
+      <path class="lock-check" d="M198,219 l8,8 l16,-17" />
+
+      <circle class="signal-dot" cx="0" cy="0" />
+    </svg>
+  </div>
+</header>
+
+<hr class="section-divider" />
+
+<section class="section why">
+  <div class="reveal">
+    <span class="why-label mono">// WHY THE SLOGAN</span>
+    <h2>Your progress only counts<br>if it's provably yours.</h2>
+  </div>
+  <div class="why-copy reveal">
+    <p><strong>Every accuracy percentage, every completed day, every uploaded note</strong> in Cortex is written to your account, not your browser. That's the entire reason a real login exists here — not as friction, but as the thing that makes the trend charts, the shared files, and the messages from your instructor possible in the first place.</p>
+    <p>Skip authentication and you get a demo. Add it, and you get a running record: a 20-day Matrix accuracy trend, a Reasoning Lab streak, a 30-day Prep track you can actually resume — synced, backed up, and yours whichever device you open next.</p>
+  </div>
+</section>
+
+<section class="section" id="tracks">
+  <div class="tracks-head reveal">
+    <span class="why-label mono">// THREE TRACKS, ONE ACCOUNT</span>
+    <h2>What you're signing in to.</h2>
+  </div>
+  <div class="tracks-grid">
+    <div class="track-card reveal">
+      <span class="track-tag mono">01 · 20 DAYS</span>
+      <h3>Matrix Accuracy Tracker</h3>
+      <p>Daily timed drills with your accuracy logged per day, so the trend line — not just today's score — is what you're actually improving.</p>
+    </div>
+    <div class="track-card reveal">
+      <span class="track-tag mono">02 · 20 DAYS</span>
+      <h3>The Reasoning Lab</h3>
+      <p>Integration and logic problems structured as a day-by-day sequence, with completion saved the moment you finish one.</p>
+    </div>
+    <div class="track-card reveal">
+      <span class="track-tag mono">03 · 30 DAYS</span>
+      <h3>EE Year-2 Prep Track</h3>
+      <p>The bridge track for stepping into second-year electrical engineering coursework, one day at a time.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section" style="padding-top:0;">
+  <div class="cta-band reveal">
+    <h2 class="display">Authentication matters. So does starting today.</h2>
+    <p>Create an account in under a minute — your first day's progress is one drill away.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-solid btn-solid-lg cta-pulse" href="/register.html">Sign up free</a>
+      <a class="btn btn-ghost btn-ghost-lg" href="/login.html">I already have an account</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span class="mono">CORTEX</span>
+  <span>© 2026 · <a href="/login.html">Log in</a> · <a href="/register.html">Sign up</a></span>
+</footer>
+
+<script>
+  // theme toggle — a manual choice here is saved under the same key the
+  // rest of the app reads, so it carries over once you're signed in too.
+  (function(){
+    var btn = document.getElementById('themeToggle');
+    if(!btn) return;
+    function isDark(){ return document.documentElement.getAttribute('data-theme') === 'dark'; }
+    btn.textContent = isDark() ? '☀' : '☾';
+    btn.addEventListener('click', function(){
+      var next = isDark() ? 'light' : 'dark';
+      if(next === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      else document.documentElement.removeAttribute('data-theme');
+      try{ localStorage.setItem('rh_theme', next); }catch(e){}
+      btn.textContent = next === 'dark' ? '☀' : '☾';
+    });
+  })();
+
+  // typewriter-style status readout under the hero CTAs
+  (function(){
+    var el = document.getElementById('readoutText');
+    if(!el) return;
+    var lines = ['awaiting credentials…', 'no account, no history', 'sign up to begin tracking'];
+    var i = 0;
+    function type(text, cb){
+      var j = 0; el.textContent = '';
+      var iv = setInterval(function(){
+        el.textContent = text.slice(0, j+1);
+        j++;
+        if(j >= text.length){ clearInterval(iv); setTimeout(cb, 1400); }
+      }, 38);
+    }
+    function erase(cb){
+      var t = el.textContent;
+      var iv = setInterval(function(){
+        t = t.slice(0, -1);
+        el.textContent = t;
+        if(t.length === 0){ clearInterval(iv); cb(); }
+      }, 20);
+    }
+    function loop(){
+      type(lines[i], function(){
+        erase(function(){
+          i = (i+1) % lines.length;
+          loop();
+        });
+      });
+    }
+    if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) loop();
+    else el.textContent = lines[0];
+  })();
+
+  // scroll-reveal for sections below the fold
+  (function(){
+    var items = document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window)){
+      items.forEach(function(el){ el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    items.forEach(function(el){ io.observe(el); });
+  })();
+</script>
+</body>
+</html>

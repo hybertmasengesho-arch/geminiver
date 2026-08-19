@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unlock a file — Reasoning Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .redeem-wrap{ max-width:420px; margin:60px auto; text-align:center; }
+  .redeem-box{ background:var(--panel); border:1.5px solid var(--grid); border-radius:14px; padding:32px 26px; }
+  .redeem-box input{
+    width:100%; text-align:center; text-transform:uppercase; letter-spacing:.14em; font-family:'JetBrains Mono',monospace;
+    font-size:22px; padding:12px; border:1.5px solid var(--grid); border-radius:8px; margin:14px 0; box-sizing:border-box;
+  }
+  .redeem-box button{
+    background:var(--ink); color:#fff; border:none; border-radius:8px; padding:11px 20px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:14px; cursor:pointer; width:100%;
+  }
+  .redeem-box button:disabled{ opacity:.5; cursor:not-allowed; }
+  .redeem-status{ margin-top:16px; font-size:13.5px; }
+  .redeem-status.ok{ color:var(--green); }
+  .redeem-status.err{ color:var(--red); }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap redeem-wrap">
+  <div class="hub-eyebrow">Scan or type a code</div>
+  <h1 class="hub-h1" style="font-size:26px;">Unlock a file</h1>
+  <div class="redeem-box">
+    <p class="hub-sub" style="margin:0;">Someone shared a private file with you. Enter the code below, scan their QR code with your camera, or scanning it externally may have brought you straight here.</p>
+    <input type="text" id="codeInput" placeholder="ABCD1234" maxlength="8" autocomplete="off">
+    <button id="redeemBtn">Unlock file</button>
+    <button id="scanBtn" type="button" style="background:var(--panel);color:var(--ink);border:1.5px solid var(--line);margin-top:8px;">📷 Scan with camera</button>
+    <div class="redeem-status" id="status"></div>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/qr-scan.js"></script>
+<script src="/js/overlay.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+
+async function redeem(code, type){
+  const status = document.getElementById('status');
+  const btn = document.getElementById('redeemBtn');
+  status.className = 'redeem-status';
+  status.textContent = '';
+  if(!code){ status.textContent = 'Enter a code first.'; status.classList.add('err'); return; }
+  btn.disabled = true;
+  const endpoint = type === 'account' ? '/api/account-share/redeem' : (type === 'team' ? '/api/teams/join' : '/api/files/redeem');
+  try{
+    const res = await fetch(endpoint, {
+      method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not redeem that code.');
+    if(type === 'account'){
+      status.textContent = 'You can now see everything ' + (data.ownerName || 'that account') + ' has shared.';
+      status.classList.add('ok');
+      setTimeout(() => { location.href = '/files.html'; }, 1200);
+    } else if(type === 'team'){
+      status.textContent = data.alreadyMember ? ('You\'re already in "' + data.teamName + '".') : ('Joined "' + data.teamName + '".');
+      status.classList.add('ok');
+      setTimeout(() => { location.href = '/teams.html'; }, 1200);
+    } else {
+      const names = (data.files || []).map(f => f.title).join('", "');
+      status.textContent = data.files && data.files.length > 1
+        ? 'Unlocked ' + data.files.length + ' files: "' + names + '".'
+        : 'Unlocked "' + names + '".';
+      status.classList.add('ok');
+      setTimeout(() => { location.href = '/files.html'; }, 1200);
+    }
+  }catch(e){
+    status.textContent = e.message;
+    status.classList.add('err');
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+let redeemType = 'file';
+document.getElementById('redeemBtn').addEventListener('click', () => redeem(document.getElementById('codeInput').value.trim(), redeemType));
+document.getElementById('codeInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') redeem(e.target.value.trim(), redeemType); });
+document.getElementById('scanBtn').addEventListener('click', () => {
+  window.HubOverlay.show('Cortex Authentication', 'Initializing camera link…');
+  setTimeout(() => {
+    window.HubOverlay.hide();
+    window.QRScan.open({
+      onResult: (code) => { document.getElementById('codeInput').value = code; redeem(code, redeemType); },
+      onError: (e) => { const status = document.getElementById('status'); status.textContent = e.message; status.className = 'redeem-status err'; }
+    });
+  }, 750);
+});
+
+(async function init(){
+  const user = await window.HubNav.init('files', true);
+  if(!user) return;
+  const params = new URLSearchParams(location.search);
+  const code = (params.get('code') || '').trim();
+  redeemType = params.get('type') === 'account' ? 'account' : (params.get('type') === 'team' ? 'team' : 'file');
+  if(redeemType === 'account'){
+    document.querySelector('.hub-h1').textContent = 'Get access to someone\u2019s documents';
+    document.querySelector('.redeem-box .hub-sub').textContent = 'Someone shared their whole document library with you. Enter the code below, or scanning their QR may have brought you straight here.';
+  } else if(redeemType === 'team'){
+    document.querySelector('.hub-h1').textContent = 'Join a team';
+    document.querySelector('.redeem-box .hub-sub').textContent = 'Someone shared a team join code with you. Enter it below, scan their QR, or scanning it externally may have brought you straight here.';
+  }
+  if(code){
+    document.getElementById('codeInput').value = code.toUpperCase();
+    redeem(code, redeemType);
+  }
+})();
+</script>
+</body>
+</html>

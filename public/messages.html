@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messages — Reasoning Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .msg-shell{ display:grid; grid-template-columns:260px 1fr; gap:18px; margin-top:22px; min-height:60vh; }
+  @media (max-width:760px){ .msg-shell{ grid-template-columns:1fr; } .msg-thread-col.hidden-mobile{ display:none; } .msg-list-col.hidden-mobile{ display:none; } }
+
+  .msg-list-col{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  .msg-list-head{ padding:14px 16px; border-bottom:1px solid var(--grid); font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+  .msg-list{ overflow-y:auto; flex:1; }
+  .msg-list-item{ display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid var(--grid); cursor:pointer; text-decoration:none; color:inherit; }
+  .msg-list-item:hover{ background:var(--hover-bg,rgba(0,0,0,0.02)); }
+  .msg-list-item.active{ background:var(--active-bg,rgba(58,111,216,0.08)); }
+  .msg-avatar{
+    width:34px; height:34px; border-radius:50%; background:var(--blue-soft); color:var(--blue);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex:none;
+  }
+  .msg-list-meta{ flex:1; min-width:0; }
+  .msg-list-name{ font-size:13.5px; font-weight:600; color:var(--ink); }
+  .msg-list-preview{ font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .msg-unread-dot{ width:9px; height:9px; border-radius:50%; background:var(--blue); flex:none; }
+
+  .msg-thread-col{ background:var(--panel); border:1.5px solid var(--grid); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
+  .msg-thread-head{ padding:14px 16px; border-bottom:1px solid var(--grid); display:flex; align-items:center; gap:10px; }
+  .msg-back-btn{ display:none; background:none; border:none; font-size:16px; cursor:pointer; color:var(--muted); }
+  @media (max-width:760px){ .msg-back-btn{ display:block; } }
+  .msg-thread-name{ font-weight:700; font-size:14.5px; color:var(--ink); }
+  .msg-body{ flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .msg-bubble{ max-width:72%; padding:9px 12px; border-radius:12px; font-size:13.5px; line-height:1.5; white-space:pre-wrap; }
+  .msg-bubble.mine{ align-self:flex-end; background:var(--blue); color:#fff; border-bottom-right-radius:3px; }
+  .msg-bubble.theirs{ align-self:flex-start; background:var(--paper,var(--bg,#f4f4f2)); color:var(--ink); border-bottom-left-radius:3px; }
+  .msg-time{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); margin-top:4px; }
+  .msg-compose{ display:flex; gap:8px; padding:12px 14px; border-top:1px solid var(--grid); }
+  .msg-compose input{ flex:1; padding:9px 12px; border:1.5px solid var(--grid); border-radius:8px; font-size:13.5px; background:var(--panel); color:var(--ink); }
+  .msg-compose button{ background:var(--ink); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-weight:600; font-size:13px; cursor:pointer; }
+  .msg-compose button:disabled{ opacity:.5; cursor:not-allowed; }
+  .msg-empty{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding:30px; text-align:center; }
+  .msg-new-row{ padding:10px 14px; border-bottom:1px solid var(--grid); }
+  .msg-new-row select{ width:100%; padding:7px 8px; border:1.5px solid var(--grid); border-radius:6px; font-size:12.5px; background:var(--panel); color:var(--ink); }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Between teammates</div>
+  <h1 class="hub-h1">Messages</h1>
+  <p class="hub-sub">Direct-message anyone you've joined a team with. Not on a team yet? Start or join one from <a href="/teams.html">Teams</a>.</p>
+
+  <div class="msg-shell">
+    <div class="msg-list-col" id="listCol">
+      <div class="msg-list-head">Conversations</div>
+      <div class="msg-new-row">
+        <select id="newThreadSelect">
+          <option value="">Message a teammate…</option>
+        </select>
+      </div>
+      <div class="msg-list" id="threadList"><div class="msg-empty">Loading…</div></div>
+    </div>
+    <div class="msg-thread-col hidden-mobile" id="threadCol">
+      <div class="msg-empty" id="threadPlaceholder">Pick a conversation, or choose a teammate above to start one.</div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/toast.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+function esc(s){ const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+function initials(name, email){
+  const s = (name || email || '?').trim();
+  return s.slice(0,1).toUpperCase();
+}
+function fmtTime(iso){
+  try{ return new Date(iso).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); }catch(e){ return ''; }
+}
+
+let currentUserId = null;
+let activePeerId = null;
+let pollTimer = null;
+
+async function loadContacts(){
+  const res = await fetch('/api/messages/contacts', { headers: authHeaders() });
+  const data = res.ok ? await res.json() : { contacts: [] };
+  const select = document.getElementById('newThreadSelect');
+  select.innerHTML = '<option value="">Message a teammate…</option>' +
+    (data.contacts || []).map(c => `<option value="${c.id}">${esc(c.name || c.email)}</option>`).join('');
+}
+
+async function loadThreads(){
+  const res = await fetch('/api/messages/threads', { headers: authHeaders() });
+  const data = res.ok ? await res.json() : { threads: [] };
+  const list = document.getElementById('threadList');
+  if(!data.threads || !data.threads.length){
+    list.innerHTML = '<div class="msg-empty">No conversations yet — pick a teammate above.</div>';
+    return;
+  }
+  list.innerHTML = data.threads.map(t => `
+    <a class="msg-list-item ${t.peerId === activePeerId ? 'active' : ''}" href="/messages.html?to=${t.peerId}" data-peer="${t.peerId}">
+      <div class="msg-avatar">${initials(t.peerName, t.peerEmail)}</div>
+      <div class="msg-list-meta">
+        <div class="msg-list-name">${esc(t.peerName || t.peerEmail)}</div>
+        <div class="msg-list-preview">${esc(t.lastBody)}</div>
+      </div>
+      ${t.unread ? '<div class="msg-unread-dot" title="' + t.unread + ' unread"></div>' : ''}
+    </a>
+  `).join('');
+  list.querySelectorAll('.msg-list-item').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      openThread(Number(a.getAttribute('data-peer')), a.querySelector('.msg-list-name').textContent);
+    });
+  });
+}
+
+function renderThreadShell(peerName){
+  const col = document.getElementById('threadCol');
+  col.innerHTML = `
+    <div class="msg-thread-head">
+      <button class="msg-back-btn" id="msgBackBtn" aria-label="Back">←</button>
+      <div class="msg-thread-name">${esc(peerName)}</div>
+    </div>
+    <div class="msg-body" id="msgBody"><div class="msg-empty">Loading…</div></div>
+    <div class="msg-compose">
+      <input type="text" id="msgInput" placeholder="Type a message…" autocomplete="off">
+      <button id="msgSendBtn">Send</button>
+    </div>
+  `;
+  col.classList.remove('hidden-mobile');
+  document.getElementById('listCol').classList.add('hidden-mobile');
+  document.getElementById('msgBackBtn').addEventListener('click', () => {
+    col.classList.add('hidden-mobile');
+    document.getElementById('listCol').classList.remove('hidden-mobile');
+  });
+  document.getElementById('msgSendBtn').addEventListener('click', sendCurrentMessage);
+  document.getElementById('msgInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') sendCurrentMessage(); });
+}
+
+async function renderMessages(){
+  const res = await fetch('/api/messages/thread/' + activePeerId, { headers: authHeaders() });
+  const bodyEl = document.getElementById('msgBody');
+  if(!bodyEl) return; // navigated away
+  if(!res.ok){
+    const data = await res.json().catch(() => ({}));
+    bodyEl.innerHTML = '<div class="msg-empty">' + esc(data.error || 'Could not load this conversation.') + '</div>';
+    return;
+  }
+  const data = await res.json();
+  if(!data.messages.length){
+    bodyEl.innerHTML = '<div class="msg-empty">No messages yet — say hi!</div>';
+    return;
+  }
+  bodyEl.innerHTML = data.messages.map(m => `
+    <div>
+      <div class="msg-bubble ${m.sender_id === currentUserId ? 'mine' : 'theirs'}">${esc(m.body)}</div>
+      <div class="msg-time" style="text-align:${m.sender_id === currentUserId ? 'right' : 'left'};">${fmtTime(m.created_at)}</div>
+    </div>
+  `).join('');
+  bodyEl.scrollTop = bodyEl.scrollHeight;
+}
+
+async function openThread(peerId, peerNameGuess){
+  activePeerId = peerId;
+  history.replaceState(null, '', '/messages.html?to=' + peerId);
+  renderThreadShell(peerNameGuess || 'Conversation');
+  await renderMessages();
+  loadThreads(); // refresh unread dots/active highlight
+}
+
+async function sendCurrentMessage(){
+  const input = document.getElementById('msgInput');
+  const btn = document.getElementById('msgSendBtn');
+  const body = input.value.trim();
+  if(!body || !activePeerId) return;
+  input.value = '';
+  btn.disabled = true;
+  try{
+    const res = await fetch('/api/messages/thread/' + activePeerId, {
+      method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ body })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not send message');
+    await renderMessages();
+    loadThreads();
+  }catch(e){
+    showToast(e.message, 'error');
+    input.value = body;
+  }finally{
+    btn.disabled = false;
+    input.focus();
+  }
+}
+
+document.getElementById('newThreadSelect').addEventListener('change', (e) => {
+  const id = e.target.value;
+  if(!id) return;
+  openThread(Number(id), e.target.selectedOptions[0].textContent);
+  e.target.value = '';
+});
+
+(async function init(){
+  const user = await window.HubNav.init('messages', true);
+  if(!user) return;
+  currentUserId = user.id;
+  await Promise.all([loadContacts(), loadThreads()]);
+
+  const params = new URLSearchParams(location.search);
+  const to = params.get('to');
+  if(to){
+    openThread(Number(to), 'Conversation');
+  }
+
+  // Light polling so an open thread picks up a reply without a refresh.
+  pollTimer = setInterval(() => {
+    if(activePeerId) renderMessages();
+    loadThreads();
+  }, 15000);
+})();
+</script>
+</body>
+</html>

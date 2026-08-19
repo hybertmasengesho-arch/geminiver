@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exercises — Reasoning Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .book-picker{ max-width:520px; margin-top:20px; }
+  .book-picker-label{
+    display:block; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.07em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:8px;
+  }
+  .book-select-wrap{ position:relative; }
+  .book-picker select{
+    width:100%; padding:12px 40px 12px 14px; border:1.5px solid var(--line); border-radius:9px;
+    font-family:'Inter',sans-serif; font-size:14.5px; font-weight:600; color:var(--ink); background:var(--paper);
+    appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer;
+    transition:border-color .14s ease, box-shadow .14s ease;
+  }
+  .book-picker select:hover{ border-color:var(--book-accent,var(--blue)); }
+  .book-picker select:focus{
+    outline:none; border-color:var(--book-accent,var(--blue));
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--book-accent,var(--blue)) 18%, transparent);
+  }
+  .book-select-wrap::after{
+    content:''; position:absolute; right:16px; top:50%; width:9px; height:9px;
+    border-right:2px solid var(--muted); border-bottom:2px solid var(--muted);
+    transform:translateY(-65%) rotate(45deg); pointer-events:none;
+  }
+  .book-desc{ font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5; }
+  .ex-progress{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--muted); margin:22px 0 8px; }
+  #exWrap{ border-radius:12px; transition:background .15s ease; }
+  #exWrap.env-active{ padding:18px; margin-top:8px; }
+  .ex-card{ max-width:620px; }
+  .ex-question{ font-size:16.5px; color:var(--ink); line-height:1.5; margin-bottom:18px; font-weight:600; }
+  .ex-option{
+    display:block; width:100%; text-align:left; padding:12px 14px; margin-bottom:9px;
+    border:1.5px solid var(--line); border-radius:10px; background:var(--panel); color:var(--ink);
+    font-family:'Inter',sans-serif; font-size:14px; cursor:pointer; transition:border-color .12s ease, background .12s ease;
+  }
+  .ex-option:hover:not(:disabled){ border-color:var(--blue); }
+  .ex-option.selected{ border-color:var(--blue); background:var(--blue-soft); }
+  .ex-option:disabled{ cursor:default; }
+  .ex-option.correct{ border-color:var(--result-color,var(--green)); background:color-mix(in srgb, var(--result-color,var(--green)) 14%, transparent); font-weight:600; }
+  .ex-option.wrong{ border-color:var(--red); background:rgba(178,58,46,0.08); }
+  .ex-actions{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .ex-btn{
+    background:var(--book-accent,var(--ink)); color:#fff; border:none; border-radius:8px; padding:10px 20px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer;
+  }
+  .ex-btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .ex-btn.secondary{ background:transparent; color:var(--ink); border:1.5px solid var(--line); }
+  .ex-feedback{ margin-top:16px; padding:12px 14px; border-radius:10px; font-size:13.5px; line-height:1.6; display:none; }
+  .ex-feedback.correct{ background:rgba(47,111,79,0.08); color:var(--green); display:block; }
+  .ex-feedback.wrong{ background:rgba(178,58,46,0.08); color:var(--red); display:block; }
+  .ex-explanation{ color:var(--graphite); margin-top:6px; font-size:13px; }
+  .ex-reference a{ color:var(--blue); font-size:12.5px; }
+  .empty-state{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding:30px 0; text-align:center; }
+  .position-badge{
+    display:inline-flex; align-items:center; gap:8px; margin-top:12px; padding:8px 14px; border-radius:10px;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; background:var(--panel); border:1.5px solid var(--line);
+  }
+  .position-badge .pos-rank{ font-weight:700; color:var(--ink); }
+  .position-badge.pass{ border-color:var(--green); color:var(--green); }
+  .position-badge.fail{ border-color:var(--red); color:var(--red); }
+  .positions-overview{ max-width:620px; margin-top:22px; }
+  .positions-row{ display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--grid); font-size:13.5px; }
+  .positions-row:last-child{ border-bottom:none; }
+  .positions-row .p-title{ display:flex; align-items:center; gap:8px; color:var(--ink); font-weight:600; }
+  .positions-row .p-swatch{ width:10px; height:10px; border-radius:3px; flex:none; }
+  .positions-row .p-stat{ font-family:'JetBrains Mono',monospace; font-size:12px; }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Practice</div>
+  <h1 class="hub-h1">Exercises</h1>
+  <p class="hub-sub">Pick a book, work through its questions, and check each answer as you go.</p>
+
+  <div class="hub-card book-picker">
+    <label class="book-picker-label" for="bookSelect">Choose a course</label>
+    <div class="book-select-wrap">
+      <select id="bookSelect"><option value="">Choose a book…</option></select>
+    </div>
+    <div style="display:flex; gap:14px; align-items:flex-start; margin-top:10px;">
+      <img id="bookCoverImg" style="display:none; width:64px; height:86px; object-fit:cover; border-radius:6px; border:1.5px solid var(--line); flex:none;" alt="Book cover">
+      <div style="flex:1;">
+        <div class="book-desc" id="bookDesc"></div>
+        <div id="bookDocMount"></div>
+      </div>
+    </div>
+    <div id="positionMount"></div>
+  </div>
+
+  <div id="positionsOverviewMount"></div>
+
+  <div id="exWrap"></div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/toast.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+function esc(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let books = [];
+let questions = [];
+let currentIndex = 0;
+let selectedOptionId = null;
+let checked = false;
+
+async function loadBooks(){
+  const res = await fetch('/api/content/books', { headers: authHeaders() });
+  const data = await res.json();
+  books = data.books || [];
+  const select = document.getElementById('bookSelect');
+  select.innerHTML = '<option value="">Choose a book…</option>' +
+    books.map(b => `<option value="${b.id}">${esc(b.title)}</option>`).join('');
+  // Coming from a "book card" link elsewhere (e.g. Notes) — jump straight to it.
+  const wanted = new URLSearchParams(location.search).get('book');
+  if(wanted && books.some(b => String(b.id) === wanted)){
+    select.value = wanted;
+    select.dispatchEvent(new Event('change'));
+  }
+}
+
+async function renderPosition(bookId){
+  const mount = document.getElementById('positionMount');
+  try{
+    const res = await fetch('/api/content/my-positions', { headers: authHeaders() });
+    const data = await res.json();
+    const mine = (data.positions || []).find(p => String(p.bookId) === String(bookId));
+    if(!mine){ mount.innerHTML = ''; return; }
+    mount.innerHTML = `
+      <div class="position-badge ${mine.passed ? 'pass' : 'fail'}">
+        <span class="pos-rank">#${mine.rank}</span> of ${mine.totalParticipants} · ${mine.percent}% (${mine.correct}/${mine.total}) · ${mine.passed ? 'Passing' : 'Below pass mark (' + mine.passingScore + '%)'}
+      </div>
+    `;
+  }catch(e){ mount.innerHTML = ''; }
+}
+
+// Cover/document routes redirect to a signed Storage URL and need the
+// Authorization header, which <img>/<a> can never send on their own —
+// fetch with the header and turn the result into a blob URL instead.
+async function fetchAuthedBlob(url){
+  const res = await fetch(url, { headers: authHeaders() });
+  if(!res.ok){
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Could not load file.');
+  }
+  return res.blob();
+}
+
+function loadBookCoverAndDocument(book){
+  const coverImg = document.getElementById('bookCoverImg');
+  const docMount = document.getElementById('bookDocMount');
+  coverImg.style.display = 'none';
+  docMount.innerHTML = '';
+  if(!book) return;
+  if(book.book_type === 'exercises') return; // exercises-only books have no cover/document section
+  if(book.cover_storage_path){
+    fetchAuthedBlob('/api/content/books/' + book.id + '/cover').then(blob => {
+      coverImg.src = URL.createObjectURL(blob);
+      coverImg.style.display = 'block';
+    }).catch(() => {});
+  }
+  if(book.document_original_name){
+    const link = document.createElement('a');
+    link.href = '#';
+    link.className = 'ex-btn secondary';
+    link.style.cssText = 'display:inline-block; padding:6px 14px; font-size:12.5px; margin-top:6px;';
+    link.textContent = '📄 Open ' + book.document_original_name;
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try{
+        const blob = await fetchAuthedBlob('/api/content/books/' + book.id + '/document');
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank', 'noopener');
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      }catch(err){ showToast(err.message || 'Could not open document.', 'error'); }
+    });
+    docMount.appendChild(link);
+  }
+}
+
+// Paints the practice-question area with the book's custom environment
+// (background color + grid/ruled lines), or clears it back to the site's
+// normal look for env_mode='default' (or no book selected).
+function applyEnvironment(book){
+  const wrap = document.getElementById('exWrap');
+  if(!book || book.env_mode !== 'custom'){
+    wrap.classList.remove('env-active');
+    wrap.style.background = '';
+    return;
+  }
+  const bg = book.env_bg_color || '#F6F5F1';
+  const lineColor = 'rgba(30,42,74,0.12)';
+  let lines = 'none';
+  if(book.env_line_style === 'grid'){
+    lines = `repeating-linear-gradient(0deg, ${lineColor} 0px, ${lineColor} 1px, transparent 1px, transparent 28px),
+             repeating-linear-gradient(90deg, ${lineColor} 0px, ${lineColor} 1px, transparent 1px, transparent 28px)`;
+  } else if(book.env_line_style === 'ruled'){
+    lines = `repeating-linear-gradient(0deg, ${lineColor} 0px, ${lineColor} 1px, transparent 1px, transparent 28px)`;
+  }
+  wrap.classList.add('env-active');
+  wrap.style.background = lines === 'none' ? bg : `${lines}, ${bg}`;
+}
+
+document.getElementById('bookSelect').addEventListener('change', async (e) => {
+  const id = e.target.value;
+  const descEl = document.getElementById('bookDesc');
+  const wrap = document.getElementById('exWrap');
+  document.getElementById('positionMount').innerHTML = '';
+  if(!id){ descEl.textContent = ''; wrap.innerHTML = ''; applyEnvironment(null); loadBookCoverAndDocument(null); return; }
+  const book = books.find(b => String(b.id) === id);
+  descEl.textContent = book ? [book.author, book.description].filter(Boolean).join(' — ') : '';
+  document.documentElement.style.setProperty('--book-accent', (book && book.theme_color) || '#2F6F4F');
+  loadBookCoverAndDocument(book);
+  applyEnvironment(book);
+  renderPosition(id);
+
+  if(book && book.book_type === 'book'){
+    wrap.innerHTML = '<div class="hub-card empty-state" style="max-width:620px;margin-top:20px;">This is a book entry — no exercises attached. Open its document above.</div>';
+    return;
+  }
+
+  wrap.innerHTML = '<div class="empty-state">Loading questions…</div>';
+  const res = await fetch('/api/content/books/' + id + '/questions', { headers: authHeaders() });
+  const data = await res.json();
+  if(!res.ok){
+    const needsRequest = book && book.is_public && book.access_mode === 'restricted' && book.my_request_status !== 'pending' && book.my_request_status !== 'approved';
+    wrap.innerHTML = `<div class="hub-card" style="max-width:620px;margin-top:20px;">
+      <div style="color:var(--red); font-size:13.5px;">${esc(data.error || 'Cannot open this book.')}</div>
+      ${needsRequest ? '<button class="ex-btn" id="reqAccessBtn" style="margin-top:10px;">Request access</button>' : ''}
+      ${book && book.my_request_status === 'pending' ? '<div style="margin-top:10px; font-size:13px; color:var(--muted);">Request pending.</div>' : ''}
+    </div>`;
+    const reqBtn = document.getElementById('reqAccessBtn');
+    if(reqBtn) reqBtn.addEventListener('click', async () => {
+      const r = await fetch('/api/content/books/' + id + '/request-access', { method: 'POST', headers: authHeaders() });
+      const d = await r.json();
+      if(!r.ok){ showToast(d.error || 'Could not send request', 'error'); return; }
+      showToast('Request sent.', 'success');
+      loadBooks();
+    });
+    return;
+  }
+  questions = data.questions || [];
+  currentIndex = 0;
+  renderQuestion();
+});
+
+function renderQuestion(){
+  const wrap = document.getElementById('exWrap');
+  if(!questions.length){ wrap.innerHTML = '<div class="hub-card empty-state" style="max-width:620px;margin-top:20px;">No questions in this book yet.</div>'; return; }
+  const q = questions[currentIndex];
+  selectedOptionId = null; checked = false;
+  const isShortAnswer = q.question_type === 'short_answer';
+
+  wrap.innerHTML = `
+    <div class="ex-progress">Question ${currentIndex + 1} of ${questions.length}</div>
+    <div class="hub-card ex-card">
+      <div class="ex-question" data-helper-question>${esc(q.question_text)}</div>
+      <div id="optionsMount"></div>
+      <div class="ex-feedback" id="exFeedback"></div>
+      <div class="ex-actions">
+        <button class="ex-btn" id="checkBtn" disabled>Check answer</button>
+        <button class="ex-btn secondary" id="nextBtn" style="display:none;">Next question →</button>
+      </div>
+    </div>
+  `;
+
+  const optionsMount = document.getElementById('optionsMount');
+
+  if(isShortAnswer){
+    optionsMount.innerHTML = `<input type="text" id="shortAnswerInput" placeholder="Type your answer…" style="width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:8px; font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:var(--paper);">`;
+    const input = document.getElementById('shortAnswerInput');
+    input.addEventListener('input', () => {
+      document.getElementById('checkBtn').disabled = !input.value.trim();
+    });
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' && !document.getElementById('checkBtn').disabled) document.getElementById('checkBtn').click();
+    });
+  } else {
+    optionsMount.innerHTML = q.options.map(o => `
+      <button class="ex-option" data-opt="${esc(o.id)}" data-helper-option>${esc(o.text)}</button>
+    `).join('');
+    optionsMount.querySelectorAll('.ex-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if(checked) return;
+        optionsMount.querySelectorAll('.ex-option').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedOptionId = btn.dataset.opt;
+        document.getElementById('checkBtn').disabled = false;
+      });
+    });
+  }
+
+  document.getElementById('checkBtn').addEventListener('click', async () => {
+    if(checked) return;
+    if(isShortAnswer && !document.getElementById('shortAnswerInput').value.trim()) return;
+    if(!isShortAnswer && !selectedOptionId) return;
+    const btn = document.getElementById('checkBtn');
+    btn.disabled = true; btn.textContent = 'Checking…';
+    try{
+      const body = isShortAnswer
+        ? { answerText: document.getElementById('shortAnswerInput').value.trim() }
+        : { optionId: selectedOptionId };
+      const res = await fetch('/api/content/questions/' + q.id + '/check', {
+        method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Could not check answer');
+      checked = true;
+
+      document.documentElement.style.setProperty('--result-color', data.color || '#2F6F4F');
+      if(isShortAnswer){
+        document.getElementById('shortAnswerInput').disabled = true;
+      } else {
+        optionsMount.querySelectorAll('.ex-option').forEach(b => {
+          b.disabled = true;
+          if(b.dataset.opt === data.correctOptionId) b.classList.add('correct');
+          else if(b.dataset.opt === selectedOptionId) b.classList.add('wrong');
+        });
+      }
+
+      const feedback = document.getElementById('exFeedback');
+      feedback.className = 'ex-feedback ' + (data.correct ? 'correct' : 'wrong');
+      feedback.innerHTML =
+        (data.correct ? '✓ Correct.' : '✕ Not quite.') +
+        (isShortAnswer && !data.correct ? `<div class="ex-explanation">Correct answer: ${esc(data.correctAnswerText || '')}</div>` : '') +
+        (data.explanation ? `<div class="ex-explanation">${esc(data.explanation)}</div>` : '') +
+        (data.reference ? `<div class="ex-reference"><a href="${esc(data.reference)}" target="_blank" rel="noopener">Reference ↗</a></div>` : '');
+
+      btn.style.display = 'none';
+      if(currentIndex < questions.length - 1){
+        document.getElementById('nextBtn').style.display = 'inline-block';
+      }
+      renderPosition(document.getElementById('bookSelect').value);
+      loadPositionsOverview();
+    }catch(err){
+      btn.disabled = false; btn.textContent = 'Check answer';
+      showToast(err.message, 'error');
+    }
+  });
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    currentIndex++;
+    renderQuestion();
+  });
+}
+
+async function loadPositionsOverview(){
+  const mount = document.getElementById('positionsOverviewMount');
+  try{
+    const res = await fetch('/api/content/my-positions', { headers: authHeaders() });
+    const data = await res.json();
+    const positions = data.positions || [];
+    if(!positions.length){ mount.innerHTML = ''; return; }
+    mount.innerHTML = `
+      <h2 style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:19px; color:var(--ink); margin:28px 0 4px;">Your position, by course</h2>
+      <div class="hub-card positions-overview">
+        ${positions.map(p => `
+          <div class="positions-row">
+            <span class="p-title"><span class="p-swatch" style="background:${esc(p.themeColor)};"></span>${esc(p.title)}</span>
+            <span class="p-stat" style="color:${p.passed ? 'var(--green)' : 'var(--red)'};">#${p.rank} of ${p.totalParticipants} · ${p.percent}%</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }catch(e){ mount.innerHTML = ''; }
+}
+
+(async function init(){
+  const user = await window.HubNav.init('exercises', true);
+  if(!user) return;
+  loadBooks();
+  loadPositionsOverview();
+})();
+</script>
+</body>
+</html>

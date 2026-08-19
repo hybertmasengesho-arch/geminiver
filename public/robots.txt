@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /$
+Allow: /login.html
+Allow: /register.html
+Disallow: /
+
+Sitemap: https://REPLACE-WITH-YOUR-DOMAIN/sitemap.xml

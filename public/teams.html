@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teams — Reasoning Hub</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  .teams-grid{ display:grid; grid-template-columns:1fr; gap:18px; margin-top:22px; max-width:720px; }
+  .team-block{ margin-bottom:10px; }
+  .team-block h3{ font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:19px; color:var(--ink); margin:0 0 4px; }
+  .team-owner-tag{ font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:2px 8px; border-radius:20px; background:var(--green-soft); color:var(--green); margin-left:8px; vertical-align:middle; }
+  .member-row{ display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--grid); font-size:13.5px; }
+  .member-row:last-child{ border-bottom:none; }
+  .member-name{ color:var(--ink); font-weight:600; }
+  .member-email{ color:var(--muted); font-size:12px; }
+  .status-pill{ font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 8px; border-radius:20px; text-transform:uppercase; letter-spacing:.03em; }
+  .status-pill.accepted{ background:var(--green-soft); color:var(--green); }
+  .status-pill.pending{ background:var(--amber-soft,rgba(192,138,46,0.12)); color:var(--amber); }
+  .status-pill.declined{ background:rgba(178,58,46,0.10); color:var(--red); }
+  .mini-btn{
+    border:1.5px solid var(--line); background:var(--panel); border-radius:6px; padding:4px 10px;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; cursor:pointer; color:var(--ink); margin-left:6px;
+    text-decoration:none; display:inline-block;
+  }
+  .mini-btn.accept{ border-color:var(--green); color:var(--green); }
+  .mini-btn.decline, .mini-btn.remove{ border-color:var(--red); color:var(--red); }
+  .create-row{ display:flex; gap:8px; margin-top:6px; }
+  .create-row input{
+    flex:1; padding:9px 12px; border:1.5px solid var(--line); border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink); background:var(--paper);
+  }
+  .create-row button, .invite-row button{
+    background:var(--ink); color:#fff; border:none; border-radius:8px; padding:9px 16px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13px; cursor:pointer; white-space:nowrap;
+  }
+  .invite-row{ display:flex; gap:8px; margin-top:12px; }
+  .invite-row input{
+    flex:1; padding:8px 11px; border:1.5px solid var(--line); border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:13px; color:var(--ink); background:var(--paper);
+  }
+  .search-results{ margin-top:8px; }
+  .search-hit{ display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border:1px solid var(--grid); border-radius:8px; margin-top:6px; font-size:13px; }
+  .search-hit button{ background:var(--blue); color:#fff; border:none; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; }
+  .empty-state{ font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--muted); padding:20px 0; text-align:center; }
+  .msg{ font-size:13px; margin-top:10px; display:none; }
+  .msg.ok{ color:var(--green); display:block; }
+  .msg.err{ color:var(--red); display:block; }
+  .file-row{ display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--grid); }
+  .file-row:last-child{ border-bottom:none; }
+  .file-icon{
+    width:38px; height:38px; border-radius:8px; background:var(--blue-soft); color:var(--blue);
+    display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; flex:none;
+  }
+  .file-meta{ flex:1; min-width:0; }
+  .file-name{ font-weight:600; color:var(--ink); font-size:14px; }
+  .file-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .file-desc{ font-size:13px; color:var(--graphite); margin-top:4px; line-height:1.5; }
+  .file-actions a{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; text-decoration:none; color:var(--ink);
+    border:1.5px solid var(--line); border-radius:7px; padding:6px 12px; white-space:nowrap;
+  }
+  .file-actions a:hover{ border-color:var(--blue); color:var(--blue); }
+
+  /* ---------- ergonomic / mobile ---------- */
+  .team-block{ transition:box-shadow .15s ease; }
+  .search-hit{ transition:background .12s ease; }
+  .search-hit:hover{ background:var(--hover-bg,var(--paper)); }
+  .invite-row input:focus, .create-row input:focus{ outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
+  .skeleton{
+    height:14px; border-radius:6px; background:linear-gradient(90deg, var(--grid) 25%, var(--hover-bg) 37%, var(--grid) 63%);
+    background-size:400% 100%; animation:skeleton-shimmer 1.4s ease infinite; margin:8px 0;
+  }
+  @keyframes skeleton-shimmer{ 0%{background-position:100% 50%;} 100%{background-position:0 50%;} }
+  .section-hint{ font-size:12.5px; color:var(--muted); margin:2px 0 0; }
+  .team-count{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--muted); margin-left:6px; }
+
+  @media (max-width: 760px){
+    .teams-grid, .hub-card, .team-block{ max-width:100% !important; }
+    .create-row{ flex-direction:column; align-items:stretch; }
+    .create-row button{ width:100%; }
+    .invite-row{ flex-direction:column; }
+    .member-row{ flex-wrap:wrap; gap:6px; }
+    .member-row > div:last-child{ display:flex; align-items:center; gap:6px; width:100%; justify-content:flex-end; }
+    .search-hit{ flex-direction:column; align-items:flex-start; gap:8px; }
+    .search-hit button{ align-self:flex-end; }
+    .file-row{ flex-wrap:wrap; }
+    .file-actions{ width:100%; display:flex; justify-content:flex-end; }
+    .mini-btn{ margin-left:0; margin-top:4px; }
+  }
+
+  /* ---------- create-team modal ---------- */
+  .ct-overlay{
+    position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.55);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .ct-box{
+    background:var(--panel); border-radius:14px; overflow:hidden; width:100%; max-width:420px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3); animation:ctIn .15s ease;
+  }
+  @keyframes ctIn{ from{ opacity:0; transform:scale(.94) translateY(6px); } to{ opacity:1; transform:scale(1) translateY(0); } }
+  .ct-head{
+    display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:.03em; color:var(--ink);
+    border-bottom:1px solid var(--grid);
+  }
+  .ct-head button{ background:none; border:none; font-size:16px; cursor:pointer; color:var(--muted); }
+  .ct-stage{ padding:18px 16px; }
+  .ct-label{ display:block; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .ct-stage input{
+    width:100%; padding:10px 12px; border:1.5px solid var(--line); border-radius:8px;
+    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:var(--paper); box-sizing:border-box;
+  }
+  .ct-stage input:focus{ outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
+  .ct-primary{
+    margin-top:14px; width:100%; background:var(--ink); color:#fff; border:none; border-radius:8px;
+    padding:11px 14px; font-family:'Inter',sans-serif; font-weight:600; font-size:14px; cursor:pointer;
+  }
+  .ct-primary:disabled{ opacity:.6; cursor:default; }
+  .ct-selected-chip{
+    display:inline-flex; align-items:center; gap:6px; background:var(--green-soft); color:var(--green);
+    border-radius:20px; padding:4px 10px 4px 12px; font-size:12.5px; font-weight:600; margin:4px 6px 0 0;
+  }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">Shared access</div>
+  <h1 class="hub-h1">Teams</h1>
+  <p class="hub-sub">Create a small trusted group (up to 8 people). Everyone you invite and accept can view and download the files you choose to share with the team — without making them public.</p>
+
+  <div class="hub-card" id="joinTeamCard" style="max-width:520px; margin-top:22px;">
+    <label class="ct-label">Join a team</label>
+    <p class="section-hint" style="margin:0 0 8px;">Got a code or QR from a team owner? Join instantly — no invite needed.</p>
+    <div class="create-row">
+      <input type="text" id="joinCodeInput" maxlength="8" placeholder="ABCD1234" autocomplete="off" style="text-transform:uppercase; letter-spacing:.08em; font-family:'JetBrains Mono',monospace;">
+      <button id="joinCodeBtn">Join</button>
+    </div>
+    <button id="joinScanBtn" type="button" class="mini-btn" style="margin-top:8px;">📷 Scan a QR code</button>
+    <div class="msg" id="joinCodeMsg"></div>
+  </div>
+
+  <h2 style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:34px 0 4px;">Invitations for you</h2>
+  <p class="section-hint" style="max-width:520px;">Teams you've been invited to join. Accept to start seeing their shared files.</p>
+  <div class="hub-card" id="invitesCard" style="max-width:520px; margin-top:10px;"><div class="skeleton" style="width:70%;"></div></div>
+
+  <h2 style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:34px 0 4px;">My Teams</h2>
+  <p class="section-hint" style="max-width:640px;">Teams you own or have already joined. As the owner, search for people below to invite them.</p>
+  <div id="myTeamsList" style="margin-top:10px;"><div class="hub-card" style="max-width:640px;"><div class="skeleton" style="width:40%;"></div><div class="skeleton" style="width:80%;"></div><div class="skeleton" style="width:60%;"></div></div></div>
+
+  <h2 style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:34px 0 4px;">Files shared with my teams</h2>
+  <input type="text" id="teamFilesSearch" placeholder="Search team documents by title, filename, or team…" autocomplete="off"
+    style="width:100%; max-width:720px; padding:9px 12px; border:1.5px solid var(--line); border-radius:8px; font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink); background:var(--paper); box-sizing:border-box; margin-top:4px;">
+  <div class="hub-card" id="teamFilesCard" style="max-width:720px; margin-top:10px;"><div class="skeleton" style="width:50%;"></div></div>
+
+  <div class="hub-card" style="max-width:640px; margin-top:34px;">
+    <label class="ct-label">Create a new team</label>
+    <div class="create-row">
+      <input type="text" id="newTeamName" maxlength="100" placeholder="e.g. Study Group">
+      <button id="createTeamBtn">+ Create Team</button>
+    </div>
+    <div class="msg" id="createTeamMsg"></div>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/toast.js"></script>
+<script src="/js/overlay.js"></script>
+<script src="/js/qr-scan.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+function authHeaders(extra){ return Object.assign({ Authorization: 'Bearer ' + getToken() }, extra || {}); }
+async function fetchFileBlob(id){
+  const res = await fetch('/api/files/' + id + '/download', { headers: authHeaders() });
+  if(!res.ok){
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Could not open file.');
+  }
+  return res.blob();
+}
+async function openFile(id){
+  try {
+    const blob = await fetchFileBlob(id);
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) {
+    showToast(e.message || 'Could not open file.', 'error');
+  }
+}
+async function downloadFile(id, filename){
+  try {
+    const blob = await fetchFileBlob(id);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'download';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) {
+    showToast(e.message || 'Could not download file.', 'error');
+  }
+}
+function esc(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtSize(b){ if(b < 1024) return b + ' B'; if(b < 1024*1024) return (b/1024).toFixed(1) + ' KB'; return (b/1024/1024).toFixed(1) + ' MB'; }
+function extLabel(name){ const m = name.match(/\.([a-z0-9]+)$/i); return m ? m[1].toUpperCase() : 'FILE'; }
+
+let currentUserId = null;
+
+async function loadInvites(teams){
+  const card = document.getElementById('invitesCard');
+  const pending = teams.filter(t => t.my_status === 'pending' && t.owner_id !== currentUserId);
+  if(!pending.length){ card.innerHTML = '<div class="empty-state">No pending invitations.</div>'; return; }
+  card.innerHTML = pending.map(t => `
+    <div class="member-row">
+      <div><span class="member-name">${esc(t.name)}</span></div>
+      <div>
+        <button class="mini-btn accept" data-team="${t.id}" data-accept="1">Accept</button>
+        <button class="mini-btn decline" data-team="${t.id}" data-accept="0">Decline</button>
+      </div>
+    </div>
+  `).join('');
+  card.querySelectorAll('button[data-team]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      await fetch('/api/teams/' + btn.dataset.team + '/respond', {
+        method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ accept: btn.dataset.accept === '1' })
+      });
+      loadAll();
+    });
+  });
+}
+
+// Owner-side "join by QR / code" panel inside a team block — mirrors the
+// account-wide share-code panel on My Account, plus a 3-day expiry label.
+function renderJoinQr(team, code, expiresAt){
+  const box = document.getElementById('join-qr-' + team.id);
+  document.getElementById('join-code-text-' + team.id).textContent = code;
+  const expiryEl = document.getElementById('join-code-expiry-' + team.id);
+  expiryEl.dataset.expiresAt = expiresAt;
+  expiryEl.textContent = fmtExpiry(expiresAt) + ' if unused. Anyone who already joined keeps access until you remove them above.';
+  document.getElementById('revoke-join-code-' + team.id).style.display = 'inline-block';
+  document.getElementById('gen-join-code-' + team.id).textContent = 'Generate new code';
+  box.innerHTML = '';
+  if(window.QRCode){
+    const link = location.origin + '/redeem.html?code=' + code + '&type=team';
+    new QRCode(box, { text: link, width: 100, height: 100 });
+  }
+}
+
+function clearJoinQr(team){
+  document.getElementById('join-qr-' + team.id).innerHTML = 'No code yet';
+  document.getElementById('join-code-text-' + team.id).textContent = 'No active code';
+  const expiryEl = document.getElementById('join-code-expiry-' + team.id);
+  expiryEl.removeAttribute('data-expires-at');
+  expiryEl.textContent = 'Click "Generate code" below to get a shareable QR + code. Unused codes expire after 3 days. Anyone who already joined keeps access until you remove them above.';
+  document.getElementById('revoke-join-code-' + team.id).style.display = 'none';
+  document.getElementById('gen-join-code-' + team.id).textContent = 'Generate code';
+}
+
+async function setupJoinCodePanel(team){
+  try{
+    const res = await fetch('/api/teams/' + team.id + '/join-code', { headers: authHeaders() });
+    const data = await res.json();
+    if(data.code) renderJoinQr(team, data.code, data.expiresAt); else clearJoinQr(team);
+  }catch(e){ /* leave the placeholder */ }
+
+  document.getElementById('gen-join-code-' + team.id).addEventListener('click', async (e) => {
+    const btn = e.target;
+    btn.disabled = true;
+    try{
+      const res = await fetch('/api/teams/' + team.id + '/join-code', { method: 'POST', headers: authHeaders() });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Could not create a code');
+      renderJoinQr(team, data.code, data.expiresAt);
+    }catch(err){ showToast(err.message, 'error'); }
+    finally{ btn.disabled = false; }
+  });
+
+  document.getElementById('revoke-join-code-' + team.id).addEventListener('click', async (e) => {
+    if(!confirm('Turn off this code? Anyone who already joined keeps access — this only stops new people joining.')) return;
+    const btn = e.target;
+    btn.disabled = true;
+    try{
+      await fetch('/api/teams/' + team.id + '/join-code', { method: 'DELETE', headers: authHeaders() });
+      clearJoinQr(team);
+    }catch(err){ showToast('Could not turn off the code.', 'error'); }
+    finally{ btn.disabled = false; }
+  });
+}
+
+async function renderTeamBlock(team){
+  const wrap = document.createElement('div');
+  wrap.className = 'hub-card team-block';
+  wrap.style.maxWidth = '640px';
+
+  const isOwner = team.owner_id === currentUserId;
+  wrap.innerHTML = `
+    <h3>${esc(team.name)} ${isOwner ? '<span class="team-owner-tag">you created this</span>' : ''}<span class="team-count" id="count-${team.id}"></span>${isOwner ? `<button class="mini-btn remove" id="delete-team-${team.id}" style="float:right;">Delete team</button>` : ''}</h3>
+    <div class="members-mount"><div class="skeleton" style="width:60%;"></div><div class="skeleton" style="width:40%;"></div></div>
+    ${isOwner ? `
+      <div class="invite-row">
+        <input type="text" class="invite-search" placeholder="Search by name or email to invite…">
+      </div>
+      <div class="search-results"></div>
+      <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--grid);">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">Share this team</div>
+        <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+          <div class="join-qr-box" id="join-qr-${team.id}" style="width:110px; height:110px; flex:none; display:flex; align-items:center; justify-content:center; background:var(--paper); border:1.5px solid var(--line); border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); text-align:center; padding:6px; box-sizing:border-box;">No code yet</div>
+          <div style="flex:1; min-width:180px;">
+            <div class="section-hint" style="margin:0 0 4px;">Let people join instantly with a code or QR — no invite needed:</div>
+            <div class="mono" id="join-code-text-${team.id}" style="font-size:16px; font-weight:700; color:var(--ink); letter-spacing:.06em;">No active code</div>
+            <div class="section-hint" id="join-code-expiry-${team.id}" data-expires-at="">Click "Generate code" below to get a shareable QR + code. Unused codes expire after 3 days. Anyone who already joined keeps access until you remove them above.</div>
+            <div style="margin-top:8px;">
+              <button class="mini-btn" id="gen-join-code-${team.id}">Generate code</button>
+              <button class="mini-btn remove" id="revoke-join-code-${team.id}" style="display:none;">Turn off</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ` : ''}
+  `;
+
+  if(isOwner){
+    wrap.querySelector('#delete-team-' + team.id).addEventListener('click', async () => {
+      if(!confirm('Delete "' + team.name + '"? Members will lose access to files shared with this team. This cannot be undone.')) return;
+      const r = await fetch('/api/teams/' + team.id, { method: 'DELETE', headers: authHeaders() });
+      if(r.ok){ loadAll(); }
+      else { const d = await r.json().catch(() => ({})); showToast(d.error || 'Could not delete team.', 'error'); }
+    });
+    setupJoinCodePanel(team);
+  }
+
+  const membersMount = wrap.querySelector('.members-mount');
+  try{
+    const res = await fetch('/api/teams/' + team.id + '/members', { headers: authHeaders() });
+    const data = await res.json();
+    const members = data.members || [];
+    membersMount.innerHTML = members.map(m => `
+      <div class="member-row">
+        <div>
+          <span class="member-name">${esc(m.name || m.email)}</span>
+          ${m.name ? '<span class="member-email"> · ' + esc(m.email) + '</span>' : ''}
+        </div>
+        <div>
+          <span class="status-pill ${m.status}">${m.status}</span>
+          ${m.status === 'accepted' && m.user_id !== currentUserId ? `<a class="mini-btn" href="/messages.html?to=${m.user_id}">Message</a>` : ''}
+          ${isOwner && m.user_id !== currentUserId ? `<button class="mini-btn remove" data-team="${team.id}" data-user="${m.user_id}">Remove</button>` : ''}
+        </div>
+      </div>
+    `).join('') || '<div class="empty-state">No members yet.</div>';
+
+    const countEl = document.getElementById('count-' + team.id);
+    const acceptedCount = members.filter(m => m.status === 'accepted').length;
+    const pendingCount = members.filter(m => m.status === 'pending').length;
+    if(countEl){
+      countEl.textContent = acceptedCount + '/8 members';
+    }
+    const searchBox = wrap.querySelector('.invite-search');
+    if(searchBox && acceptedCount + pendingCount >= 8){
+      searchBox.disabled = true;
+      searchBox.placeholder = 'Team is full (8 max) — remove someone to invite another.';
+    }
+
+    membersMount.querySelectorAll('button.remove').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(!confirm('Remove this person from the team?')) return;
+        await fetch('/api/teams/' + btn.dataset.team + '/members/' + btn.dataset.user, {
+          method: 'DELETE', headers: authHeaders()
+        });
+        loadAll();
+      });
+    });
+  }catch(e){
+    membersMount.innerHTML = '<div class="empty-state">Could not load members.</div>';
+  }
+
+  if(isOwner){
+    const searchInput = wrap.querySelector('.invite-search');
+    const resultsMount = wrap.querySelector('.search-results');
+    let debounceTimer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const q = searchInput.value.trim();
+      if(q.length < 2){ resultsMount.innerHTML = ''; return; }
+      debounceTimer = setTimeout(async () => {
+        const res = await fetch('/api/teams/' + team.id + '/search?q=' + encodeURIComponent(q), { headers: authHeaders() });
+        const data = await res.json();
+        const users = data.users || [];
+        resultsMount.innerHTML = users.length ? users.map(u => `
+          <div class="search-hit">
+            <span>${esc(u.name || u.email)} ${u.name ? '<span class="member-email">· ' + esc(u.email) + '</span>' : ''}</span>
+            <button data-user="${u.id}">Invite</button>
+          </div>
+        `).join('') : '<div class="empty-state">No matching users.</div>';
+        resultsMount.querySelectorAll('button[data-user]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            btn.disabled = true; btn.textContent = 'Sending…';
+            const r = await fetch('/api/teams/' + team.id + '/invite', {
+              method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+              body: JSON.stringify({ userId: Number(btn.dataset.user) })
+            });
+            if(r.ok){ btn.textContent = 'Invited'; loadAll(); }
+            else { const d = await r.json(); btn.disabled = false; btn.textContent = 'Invite'; showToast(d.error || 'Could not invite', 'error'); }
+          });
+        });
+      }, 300);
+    });
+  }
+
+  return wrap;
+}
+
+let allTeamFiles = [];
+
+function renderTeamFiles(files){
+  const card = document.getElementById('teamFilesCard');
+  if(!files.length){
+    card.innerHTML = '<div class="empty-state">' + (allTeamFiles.length ? 'No documents match your search.' : 'No files shared with your teams yet.') + '</div>';
+    return;
+  }
+  card.innerHTML = files.map(f => `
+    <div class="file-row">
+      <div class="file-icon">${extLabel(f.original_name)}</div>
+      <div class="file-meta">
+        <div class="file-name">${esc(f.title || f.original_name)}</div>
+        <div class="file-sub">${fmtSize(f.size_bytes)} · shared by ${esc(f.uploader_name || f.uploader_email)} · team "${esc(f.team_name)}" · ${(f.created_at||'').slice(0,10)}</div>
+        ${f.description ? `<div class="file-desc">${esc(f.description)}</div>` : ''}
+      </div>
+      <div class="file-actions">
+        <a href="#" onclick="openFile(${f.id}); return false;">Open</a>
+        <a href="#" onclick="downloadFile(${f.id}, '${esc(f.original_name).replace(/'/g, "\\'")}'); return false;">Download</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+function applyTeamFilesSearch(){
+  const q = document.getElementById('teamFilesSearch').value.trim().toLowerCase();
+  if(!q){ renderTeamFiles(allTeamFiles); return; }
+  renderTeamFiles(allTeamFiles.filter(f => {
+    const hay = [f.title, f.original_name, f.team_name, f.uploader_name, f.uploader_email, f.description].filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(q);
+  }));
+}
+
+async function loadTeamFiles(){
+  const card = document.getElementById('teamFilesCard');
+  try{
+    const res = await fetch('/api/teams/files', { headers: authHeaders() });
+    const data = await res.json();
+    allTeamFiles = data.files || [];
+    applyTeamFilesSearch();
+  }catch(e){
+    card.innerHTML = '<div class="empty-state">Could not load team files.</div>';
+  }
+}
+
+let teamFilesDebounce;
+document.getElementById('teamFilesSearch').addEventListener('input', () => {
+  clearTimeout(teamFilesDebounce);
+  teamFilesDebounce = setTimeout(applyTeamFilesSearch, 150);
+});
+
+/* ---------- join a team by code / QR ---------- */
+
+async function joinByCode(code){
+  const msg = document.getElementById('joinCodeMsg');
+  const btn = document.getElementById('joinCodeBtn');
+  msg.className = 'msg';
+  code = (code || '').trim();
+  if(!code){ msg.textContent = 'Enter a code first.'; msg.className = 'msg err'; return; }
+  btn.disabled = true;
+  try{
+    const res = await fetch('/api/teams/join', {
+      method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not join that team.');
+    msg.textContent = data.alreadyMember ? ('You\'re already in "' + data.teamName + '".') : ('Joined "' + data.teamName + '".');
+    msg.className = 'msg ok';
+    document.getElementById('joinCodeInput').value = '';
+    loadAll();
+  }catch(e){
+    msg.textContent = e.message; msg.className = 'msg err';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('joinCodeBtn').addEventListener('click', () => joinByCode(document.getElementById('joinCodeInput').value));
+document.getElementById('joinCodeInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') joinByCode(e.target.value); });
+document.getElementById('joinScanBtn').addEventListener('click', () => {
+  window.QRScan.open({
+    onResult: (code) => { document.getElementById('joinCodeInput').value = code; joinByCode(code); },
+    onError: (e) => { const msg = document.getElementById('joinCodeMsg'); msg.textContent = e.message; msg.className = 'msg err'; }
+  });
+});
+
+// A once-a-minute tick keeps any owner join-code expiry labels on screen
+// fresh without needing a full reload.
+function fmtExpiry(expiresAt){
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if(ms <= 0) return 'expired';
+  const hrs = Math.floor(ms / 3600000);
+  if(hrs < 1) return 'expires in ' + Math.max(1, Math.floor(ms / 60000)) + ' min';
+  if(hrs < 24) return 'expires in ' + hrs + ' hr' + (hrs === 1 ? '' : 's');
+  return 'expires in ' + Math.floor(hrs / 24) + ' day' + (Math.floor(hrs / 24) === 1 ? '' : 's');
+}
+setInterval(() => {
+  document.querySelectorAll('[data-expires-at]').forEach(el => { el.textContent = fmtExpiry(el.dataset.expiresAt); });
+}, 60000);
+
+async function loadAll(){
+  const res = await fetch('/api/teams/mine', { headers: authHeaders() });
+  const data = await res.json();
+  const teams = data.teams || [];
+
+  await loadInvites(teams);
+
+  const listMount = document.getElementById('myTeamsList');
+  const accepted = teams.filter(t => t.my_status === 'accepted');
+  if(!accepted.length){
+    listMount.innerHTML = '<div class="hub-card empty-state" style="max-width:640px;">You\'re not part of any team yet. Create one above, or wait for an invite.</div>';
+  } else {
+    listMount.innerHTML = '';
+    for(const t of accepted){
+      listMount.appendChild(await renderTeamBlock(t));
+    }
+  }
+
+  loadTeamFiles();
+}
+
+/* ---------- inline team creation (appends to the bottom of My Teams — no popup) ---------- */
+document.getElementById('newTeamName').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') document.getElementById('createTeamBtn').click();
+});
+
+document.getElementById('createTeamBtn').addEventListener('click', async () => {
+  const input = document.getElementById('newTeamName');
+  const name = input.value.trim();
+  const msg = document.getElementById('createTeamMsg');
+  msg.className = 'msg';
+  if(!name){ msg.textContent = 'Team name is required.'; msg.className = 'msg err'; return; }
+  const btn = document.getElementById('createTeamBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try{
+    const res = await fetch('/api/teams', {
+      method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not create team');
+
+    // Drop the "not part of any team yet" placeholder the first time, then
+    // append this new team to the bottom of the existing list — same card
+    // layout as every other team, right there on the page.
+    const listMount = document.getElementById('myTeamsList');
+    if(listMount.querySelector('.empty-state')) listMount.innerHTML = '';
+    listMount.appendChild(await renderTeamBlock(data.team));
+
+    input.value = '';
+    msg.textContent = '"' + name + '" created — search for people below to invite them.';
+    msg.className = 'msg ok';
+  }catch(err){
+    msg.textContent = err.message; msg.className = 'msg err';
+  }finally{
+    btn.disabled = false; btn.textContent = '+ Create Team';
+  }
+});
+
+(async function init(){
+  const user = await window.HubNav.init('teams', true);
+  if(!user) return;
+  currentUserId = user.id;
+  loadAll();
+})();
+</script>
+</body>
+</html>

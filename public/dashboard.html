@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reasoning Hub — Matrix Accuracy, Reasoning Lab & 30-Day EE Prep Tracker</title>
+<meta name="description" content="Track your progress across the Matrix Accuracy Tracker, the Reasoning Lab, and the 30-Day EE Year-2 Prep Track — one account, one login, one shared progress history.">
+<link rel="canonical" href="https://REPLACE-WITH-YOUR-DOMAIN/">
+<meta property="og:title" content="Reasoning Hub">
+<meta property="og:description" content="One account, three trackers: Matrix Accuracy, the Reasoning Lab, and the 30-Day EE Year-2 Prep Track.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://REPLACE-WITH-YOUR-DOMAIN/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/favicon-180.png">
+<link rel="stylesheet" href="/css/theme.css">
+<script>(function(){try{var t=localStorage.getItem('rh_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+  /* Each note gets its own card here, in the same visual language as the
+     Matrix/Courses card above (.app-card + --app-accent), with a small
+     cover thumbnail when the note has a photo. */
+  .note-card-cover{ width:100%; aspect-ratio:16/9; border-radius:8px; overflow:hidden; background:var(--paper); margin:10px 0 12px; border:1px solid var(--grid); }
+  .note-card-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
+</style>
+</head>
+<body class="hub-body">
+<div id="siteNav"></div>
+
+<div class="hub-wrap">
+  <div class="hub-eyebrow">One account · three tracks</div>
+  <h1 class="hub-h1" id="hubGreeting">Reasoning Hub</h1>
+  <p class="hub-sub">The Matrix Accuracy Tracker, the Reasoning Lab, and the 30-Day Prep Track — one login, one progress history, saved to your own database.</p>
+
+  <div class="app-card-grid" id="appCards">
+    <a class="app-card app-card-wide" href="/courses.html" style="--app-accent:#2F6F4F;">
+      <div class="app-eyebrow mono">LINEAR ALGEBRA · CALCULUS + LOGIC · EE YEAR 2 BRIDGE</div>
+      <h3>Courses</h3>
+      <p>Matrix Accuracy, the Reasoning Lab, and the 30-Day Prep Track — one place to jump into any of the three.</p>
+      <div class="courses-mini-row">
+        <div class="courses-mini-item">
+          <div class="mini-label mono">MATRIX</div>
+          <div class="app-progress-bar" style="--app-accent:#2F6F4F;"><i id="matrixBar"></i></div>
+          <div class="app-progress-label mono" id="matrixLabel">Loading…</div>
+        </div>
+        <div class="courses-mini-item">
+          <div class="mini-label mono">REASONING LAB</div>
+          <div class="app-progress-bar" style="--app-accent:#3FA796;"><i id="reasoningBar"></i></div>
+          <div class="app-progress-label mono" id="reasoningLabel">Loading…</div>
+        </div>
+        <div class="courses-mini-item">
+          <div class="mini-label mono">30-DAY PREP</div>
+          <div class="app-progress-bar" style="--app-accent:#C08A2E;"><i id="prep30Bar"></i></div>
+          <div class="app-progress-label mono" id="prep30Label">Loading…</div>
+        </div>
+      </div>
+    </a>
+    <a class="app-card" href="/notes.html" style="--app-accent:#7A5CC7;">
+      <div class="app-eyebrow mono">FACILITATOR CONTENT</div>
+      <h3>Notes &amp; Exercises</h3>
+      <p>Book-style notes and practice books shared by facilitators — public, team, or by request.</p>
+      <div class="app-progress-label mono" id="communityLabel">Loading…</div>
+      <div class="card-preview preview-notes">
+        <div class="card-preview-tag">How it looks</div>
+        <div class="preview-row"><div class="preview-chip">📘</div><div class="preview-line"></div><div class="preview-line short"></div></div>
+        <div class="preview-row"><div class="preview-chip">📗</div><div class="preview-line"></div><div class="preview-line short"></div></div>
+      </div>
+    </a>
+    <a class="app-card" href="/reader.html" style="--app-accent:#3A6FD8;">
+      <div class="app-eyebrow mono">PDF · WORD · TEXT</div>
+      <h3>Reader</h3>
+      <p>Open any file straight from your device — nothing is uploaded or stored, only your reading position.</p>
+      <div class="app-progress-label mono">Never saves the file itself</div>
+      <div class="card-preview preview-reader">
+        <div class="card-preview-tag">How it looks</div>
+        <div class="preview-toolbar"><span>◂</span><span>1 / 12</span><span>▸</span></div>
+        <div class="preview-line"></div>
+        <div class="preview-line"></div>
+        <div class="preview-line"></div>
+        <div class="preview-line"></div>
+        <div class="preview-line"></div>
+      </div>
+    </a>
+    <a class="app-card" href="/public-files.html" style="--app-accent:#C08A2E;">
+      <div class="app-eyebrow mono">SHARED WITH EVERYONE</div>
+      <h3>Public Files</h3>
+      <p>Documents any user chose to share — post your own from My Files.</p>
+      <div class="app-progress-label mono" id="publicFilesLabel">Loading…</div>
+      <div class="card-preview preview-files">
+        <div class="card-preview-tag">How it looks</div>
+        <div class="preview-row"><div class="preview-icon">PDF</div><div class="preview-meta"><div class="preview-line"></div><div class="preview-line short"></div></div><div class="preview-pill">Open</div></div>
+        <div class="preview-row"><div class="preview-icon">DOC</div><div class="preview-meta"><div class="preview-line"></div><div class="preview-line short"></div></div><div class="preview-pill">Open</div></div>
+      </div>
+    </a>
+    <a class="app-card" href="/teams.html" style="--app-accent:#D8546B;">
+      <div class="app-eyebrow mono">STUDY TOGETHER</div>
+      <h3>My Team</h3>
+      <p>Share files and notes with teammates, and message anyone you've joined a team with.</p>
+      <div class="app-progress-label mono" id="myTeamLabel">Loading…</div>
+      <div class="card-preview preview-notes">
+        <div class="card-preview-tag">How it looks</div>
+        <div class="preview-row"><div class="preview-chip">👤</div><div class="preview-line"></div><div class="preview-line short"></div></div>
+        <div class="preview-row"><div class="preview-chip">👤</div><div class="preview-line"></div><div class="preview-line short"></div></div>
+      </div>
+    </a>
+  </div>
+
+  <div class="trend-card" style="margin-top:24px;">
+    <div class="trend-title">COMBINED ACTIVITY TREND · ITEMS COMPLETED OVER TIME, ACROSS ALL THREE TRACKS</div>
+    <div id="combinedChart"></div>
+  </div>
+
+  <div id="noteCardsWrap" style="display:none;">
+    <h2 style="font-family:'Newsreader',serif; font-style:italic; font-weight:600; font-size:20px; color:var(--ink); margin:28px 0 4px;">Your notes</h2>
+    <div class="app-card-grid" id="noteCards"></div>
+  </div>
+</div>
+
+<script src="/js/nav.js"></script>
+<script src="/js/trend-chart.js"></script>
+<script>
+function getToken(){ return localStorage.getItem('rh_token'); }
+async function apiGet(app, key){
+  const q = new URLSearchParams({ app, key, shared: false });
+  const res = await fetch('/api/kv?' + q.toString(), { headers: { Authorization: 'Bearer ' + getToken() } });
+  if(!res.ok) return null;
+  const data = await res.json();
+  return data.value ? JSON.parse(data.value) : null;
+}
+
+async function loadMatrix(){
+  const events = [];
+  let done = 0, accSum = 0;
+  for(let day=1; day<=30; day++){
+    const v = await apiGet('matrix', 'day-progress:' + day);
+    if(v && v.completed){
+      done++;
+      accSum += (v.accuracy || 0);
+      if(v.timestamp) events.push({ t: v.timestamp, app:'matrix' });
+    }
+  }
+  document.getElementById('matrixBar').style.width = (done/30*100) + '%';
+  document.getElementById('matrixLabel').textContent = done + '/30 days · avg ' + (done ? Math.round(accSum/done) : 0) + '%';
+  return { done, total:30, events };
+}
+
+async function loadReasoning(){
+  const v = await apiGet('reasoning', 'progress');
+  const events = [];
+  let done = 0;
+  if(v){
+    Object.keys(v).forEach(day => {
+      const d = v[day];
+      if(d && d.done){ done++; if(d.ts) events.push({ t: new Date(d.ts).toISOString(), app:'reasoning' }); }
+    });
+  }
+  document.getElementById('reasoningBar').style.width = (done/20*100) + '%';
+  document.getElementById('reasoningLabel').textContent = done + '/20 days';
+  return { done, total:20, events };
+}
+
+async function loadPrep30(){
+  const v = await apiGet('prep30', 'prep30-progress');
+  const events = [];
+  let done = 0;
+  if(v && Array.isArray(v.completed)){
+    done = v.completed.length;
+    if(v.completedAt){
+      Object.keys(v.completedAt).forEach(day => events.push({ t: v.completedAt[day], app:'prep30' }));
+    }
+  }
+  document.getElementById('prep30Bar').style.width = (done/30*100) + '%';
+  document.getElementById('prep30Label').textContent = done + '/30 days';
+  return { done, total:30, events };
+}
+
+async function loadCommunity(){
+  try{
+    const [notesRes, booksRes] = await Promise.all([
+      fetch('/api/notes', { headers: { Authorization: 'Bearer ' + getToken() } }),
+      fetch('/api/content/books', { headers: { Authorization: 'Bearer ' + getToken() } })
+    ]);
+    const notesData = notesRes.ok ? await notesRes.json() : { notes: [] };
+    const booksData = booksRes.ok ? await booksRes.json() : { books: [] };
+    const noteCount = (notesData.notes || []).length;
+    const bookCount = (booksData.books || []).length;
+    document.getElementById('communityLabel').textContent = noteCount + ' note' + (noteCount===1?'':'s') + ' · ' + bookCount + ' book' + (bookCount===1?'':'s');
+  } catch(e){
+    document.getElementById('communityLabel').textContent = '';
+  }
+}
+
+async function loadPublicFilesCount(){
+  const label = document.getElementById('publicFilesLabel');
+  try{
+    const res = await fetch('/api/files/public', { headers: { Authorization: 'Bearer ' + getToken() } });
+    const data = res.ok ? await res.json() : { files: [] };
+    const count = (data.files || []).length;
+    label.textContent = count + ' file' + (count===1?'':'s') + ' shared';
+  } catch(e){
+    label.textContent = '';
+  }
+}
+
+// Notes as individual cards, matching the app-card look used for the
+// Matrix/Courses tile above (--app-accent bar, eyebrow, title, blurb).
+// A note with a photo shows it as a small cover thumbnail.
+const NOTE_ACCENTS = ['#7A5CC7', '#2F6F4F', '#3A6FD8', '#C08A2E', '#D8546B', '#3FA796'];
+
+async function fetchAuthedBlobUrl(url){
+  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + getToken() } });
+  if(!res.ok) return null;
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+}
+
+function noteVisLabel(n){
+  if(n.team_id) return 'TEAM';
+  if(!n.is_public) return 'PRIVATE';
+  return n.access_mode === 'restricted' ? 'BY REQUEST' : 'PUBLIC';
+}
+
+async function loadNoteCards(){
+  const wrap = document.getElementById('noteCardsWrap');
+  const mount = document.getElementById('noteCards');
+  try{
+    const res = await fetch('/api/notes', { headers: { Authorization: 'Bearer ' + getToken() } });
+    if(!res.ok) return;
+    const data = await res.json();
+    const notes = data.notes || [];
+    if(!notes.length){ wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+    mount.innerHTML = notes.map((n, i) => `
+      <a class="app-card" href="/notes.html?note=${n.id}" style="--app-accent:${NOTE_ACCENTS[i % NOTE_ACCENTS.length]};">
+        <div class="app-eyebrow mono">${noteVisLabel(n)}</div>
+        <h3>${(n.title || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</h3>
+        ${n.cover_storage_path ? `<div class="note-card-cover" id="note-cover-${n.id}"></div>` : ''}
+        ${n.document_original_name ? '<p>📄 Has an attached document</p>' : ''}
+      </a>
+    `).join('');
+    notes.forEach(n => {
+      if(!n.cover_storage_path) return;
+      fetchAuthedBlobUrl('/api/notes/' + n.id + '/cover').then(url => {
+        if(!url) return;
+        const el = document.getElementById('note-cover-' + n.id);
+        if(el) el.innerHTML = `<img src="${url}" alt="">`;
+      }).catch(() => {});
+    });
+  }catch(e){ wrap.style.display = 'none'; }
+}
+
+async function loadMyTeam(){
+  const label = document.getElementById('myTeamLabel');
+  try{
+    const res = await fetch('/api/teams/mine', { headers: { Authorization: 'Bearer ' + getToken() } });
+    const data = res.ok ? await res.json() : { teams: [] };
+    const teams = data.teams || [];
+    if(!teams.length){ label.textContent = 'No team yet — start or join one'; return; }
+    const accepted = teams.filter(t => t.my_status === 'accepted');
+    const pending = teams.filter(t => t.my_status === 'pending');
+    let text = accepted.length + ' team' + (accepted.length===1?'':'s');
+    if(pending.length) text += ' · ' + pending.length + ' pending';
+    label.textContent = text;
+  }catch(e){
+    label.textContent = '';
+  }
+}
+
+function renderCombinedChart(allEvents, totalItems){
+  const sorted = allEvents.filter(e => e.t).sort((a,b) => new Date(a.t) - new Date(b.t));
+  if(sorted.length < 2){
+    document.getElementById('combinedChart').innerHTML =
+      '<div class="trend-empty">Complete a few days across any tracker to see your combined trend here.</div>';
+    return;
+  }
+  // Sample down to at most 14 points so the chart stays readable.
+  const step = Math.max(1, Math.ceil(sorted.length / 14));
+  const points = [];
+  for(let i=0; i<sorted.length; i+=step){
+    points.push({ label: 'D' + (points.length+1), value: (i+1) });
+  }
+  if(points[points.length-1].value !== sorted.length){
+    points.push({ label: 'D' + (points.length+1), value: sorted.length });
+  }
+  window.renderTrendChart(document.getElementById('combinedChart'), points, { max: totalItems });
+}
+
+(async function init(){
+  const user = await window.HubNav.init('home', true);
+  if(!user) return;
+  const greetEl = document.getElementById('hubGreeting');
+  if(greetEl) greetEl.textContent = 'Welcome, ' + (user.name || user.email.split('@')[0]);
+  const [matrix, reasoning, prep30] = await Promise.all([loadMatrix(), loadReasoning(), loadPrep30()]);
+  const totalItems = matrix.total + reasoning.total + prep30.total;
+  renderCombinedChart([...matrix.events, ...reasoning.events, ...prep30.events], totalItems);
+  loadCommunity();
+  loadPublicFilesCount();
+  loadMyTeam();
+  loadNoteCards();
+})();
+</script>
+</body>
+</html>
